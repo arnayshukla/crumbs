@@ -12,10 +12,11 @@
 		content: string;
 		onUpdate: (markdown: string) => void;
 		onEditor?: (editor: Editor) => void;
+		onTransaction?: () => void;
 		placeholder?: string;
 	}
 
-	let { content, onUpdate, onEditor, placeholder = 'Take a note...' }: Props = $props();
+	let { content, onUpdate, onEditor, onTransaction, placeholder = 'Take a note...' }: Props = $props();
 
 	let element: HTMLDivElement | undefined = $state();
 	let editor: Editor | undefined = $state();
@@ -38,6 +39,7 @@
 			onTransaction: () => {
 				// Trigger Svelte reactivity for active state checks
 				editor = editor;
+				onTransaction?.();
 			}
 		});
 

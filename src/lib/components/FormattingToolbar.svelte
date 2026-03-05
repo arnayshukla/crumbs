@@ -26,10 +26,14 @@
 	} from 'lucide-svelte';
 
 	interface Props {
+		tick?: number;
 		editor: Editor | undefined;
 	}
 
-	let { editor }: Props = $props();
+	let { editor, tick }: Props = $props();
+
+	function canUndo() { void tick; return editor?.can().chain().focus().undo().run() ?? false; }
+	function canRedo() { void tick; return editor?.can().chain().focus().redo().run() ?? false; }
 
 	let openDropdown: string | null = $state(null);
 	let linkUrl: string = $state('');
@@ -111,8 +115,8 @@
 	<!-- History -->
 	<button
 		onclick={() => editor?.chain().focus().undo().run()}
-		disabled={!editor?.can().undo()}
-		class={btnClass(false, !editor?.can().undo())}
+		disabled={!canUndo()}
+		class={btnClass(false, !canUndo())}
 		title="Undo (Ctrl+Z)"
 		data-testid="format-undo"
 	>
@@ -120,8 +124,8 @@
 	</button>
 	<button
 		onclick={() => editor?.chain().focus().redo().run()}
-		disabled={!editor?.can().redo()}
-		class={btnClass(false, !editor?.can().redo())}
+		disabled={!canRedo()}
+		class={btnClass(false, !canRedo())}
 		title="Redo (Ctrl+Shift+Z)"
 		data-testid="format-redo"
 	>

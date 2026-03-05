@@ -29,6 +29,7 @@
 	let rawMarkdownMode = $state(false);
 	let textareaEl: HTMLTextAreaElement | undefined = $state();
 	let tiptapEditor: Editor | undefined = $state();
+	let editorTick = $state(0);
 
 	let bgStyle = $state('');
 	$effect(() => {
@@ -112,13 +113,14 @@
 				{content}
 				onUpdate={(md) => (content = md)}
 				onEditor={(e) => (tiptapEditor = e)}
+				onTransaction={() => editorTick++}
 				placeholder="Take a note..."
 			/>
 		{/if}
 
 		<!-- Formatting toolbar -->
 		{#if !rawMarkdownMode && !checklistMode}
-			<FormattingToolbar editor={tiptapEditor} />
+			<FormattingToolbar editor={tiptapEditor} tick={editorTick} />
 		{/if}
 
 		<!-- Toolbar -->
