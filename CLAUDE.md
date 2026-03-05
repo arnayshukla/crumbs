@@ -60,6 +60,7 @@ A `Makefile` wraps all common tasks for tool-agnostic usage. Run `make help` to 
 | `make db-generate` | `pnpm db:generate` | Generate migrations |
 | `make db-migrate` | `pnpm db:migrate` | Run migrations |
 | `make db-studio` | `pnpm db:studio` | Open Drizzle Studio |
+| `make docs-api` | `pnpm docs:api` | Regenerate API docs from OpenAPI spec |
 | `make install` | `pnpm install` | Install dependencies |
 | `make docker-build` | — | Build Docker image |
 | `make docker-up` | — | Start containers |

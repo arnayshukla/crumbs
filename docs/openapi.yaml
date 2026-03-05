@@ -1,0 +1,420 @@
+openapi: 3.1.0
+info:
+  title: Crumbs API
+  description: REST API for Crumbs by Bretzel — a self-hostable, offline-first notes app.
+  version: 0.1.0
+  contact:
+    name: Bretzel
+    url: https://bretzel.app
+
+servers:
+  - url: http://localhost:3000
+    description: Local development
+
+security:
+  - sessionCookie: []
+
+paths:
+  /api/auth/setup:
+    post:
+      summary: First-time password setup
+      description: Creates the single user account. Only works once — returns 400 if already set up.
+      tags: [Auth]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [password]
+              properties:
+                password:
+                  type: string
+                  minLength: 8
+      responses:
+        '201':
+          description: Account created, session cookie set
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+        '400':
+          description: Setup already completed or invalid password
+
+  /api/auth/login:
+    post:
+      summary: Log in
+      tags: [Auth]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [password]
+              properties:
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Logged in, session cookie set
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+        '401':
+          description: Invalid password
+
+  /api/auth/logout:
+    post:
+      summary: Log out
+      tags: [Auth]
+      responses:
+        '200':
+          description: Session cleared
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+
+  /api/notes:
+    get:
+      summary: List notes
+      tags: [Notes]
+      parameters:
+        - name: filter
+          in: query
+          schema:
+            type: string
+            enum: [all, archived, trashed]
+            default: all
+      responses:
+        '200':
+          description: Array of notes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Note'
+    post:
+      summary: Create a note
+      tags: [Notes]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NoteInput'
+      responses:
+        '201':
+          description: Created note
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Note'
+
+  /api/notes/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      summary: Get a note
+      tags: [Notes]
+      responses:
+        '200':
+          description: Note with tags
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Note'
+        '404':
+          description: Note not found
+    patch:
+      summary: Update a note
+      description: Partial update — only include changed fields.
+      tags: [Notes]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NoteInput'
+      responses:
+        '200':
+          description: Updated note
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Note'
+        '404':
+          description: Note not found
+    delete:
+      summary: Permanently delete a note
+      tags: [Notes]
+      responses:
+        '200':
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+        '404':
+          description: Note not found
+
+  /api/notes/{id}/attachments:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      summary: List or download attachments
+      description: Without `attachmentId`, lists all attachments. With `attachmentId`, returns the file.
+      tags: [Attachments]
+      parameters:
+        - name: attachmentId
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Attachment list or file content
+    post:
+      summary: Upload an image attachment
+      tags: [Attachments]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: Image file (max 10MB)
+      responses:
+        '201':
+          description: Attachment metadata
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Attachment'
+        '400':
+          description: Invalid file
+    delete:
+      summary: Delete an attachment
+      tags: [Attachments]
+      parameters:
+        - name: attachmentId
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+
+  /api/search:
+    get:
+      summary: Full-text search
+      description: Searches across note titles, content, and tags. Excludes trashed notes.
+      tags: [Search]
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Matching notes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Note'
+
+  /api/tags:
+    get:
+      summary: List all tags
+      tags: [Tags]
+      responses:
+        '200':
+          description: Array of tags
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Tag'
+
+  /api/sync:
+    get:
+      summary: Pull changes since timestamp
+      tags: [Sync]
+      parameters:
+        - name: since
+          in: query
+          required: true
+          schema:
+            type: integer
+            description: Unix timestamp in milliseconds
+      responses:
+        '200':
+          description: Notes updated since the given timestamp
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Note'
+    post:
+      summary: Push local changes
+      tags: [Sync]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [changes]
+              properties:
+                changes:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/SyncChange'
+      responses:
+        '200':
+          description: Changes applied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+
+components:
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: session
+
+  schemas:
+    Success:
+      type: object
+      properties:
+        success:
+          type: boolean
+
+    Note:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        content:
+          type: string
+        color:
+          type: string
+          enum: [default, coral, peach, sand, mint, sage, fog, storm, dusk, blossom, clay, chalk]
+        pinned:
+          type: boolean
+        archived:
+          type: boolean
+        trashed:
+          type: boolean
+        checklistMode:
+          type: boolean
+        sortOrder:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        version:
+          type: integer
+        tags:
+          type: array
+          items:
+            type: string
+
+    NoteInput:
+      type: object
+      properties:
+        title:
+          type: string
+        content:
+          type: string
+        color:
+          type: string
+          enum: [default, coral, peach, sand, mint, sage, fog, storm, dusk, blossom, clay, chalk]
+        pinned:
+          type: boolean
+        archived:
+          type: boolean
+        trashed:
+          type: boolean
+        checklistMode:
+          type: boolean
+        sortOrder:
+          type: integer
+
+    Tag:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+
+    Attachment:
+      type: object
+      properties:
+        id:
+          type: string
+        noteId:
+          type: string
+        filename:
+          type: string
+        mimeType:
+          type: string
+        size:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+
+    SyncChange:
+      type: object
+      required: [noteId, operation, timestamp]
+      properties:
+        noteId:
+          type: string
+          format: uuid
+        operation:
+          type: string
+          enum: [create, update, delete]
+        timestamp:
+          type: integer
+          description: Unix timestamp in milliseconds
+        data:
+          $ref: '#/components/schemas/NoteInput'

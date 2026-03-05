@@ -1,5 +1,5 @@
 .PHONY: help dev build preview check test test-unit test-e2e lint \
-	db-push db-generate db-migrate db-studio \
+	db-push db-generate db-migrate db-studio docs-api \
 	install docker-build docker-up docker-down docker-logs clean
 
 help: ## List all targets
@@ -40,6 +40,9 @@ db-migrate: ## Run migrations
 
 db-studio: ## Open Drizzle Studio
 	pnpm db:studio
+
+docs-api: ## Regenerate API docs from OpenAPI spec
+	pnpm docs:api
 
 install: ## Install dependencies
 	pnpm install

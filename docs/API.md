@@ -1,166 +1,476 @@
-# API Reference
+<!-- AUTO-GENERATED from docs/openapi.yaml — do not edit manually -->
+<!-- Run: pnpm docs:api -->
 
-All API endpoints require authentication (session cookie) except `/api/auth/setup` and `/api/auth/login`.
+# Crumbs API
 
-## Authentication
+REST API for Crumbs by Bretzel — a self-hostable, offline-first notes app.
 
-### POST /api/auth/setup
-First-time setup. Creates the single user account.
+Base URL: `http://localhost:3000`
+
+All endpoints require a `session` cookie (set by login) except where noted.
+
+## Auth
+
+### `POST /api/auth/setup`
+
+First-time password setup
+
+Creates the single user account. Only works once — returns 400 if already set up.
+
+> No authentication required.
 
 **Request:**
+
 ```json
-{ "password": "min8characters" }
+{
+  "password": "password"
+}
 ```
 
-**Response:** `201 Created`
-```json
-{ "success": true }
-```
-Sets `session` cookie.
+**Response:** `201`
 
-### POST /api/auth/login
+```json
+{
+  "success": true
+}
+```
+
+**Errors:** `400` Setup already completed or invalid password
+
+---
+
+### `POST /api/auth/login`
+
+Log in
+
+> No authentication required.
+
 **Request:**
+
 ```json
-{ "password": "yourpassword" }
+{
+  "password": "password"
+}
 ```
 
-**Response:** `200 OK`
-```json
-{ "success": true }
-```
-Sets `session` cookie.
+**Response:** `200`
 
-### POST /api/auth/logout
-Clears session.
-
-**Response:** `200 OK`
 ```json
-{ "success": true }
+{
+  "success": true
+}
 ```
+
+**Errors:** `401` Invalid password
+
+---
+
+### `POST /api/auth/logout`
+
+Log out
+
+**Response:** `200`
+
+```json
+{
+  "success": true
+}
+```
+
+---
 
 ## Notes
 
-### GET /api/notes
-List notes by filter.
+### `GET /api/notes`
 
-**Query Parameters:**
-- `filter` - `all` (default), `archived`, `trashed`
+List notes
 
-**Response:** `200 OK`
+**Parameters:**
+
+| Name | In | Type | Required | Description |
+|------|----|------|----------|-------------|
+| `filter` | query | string | no |  (all, archived, trashed) — default: `all` |
+
+**Response:** `200`
+
 ```json
 [
   {
     "id": "uuid",
-    "title": "My Note",
-    "content": "**Markdown** content",
-    "color": "coral",
+    "title": "title",
+    "content": "content",
+    "color": "default",
     "pinned": true,
-    "archived": false,
-    "trashed": false,
-    "checklistMode": false,
-    "sortOrder": 0,
-    "createdAt": "2024-01-01T00:00:00.000Z",
-    "updatedAt": "2024-01-01T00:00:00.000Z",
+    "archived": true,
+    "trashed": true,
+    "checklistMode": true,
+    "sortOrder": 1,
+    "createdAt": "2025-01-01T00:00:00.000Z",
+    "updatedAt": "2025-01-01T00:00:00.000Z",
     "version": 1,
-    "tags": ["work", "important"]
+    "tags": [
+      "item"
+    ]
   }
 ]
 ```
 
-### POST /api/notes
-Create a new note.
+---
+
+### `POST /api/notes`
+
+Create a note
 
 **Request:**
+
 ```json
 {
-  "title": "My Note",
-  "content": "Note content with #tags",
+  "title": "title",
+  "content": "content",
   "color": "default",
-  "pinned": false,
-  "checklistMode": false
+  "pinned": true,
+  "archived": true,
+  "trashed": true,
+  "checklistMode": true,
+  "sortOrder": 1
 }
 ```
 
-**Response:** `201 Created` - Returns the created note.
+**Response:** `201`
 
-### GET /api/notes/:id
-Get a single note.
-
-### PATCH /api/notes/:id
-Update a note.
-
-**Request:** (partial update - only include changed fields)
 ```json
 {
-  "title": "Updated Title",
-  "color": "coral",
-  "pinned": true
+  "id": "uuid",
+  "title": "title",
+  "content": "content",
+  "color": "default",
+  "pinned": true,
+  "archived": true,
+  "trashed": true,
+  "checklistMode": true,
+  "sortOrder": 1,
+  "createdAt": "2025-01-01T00:00:00.000Z",
+  "updatedAt": "2025-01-01T00:00:00.000Z",
+  "version": 1,
+  "tags": [
+    "item"
+  ]
 }
 ```
 
-**Response:** `200 OK` - Returns the updated note.
+---
 
-### DELETE /api/notes/:id
-Permanently delete a note.
+### `GET /api/notes/{id}`
 
-## Search
+Get a note
 
-### GET /api/search
-Full-text search across notes.
+**Parameters:**
 
-**Query Parameters:**
-- `q` - Search query
+| Name | In | Type | Required | Description |
+|------|----|------|----------|-------------|
+| `id` | path | string | yes |  |
 
-**Response:** `200 OK` - Array of matching notes (excluding trashed).
+**Response:** `200`
 
-## Tags
-
-### GET /api/tags
-List all tags.
-
-**Response:** `200 OK`
 ```json
-[
-  { "id": 1, "name": "work" },
-  { "id": 2, "name": "personal" }
-]
+{
+  "id": "uuid",
+  "title": "title",
+  "content": "content",
+  "color": "default",
+  "pinned": true,
+  "archived": true,
+  "trashed": true,
+  "checklistMode": true,
+  "sortOrder": 1,
+  "createdAt": "2025-01-01T00:00:00.000Z",
+  "updatedAt": "2025-01-01T00:00:00.000Z",
+  "version": 1,
+  "tags": [
+    "item"
+  ]
+}
 ```
+
+**Errors:** `404` Note not found
+
+---
+
+### `PATCH /api/notes/{id}`
+
+Update a note
+
+Partial update — only include changed fields.
+
+**Parameters:**
+
+| Name | In | Type | Required | Description |
+|------|----|------|----------|-------------|
+| `id` | path | string | yes |  |
+
+**Request:**
+
+```json
+{
+  "title": "title",
+  "content": "content",
+  "color": "default",
+  "pinned": true,
+  "archived": true,
+  "trashed": true,
+  "checklistMode": true,
+  "sortOrder": 1
+}
+```
+
+**Response:** `200`
+
+```json
+{
+  "id": "uuid",
+  "title": "title",
+  "content": "content",
+  "color": "default",
+  "pinned": true,
+  "archived": true,
+  "trashed": true,
+  "checklistMode": true,
+  "sortOrder": 1,
+  "createdAt": "2025-01-01T00:00:00.000Z",
+  "updatedAt": "2025-01-01T00:00:00.000Z",
+  "version": 1,
+  "tags": [
+    "item"
+  ]
+}
+```
+
+**Errors:** `404` Note not found
+
+---
+
+### `DELETE /api/notes/{id}`
+
+Permanently delete a note
+
+**Parameters:**
+
+| Name | In | Type | Required | Description |
+|------|----|------|----------|-------------|
+| `id` | path | string | yes |  |
+
+**Response:** `200`
+
+```json
+{
+  "success": true
+}
+```
+
+**Errors:** `404` Note not found
+
+---
 
 ## Attachments
 
-### GET /api/notes/:id/attachments
-List attachments for a note.
+### `GET /api/notes/{id}/attachments`
 
-### POST /api/notes/:id/attachments
-Upload an image attachment.
+List or download attachments
+
+Without `attachmentId`, lists all attachments. With `attachmentId`, returns the file.
+
+**Parameters:**
+
+| Name | In | Type | Required | Description |
+|------|----|------|----------|-------------|
+| `id` | path | string | yes |  |
+| `attachmentId` | query | string | no |  |
+
+**Response:** `200`
+
+---
+
+### `POST /api/notes/{id}/attachments`
+
+Upload an image attachment
+
+**Parameters:**
+
+| Name | In | Type | Required | Description |
+|------|----|------|----------|-------------|
+| `id` | path | string | yes |  |
 
 **Request:** `multipart/form-data` with `file` field.
 
-**Response:** `201 Created` - Returns attachment metadata.
+**Response:** `201`
 
-### DELETE /api/notes/:id/attachments?attachmentId=xxx
-Delete an attachment.
+```json
+{
+  "id": "id",
+  "noteId": "noteId",
+  "filename": "filename",
+  "mimeType": "mimeType",
+  "size": 1,
+  "createdAt": "2025-01-01T00:00:00.000Z"
+}
+```
+
+**Errors:** `400` Invalid file
+
+---
+
+### `DELETE /api/notes/{id}/attachments`
+
+Delete an attachment
+
+**Parameters:**
+
+| Name | In | Type | Required | Description |
+|------|----|------|----------|-------------|
+| `id` | path | string | yes |  |
+| `attachmentId` | query | string | yes |  |
+
+**Response:** `200`
+
+```json
+{
+  "success": true
+}
+```
+
+---
+
+## Search
+
+### `GET /api/search`
+
+Full-text search
+
+Searches across note titles, content, and tags. Excludes trashed notes.
+
+**Parameters:**
+
+| Name | In | Type | Required | Description |
+|------|----|------|----------|-------------|
+| `q` | query | string | yes |  |
+
+**Response:** `200`
+
+```json
+[
+  {
+    "id": "uuid",
+    "title": "title",
+    "content": "content",
+    "color": "default",
+    "pinned": true,
+    "archived": true,
+    "trashed": true,
+    "checklistMode": true,
+    "sortOrder": 1,
+    "createdAt": "2025-01-01T00:00:00.000Z",
+    "updatedAt": "2025-01-01T00:00:00.000Z",
+    "version": 1,
+    "tags": [
+      "item"
+    ]
+  }
+]
+```
+
+---
+
+## Tags
+
+### `GET /api/tags`
+
+List all tags
+
+**Response:** `200`
+
+```json
+[
+  {
+    "id": 1,
+    "name": "name"
+  }
+]
+```
+
+---
 
 ## Sync
 
-### POST /api/sync
-Push local changes to server.
+### `GET /api/sync`
+
+Pull changes since timestamp
+
+**Parameters:**
+
+| Name | In | Type | Required | Description |
+|------|----|------|----------|-------------|
+| `since` | query | integer | yes | Unix timestamp in milliseconds |
+
+**Response:** `200`
+
+```json
+[
+  {
+    "id": "uuid",
+    "title": "title",
+    "content": "content",
+    "color": "default",
+    "pinned": true,
+    "archived": true,
+    "trashed": true,
+    "checklistMode": true,
+    "sortOrder": 1,
+    "createdAt": "2025-01-01T00:00:00.000Z",
+    "updatedAt": "2025-01-01T00:00:00.000Z",
+    "version": 1,
+    "tags": [
+      "item"
+    ]
+  }
+]
+```
+
+---
+
+### `POST /api/sync`
+
+Push local changes
 
 **Request:**
+
 ```json
 {
   "changes": [
     {
       "noteId": "uuid",
-      "operation": "create|update|delete",
-      "timestamp": 1704067200000,
-      "data": { "title": "...", "content": "..." }
+      "operation": "create",
+      "timestamp": 1,
+      "data": {
+        "title": "title",
+        "content": "content",
+        "color": "default",
+        "pinned": true,
+        "archived": true,
+        "trashed": true,
+        "checklistMode": true,
+        "sortOrder": 1
+      }
     }
   ]
 }
 ```
 
-### GET /api/sync?since=timestamp
-Pull changes since a timestamp (milliseconds).
+**Response:** `200`
 
-**Response:** `200 OK` - Array of notes updated since the given timestamp.
+```json
+{
+  "success": true
+}
+```
+
+---
