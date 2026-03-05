@@ -1,10 +1,12 @@
 <script lang="ts">
 	import ColorPicker from './ColorPicker.svelte';
 	import Checklist from './Checklist.svelte';
+	import FormattingToolbar from './FormattingToolbar.svelte';
+	import TiptapEditor from './TiptapEditor.svelte';
 	import { updateNote, createNote } from '$lib/stores/notes.js';
-	import { renderMarkdown } from '$lib/utils/markdown.js';
 	import { NOTE_COLORS } from '$lib/utils/colors.js';
 	import { effectiveTheme } from '$lib/stores/theme.js';
+	import type { Editor } from '@tiptap/core';
 	import type { Note, NoteColor } from '$lib/types/index.js';
 
 	interface Props {
@@ -13,22 +15,26 @@
 		onClose: () => void;
 	}
 
-	let { note, isNew = false, onClose }: Props = $props();
+	const { note, isNew = false, onClose }: Props = $props();
 
-	let title = $state(note?.title || '');
-	let content = $state(note?.content || '');
-	let color = $state<NoteColor>(note?.color || 'default');
-	let checklistMode = $state(note?.checklistMode || false);
-	let showPreview = $state(false);
+	// svelte-ignore state_referenced_locally
+	let title = $state(note?.title ?? '');
+	// svelte-ignore state_referenced_locally
+	let content = $state(note?.content ?? '');
+	// svelte-ignore state_referenced_locally
+	let color = $state<NoteColor>(note?.color ?? 'default');
+	// svelte-ignore state_referenced_locally
+	let checklistMode = $state(note?.checklistMode ?? false);
 	let showColorPicker = $state(false);
+	let rawMarkdownMode = $state(false);
+	let textareaEl: HTMLTextAreaElement | undefined = $state();
+	let tiptapEditor: Editor | undefined = $state();
 
 	let bgStyle = $state('');
 	$effect(() => {
 		const colors = NOTE_COLORS[color];
 		bgStyle = `background-color: ${$effectiveTheme === 'dark' ? colors.dark : colors.light}`;
 	});
-
-	const renderedContent = $derived(renderMarkdown(content));
 
 	async function save() {
 		if (!title.trim() && !content.trim()) {
@@ -53,6 +59,13 @@
 	function handleColorSelect(c: NoteColor) {
 		color = c;
 		showColorPicker = false;
+	}
+
+	function toggleMarkdownMode() {
+		rawMarkdownMode = !rawMarkdownMode;
+		if (rawMarkdownMode) {
+			requestAnimationFrame(() => textareaEl?.focus());
+		}
 	}
 </script>
 
@@ -85,21 +98,27 @@
 			<div class="px-4 py-2">
 				<Checklist {content} onChange={(c) => (content = c)} />
 			</div>
-		{:else if showPreview}
-			<div
-				class="prose prose-sm dark:prose-invert min-h-[100px] max-w-none px-4 py-2"
-				data-testid="note-preview"
-			>
-				{@html renderedContent}
-			</div>
-		{:else}
+		{:else if rawMarkdownMode}
 			<textarea
+				bind:this={textareaEl}
 				placeholder="Take a note..."
 				bind:value={content}
 				class="min-h-[100px] w-full resize-none bg-transparent px-4 py-2 text-sm text-gray-800 outline-none placeholder:text-gray-500 dark:text-gray-200"
 				rows="6"
 				data-testid="note-content-input"
 			></textarea>
+		{:else}
+			<TiptapEditor
+				{content}
+				onUpdate={(md) => (content = md)}
+				onEditor={(e) => (tiptapEditor = e)}
+				placeholder="Take a note..."
+			/>
+		{/if}
+
+		<!-- Formatting toolbar -->
+		{#if !rawMarkdownMode && !checklistMode}
+			<FormattingToolbar editor={tiptapEditor} />
 		{/if}
 
 		<!-- Toolbar -->
@@ -124,23 +143,6 @@
 					{/if}
 				</div>
 
-				<!-- Preview toggle -->
-				<button
-					onclick={() => (showPreview = !showPreview)}
-					class="rounded-full p-2 hover:bg-black/10 dark:hover:bg-white/10"
-					title={showPreview ? 'Edit' : 'Preview'}
-					data-testid="preview-toggle"
-				>
-					<svg class="h-5 w-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						{#if showPreview}
-							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-						{:else}
-							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-						{/if}
-					</svg>
-				</button>
-
 				<!-- Checklist mode toggle -->
 				<button
 					onclick={() => (checklistMode = !checklistMode)}
@@ -150,6 +152,18 @@
 				>
 					<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+					</svg>
+				</button>
+
+				<!-- Raw markdown mode toggle -->
+				<button
+					onclick={toggleMarkdownMode}
+					class="rounded-full p-2 hover:bg-black/10 dark:hover:bg-white/10 {rawMarkdownMode ? 'text-amber-600' : ''}"
+					title="Markdown mode"
+					data-testid="markdown-toggle"
+				>
+					<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
 					</svg>
 				</button>
 			</div>

@@ -11,7 +11,9 @@ test.describe('Notes CRUD', () => {
 		// When the user creates a note titled "My First Note" with content "Hello world!"
 		await page.getByTestId('new-note-btn').click();
 		await page.getByTestId('note-title-input').fill('My First Note');
-		await page.getByTestId('note-content-input').fill('Hello world!');
+		const editor = page.getByTestId('tiptap-editor').locator('.tiptap');
+		await editor.click();
+		await editor.pressSequentially('Hello world!');
 		await page.getByTestId('close-editor-btn').click();
 
 		// Then the note is visible in the notes list
@@ -23,7 +25,9 @@ test.describe('Notes CRUD', () => {
 		// Given a note titled "Original Title" exists
 		await page.getByTestId('new-note-btn').click();
 		await page.getByTestId('note-title-input').fill('Original Title');
-		await page.getByTestId('note-content-input').fill('Original content');
+		const editor = page.getByTestId('tiptap-editor').locator('.tiptap');
+		await editor.click();
+		await editor.pressSequentially('Original content');
 		await page.getByTestId('close-editor-btn').click();
 
 		// When the user changes the title to "Updated Title"
@@ -50,15 +54,22 @@ test.describe('Notes CRUD', () => {
 		await expect(page.getByText('Delete Me')).not.toBeVisible();
 	});
 
-	test('Scenario: Markdown content is rendered in the note preview', async ({ authenticatedPage: page }) => {
-		// Given a note with markdown content "**bold text**"
+	test('Scenario: Bold formatting applies to selected text in the editor', async ({ authenticatedPage: page }) => {
+		// Given the user is editing a note with content "hello world"
 		await page.getByTestId('new-note-btn').click();
-		await page.getByTestId('note-content-input').fill('**bold text**');
+		await page.getByTestId('markdown-toggle').click();
+		await page.getByTestId('note-content-input').fill('hello world');
+		await page.getByTestId('markdown-toggle').click();
+		const editor = page.getByTestId('tiptap-editor').locator('.tiptap');
 
-		// When the user switches to preview mode
-		await page.getByTestId('preview-toggle').click();
+		// When the user selects "world" and applies bold formatting
+		await page.getByTestId('tiptap-editor').evaluate((el) => {
+			const ed = (el as any).__tiptapEditor;
+			if (!ed) return;
+			ed.chain().focus().setTextSelection({ from: 7, to: 12 }).toggleBold().run();
+		});
 
-		// Then the rendered preview contains the formatted text
-		await expect(page.getByTestId('note-preview')).toContainText('bold text');
+		// Then the selected text appears bold in the editor
+		await expect(editor.locator('strong')).toHaveText('world');
 	});
 });

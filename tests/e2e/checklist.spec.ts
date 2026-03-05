@@ -1,7 +1,7 @@
 import { test, expect } from './helpers/fixtures.js';
 
 test.describe('Checklist', () => {
-	test('Scenario: Checklist UI replaces textarea when checklist mode is enabled', async ({ authenticatedPage: page }) => {
+	test('Scenario: Checklist UI replaces editor when checklist mode is enabled', async ({ authenticatedPage: page }) => {
 		// Given the user is creating a new note
 		await page.getByTestId('new-note-btn').click();
 
@@ -11,8 +11,8 @@ test.describe('Checklist', () => {
 		// Then the checklist component is displayed
 		await expect(page.getByTestId('checklist')).toBeVisible();
 
-		// And the plain text area is hidden
-		await expect(page.getByTestId('note-content-input')).not.toBeVisible();
+		// And the rich text editor is hidden
+		await expect(page.getByTestId('tiptap-editor')).not.toBeVisible();
 	});
 
 	test('Scenario: Checklist item can be added and persisted', async ({ authenticatedPage: page }) => {
@@ -89,8 +89,8 @@ test.describe('Checklist', () => {
 		// When the user disables checklist mode
 		await page.getByTestId('checklist-toggle').click();
 
-		// Then the plain text area is displayed again
-		await expect(page.getByTestId('note-content-input')).toBeVisible();
+		// Then the rich text editor is displayed again
+		await expect(page.getByTestId('tiptap-editor')).toBeVisible();
 		await expect(page.getByTestId('checklist')).not.toBeVisible();
 	});
 });

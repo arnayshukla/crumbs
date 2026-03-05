@@ -47,7 +47,9 @@ test.describe('Organization Features', () => {
 		// Given a note tagged #important and an untagged note exist
 		await page.getByTestId('new-note-btn').click();
 		await page.getByTestId('note-title-input').fill('Tagged Note');
-		await page.getByTestId('note-content-input').fill('This is #important');
+		const editor = page.getByTestId('tiptap-editor').locator('.tiptap');
+		await editor.click();
+		await editor.pressSequentially('This is #important');
 		await page.getByTestId('close-editor-btn').click();
 
 		await page.getByTestId('new-note-btn').click();

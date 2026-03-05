@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { NOTE_COLORS } from '$lib/utils/colors.js';
 	import { effectiveTheme } from '$lib/stores/theme.js';
-	import { stripMarkdown } from '$lib/utils/markdown.js';
+	import { renderMarkdown } from '$lib/utils/markdown.js';
 	import { togglePin, trashNote, archiveNote, unarchiveNote, restoreNote, deleteNote, currentFilter } from '$lib/stores/notes.js';
 	import type { Note } from '$lib/types/index.js';
 
@@ -25,7 +25,7 @@
 
 	let cardStyle = $state('');
 
-	const preview = $derived(stripMarkdown(note.content).slice(0, 200));
+	const renderedContent = $derived(renderMarkdown(note.content));
 
 	const checklistItems = $derived<ChecklistItem[]>(
 		note.checklistMode
@@ -70,8 +70,10 @@
 				<li class="text-xs text-gray-400">+{checklistItems.length - 8} more</li>
 			{/if}
 		</ul>
-	{:else if preview}
-		<p class="line-clamp-6 text-sm text-gray-700 dark:text-gray-300">{preview}</p>
+	{:else if note.content}
+		<div class="prose prose-sm dark:prose-invert line-clamp-6 max-w-none text-sm text-gray-700 dark:text-gray-300" data-testid="note-content-preview">
+			{@html renderedContent}
+		</div>
 	{/if}
 
 	{#if note.tags && note.tags.length > 0}

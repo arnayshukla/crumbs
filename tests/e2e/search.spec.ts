@@ -23,7 +23,9 @@ test.describe('Search', () => {
 		// Given a note titled "Recipe" with content "Pasta with tomato sauce" exists
 		await page.getByTestId('new-note-btn').click();
 		await page.getByTestId('note-title-input').fill('Recipe');
-		await page.getByTestId('note-content-input').fill('Pasta with tomato sauce');
+		const editor = page.getByTestId('tiptap-editor').locator('.tiptap');
+		await editor.click();
+		await editor.pressSequentially('Pasta with tomato sauce');
 		await page.getByTestId('close-editor-btn').click();
 
 		// When the user searches for "tomato"
