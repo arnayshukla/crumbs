@@ -5,6 +5,11 @@
 	import { togglePin, trashNote, archiveNote, unarchiveNote, restoreNote, deleteNote, currentFilter } from '$lib/stores/notes.js';
 	import type { Note } from '$lib/types/index.js';
 
+	interface ChecklistItem {
+		text: string;
+		checked: boolean;
+	}
+
 	interface Props {
 		note: Note;
 		onEdit: (note: Note) => void;
@@ -21,6 +26,15 @@
 	let cardStyle = $state('');
 
 	const preview = $derived(stripMarkdown(note.content).slice(0, 200));
+
+	const checklistItems = $derived<ChecklistItem[]>(
+		note.checklistMode
+			? note.content.split('\n').filter(l => l.trim()).map(line => ({
+					text: line.replace(/^- \[[ x]\] /, ''),
+					checked: line.startsWith('- [x] ')
+				}))
+			: []
+	);
 
 	function stop(fn: () => void) {
 		return (e: Event) => {
@@ -44,7 +58,19 @@
 		<h3 class="mb-2 text-sm font-semibold text-gray-900 dark:text-gray-100">{note.title}</h3>
 	{/if}
 
-	{#if preview}
+	{#if note.checklistMode && checklistItems.length > 0}
+		<ul class="space-y-1" data-testid="note-checklist-preview">
+			{#each checklistItems.slice(0, 8) as item}
+				<li class="flex items-center gap-2 text-sm {item.checked ? 'text-gray-400 line-through' : 'text-gray-700 dark:text-gray-300'}">
+					<input type="checkbox" checked={item.checked} disabled class="h-3.5 w-3.5 rounded border-gray-300 text-amber-600" />
+					<span class="truncate">{item.text}</span>
+				</li>
+			{/each}
+			{#if checklistItems.length > 8}
+				<li class="text-xs text-gray-400">+{checklistItems.length - 8} more</li>
+			{/if}
+		</ul>
+	{:else if preview}
 		<p class="line-clamp-6 text-sm text-gray-700 dark:text-gray-300">{preview}</p>
 	{/if}
 
