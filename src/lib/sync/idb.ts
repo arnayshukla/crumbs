@@ -1,0 +1,124 @@
+import { openDB, type IDBPDatabase } from 'idb';
+import type { Note } from '$lib/types/index.js';
+
+const DB_NAME = 'crumbs';
+const DB_VERSION = 1;
+
+interface CrumbsDB {
+	notes: {
+		key: string;
+		value: Note;
+		indexes: {
+			'by-updated': Date;
+		};
+	};
+	syncQueue: {
+		key: number;
+		value: SyncQueueItem;
+		indexes: {
+			'by-timestamp': number;
+		};
+	};
+	meta: {
+		key: string;
+		value: { key: string; value: string };
+	};
+}
+
+export interface SyncQueueItem {
+	id?: number;
+	noteId: string;
+	operation: 'create' | 'update' | 'delete';
+	data?: Partial<Note>;
+	timestamp: number;
+}
+
+let dbPromise: Promise<IDBPDatabase<CrumbsDB>> | null = null;
+
+export function getDb(): Promise<IDBPDatabase<CrumbsDB>> {
+	if (!dbPromise) {
+		dbPromise = openDB<CrumbsDB>(DB_NAME, DB_VERSION, {
+			upgrade(db) {
+				// Notes store
+				if (!db.objectStoreNames.contains('notes')) {
+					const noteStore = db.createObjectStore('notes', { keyPath: 'id' });
+					noteStore.createIndex('by-updated', 'updatedAt');
+				}
+
+				// Sync queue
+				if (!db.objectStoreNames.contains('syncQueue')) {
+					const syncStore = db.createObjectStore('syncQueue', {
+						keyPath: 'id',
+						autoIncrement: true
+					});
+					syncStore.createIndex('by-timestamp', 'timestamp');
+				}
+
+				// Metadata (e.g., last sync timestamp, client ID)
+				if (!db.objectStoreNames.contains('meta')) {
+					db.createObjectStore('meta', { keyPath: 'key' });
+				}
+			}
+		});
+	}
+	return dbPromise;
+}
+
+// Notes operations
+export async function getAllNotes(): Promise<Note[]> {
+	const db = await getDb();
+	return db.getAll('notes');
+}
+
+export async function getNote(id: string): Promise<Note | undefined> {
+	const db = await getDb();
+	return db.get('notes', id);
+}
+
+export async function putNote(note: Note): Promise<void> {
+	const db = await getDb();
+	await db.put('notes', note);
+}
+
+export async function deleteNoteFromIdb(id: string): Promise<void> {
+	const db = await getDb();
+	await db.delete('notes', id);
+}
+
+export async function clearNotes(): Promise<void> {
+	const db = await getDb();
+	await db.clear('notes');
+}
+
+// Sync queue operations
+export async function addToSyncQueue(item: Omit<SyncQueueItem, 'id'>): Promise<void> {
+	const db = await getDb();
+	await db.add('syncQueue', item as SyncQueueItem);
+}
+
+export async function getSyncQueue(): Promise<SyncQueueItem[]> {
+	const db = await getDb();
+	return db.getAll('syncQueue');
+}
+
+export async function clearSyncQueue(): Promise<void> {
+	const db = await getDb();
+	await db.clear('syncQueue');
+}
+
+export async function removeSyncQueueItem(id: number): Promise<void> {
+	const db = await getDb();
+	await db.delete('syncQueue', id);
+}
+
+// Meta operations
+export async function getMeta(key: string): Promise<string | undefined> {
+	const db = await getDb();
+	const result = await db.get('meta', key);
+	return result?.value;
+}
+
+export async function setMeta(key: string, value: string): Promise<void> {
+	const db = await getDb();
+	await db.put('meta', { key, value });
+}

@@ -1,0 +1,17 @@
+services:
+  crumbs:
+    build: .
+    container_name: crumbs
+    ports:
+      - "3000:3000"
+    volumes:
+      - crumbs-data:/data
+    environment:
+      - NODE_ENV=production
+      - DATA_DIR=/data
+      - DATABASE_URL=/data/crumbs.db
+      - ORIGIN=http://localhost:3000
+    restart: unless-stopped
+
+volumes:
+  crumbs-data:

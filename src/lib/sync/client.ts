@@ -1,0 +1,128 @@
+import { browser } from '$app/environment';
+import type { Note } from '$lib/types/index.js';
+import { putNote, getAllNotes, addToSyncQueue, getSyncQueue, clearSyncQueue, deleteNoteFromIdb, getMeta, setMeta } from './idb.js';
+import { mergeNotes } from './crdt.js';
+
+export type SyncStatus = 'synced' | 'syncing' | 'offline' | 'error';
+
+let syncStatus: SyncStatus = 'synced';
+let syncInterval: ReturnType<typeof setInterval> | null = null;
+const statusListeners: Set<(status: SyncStatus) => void> = new Set();
+
+export function onSyncStatusChange(listener: (status: SyncStatus) => void) {
+	statusListeners.add(listener);
+	return () => statusListeners.delete(listener);
+}
+
+function setStatus(status: SyncStatus) {
+	syncStatus = status;
+	statusListeners.forEach((l) => l(status));
+}
+
+export function getSyncStatus(): SyncStatus {
+	return syncStatus;
+}
+
+/**
+ * Push local changes to server.
+ */
+async function pushChanges(): Promise<boolean> {
+	const queue = await getSyncQueue();
+	if (queue.length === 0) return true;
+
+	try {
+		const res = await fetch('/api/sync', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ changes: queue })
+		});
+
+		if (res.ok) {
+			await clearSyncQueue();
+			return true;
+		}
+		return false;
+	} catch {
+		return false;
+	}
+}
+
+/**
+ * Pull remote changes and merge with local state.
+ */
+async function pullChanges(): Promise<Note[]> {
+	const lastSync = (await getMeta('lastSyncTimestamp')) || '0';
+
+	try {
+		const res = await fetch(`/api/sync?since=${lastSync}`);
+		if (!res.ok) return [];
+
+		const remoteNotes: Note[] = await res.json();
+		const localNotes = await getAllNotes();
+		const localMap = new Map(localNotes.map((n) => [n.id, n]));
+
+		for (const remote of remoteNotes) {
+			const local = localMap.get(remote.id);
+			if (local) {
+				const merged = mergeNotes(local, remote);
+				await putNote(merged);
+			} else {
+				await putNote(remote);
+			}
+		}
+
+		await setMeta('lastSyncTimestamp', String(Date.now()));
+		return remoteNotes;
+	} catch {
+		return [];
+	}
+}
+
+/**
+ * Full sync cycle: push then pull.
+ */
+export async function sync(): Promise<void> {
+	if (!browser || !navigator.onLine) {
+		setStatus('offline');
+		return;
+	}
+
+	setStatus('syncing');
+
+	try {
+		const pushed = await pushChanges();
+		if (!pushed) {
+			setStatus('error');
+			return;
+		}
+
+		await pullChanges();
+		setStatus('synced');
+	} catch {
+		setStatus('error');
+	}
+}
+
+/**
+ * Start background sync (every 30 seconds).
+ */
+export function startSync() {
+	if (!browser) return;
+
+	// Initial sync
+	sync();
+
+	// Periodic sync
+	syncInterval = setInterval(sync, 30_000);
+
+	// Sync on online/offline events
+	window.addEventListener('online', () => sync());
+	window.addEventListener('offline', () => setStatus('offline'));
+}
+
+export function stopSync() {
+	if (syncInterval) {
+		clearInterval(syncInterval);
+		syncInterval = null;
+	}
+}

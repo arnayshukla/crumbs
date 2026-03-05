@@ -1,0 +1,56 @@
+{
+  "name": "crumbs",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite dev",
+    "build": "vite build",
+    "preview": "vite preview",
+    "prepare": "svelte-kit sync || echo ''",
+    "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+    "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
+    "test:unit": "vitest run",
+    "test:unit:watch": "vitest",
+    "test:e2e": "playwright test",
+    "test": "pnpm test:unit && pnpm test:e2e",
+    "db:push": "drizzle-kit push",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:studio": "drizzle-kit studio",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "@sveltejs/adapter-node": "^5.0.0",
+    "better-sqlite3": "^11.0.0",
+    "drizzle-orm": "^0.44.0",
+    "argon2": "^0.43.0",
+    "idb": "^8.0.0",
+    "uuid": "^11.0.0",
+    "markdown-it": "^14.0.0"
+  },
+  "devDependencies": {
+    "@sveltejs/kit": "^2.50.2",
+    "@sveltejs/vite-plugin-svelte": "^6.2.4",
+    "svelte": "^5.51.0",
+    "svelte-check": "^4.4.2",
+    "typescript": "^5.9.3",
+    "vite": "^7.3.1",
+    "@tailwindcss/vite": "^4.0.0",
+    "tailwindcss": "^4.0.0",
+    "@vite-pwa/sveltekit": "^1.0.0",
+    "drizzle-kit": "^0.31.0",
+    "vitest": "^3.0.0",
+    "@playwright/test": "^1.50.0",
+    "@types/better-sqlite3": "^7.6.0",
+    "@types/markdown-it": "^14.0.0",
+    "@types/uuid": "^10.0.0"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "argon2",
+      "better-sqlite3",
+      "esbuild"
+    ]
+  }
+}
