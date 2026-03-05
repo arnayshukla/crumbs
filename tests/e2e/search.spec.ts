@@ -2,21 +2,21 @@ import { test, expect } from './helpers/fixtures.js';
 
 test.describe('Search', () => {
 	test('Scenario: Searching by title returns the matching note', async ({ authenticatedPage: page }) => {
-		// Given a note titled "Shopping List" and a note titled "Work Meeting" exist
+		// Given a note titled "Grocery Errands" and a note titled "Work Meeting" exist
 		await page.getByTestId('new-note-btn').click();
-		await page.getByTestId('note-title-input').fill('Shopping List');
+		await page.getByTestId('note-title-input').fill('Grocery Errands');
 		await page.getByTestId('close-editor-btn').click();
 
 		await page.getByTestId('new-note-btn').click();
 		await page.getByTestId('note-title-input').fill('Work Meeting');
 		await page.getByTestId('close-editor-btn').click();
 
-		// When the user searches for "Shopping"
-		await page.getByTestId('search-input').fill('Shopping');
+		// When the user searches for "Grocery"
+		await page.getByTestId('search-input').fill('Grocery');
 		await page.waitForTimeout(500);
 
-		// Then "Shopping List" is visible in the results
-		await expect(page.getByText('Shopping List')).toBeVisible();
+		// Then "Grocery Errands" is visible in the results
+		await expect(page.getByText('Grocery Errands')).toBeVisible();
 	});
 
 	test('Scenario: Searching by content returns the matching note', async ({ authenticatedPage: page }) => {
