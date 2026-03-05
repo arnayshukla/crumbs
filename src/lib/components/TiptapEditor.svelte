@@ -34,7 +34,8 @@
 			],
 			content,
 			onUpdate: ({ editor: e }) => {
-				onUpdate(e.storage.markdown.getMarkdown());
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				onUpdate((e.storage as Record<string, any>).markdown.getMarkdown());
 			},
 			onTransaction: () => {
 				// Trigger Svelte reactivity for active state checks
