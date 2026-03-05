@@ -13,7 +13,7 @@
 
 {#if notes.length > 0}
 	{#if label}
-		<p class="mb-2 px-2 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">{label}</p>
+		<p class="mb-2 px-2 text-xs font-semibold uppercase tracking-wider text-gray-500">{label}</p>
 	{/if}
 	<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4" data-testid="note-grid">
 		{#each notes as note (note.id)}

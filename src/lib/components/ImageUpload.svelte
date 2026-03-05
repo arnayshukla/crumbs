@@ -80,7 +80,7 @@
 
 	<!-- Upload area -->
 	<div
-		class="rounded-lg border-2 border-dashed p-4 text-center transition-colors {dragOver ? 'border-amber-500 bg-amber-50 dark:bg-amber-900/20' : 'border-gray-300 dark:border-gray-600'}"
+		class="rounded-lg border-2 border-dashed p-4 text-center transition-colors {dragOver ? 'border-amber-500 bg-amber-50' : 'border-gray-300'}"
 		ondrop={handleDrop}
 		ondragover={handleDragOver}
 		ondragleave={() => (dragOver = false)}

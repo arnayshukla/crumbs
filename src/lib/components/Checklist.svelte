@@ -91,7 +91,7 @@
 				value={item.text}
 				oninput={(e) => updateText(index, (e.target as HTMLInputElement).value)}
 				onkeydown={(e) => handleKeydown(e, index)}
-				class="flex-1 bg-transparent text-sm outline-none {item.checked ? 'text-gray-400 line-through' : 'text-gray-800 dark:text-gray-200'}"
+				class="flex-1 bg-transparent text-sm outline-none {item.checked ? 'text-gray-400 line-through' : 'text-gray-800'}"
 				placeholder="List item"
 				data-testid="checklist-input"
 			/>
@@ -109,7 +109,7 @@
 	{/each}
 	<button
 		onclick={() => addItem(items.length - 1)}
-		class="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+		class="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700"
 		data-testid="checklist-add"
 	>
 		<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { NOTE_COLORS } from '$lib/utils/colors.js';
-	import { effectiveTheme } from '$lib/stores/theme.js';
 	import { renderMarkdown } from '$lib/utils/markdown.js';
 	import { togglePin, trashNote, archiveNote, unarchiveNote, restoreNote, deleteNote, currentFilter } from '$lib/stores/notes.js';
 	import type { Note } from '$lib/types/index.js';
@@ -19,8 +18,7 @@
 
 	$effect(() => {
 		const colors = NOTE_COLORS[note.color];
-		const bg = $effectiveTheme === 'dark' ? colors.dark : colors.light;
-		cardStyle = `background-color: ${bg}`;
+		cardStyle = `background-color: ${colors.bg}`;
 	});
 
 	let cardStyle = $state('');
@@ -45,7 +43,7 @@
 </script>
 
 <article
-	class="group relative cursor-pointer rounded-lg border border-gray-200 p-4 shadow-sm transition-shadow hover:shadow-md dark:border-gray-700"
+	class="group relative cursor-pointer rounded-lg border border-gray-200 p-4 shadow-sm transition-shadow hover:shadow-md"
 	style={cardStyle}
 	onclick={() => onEdit(note)}
 	onkeydown={(e) => e.key === 'Enter' && onEdit(note)}
@@ -55,13 +53,13 @@
 	data-note-id={note.id}
 >
 	{#if note.title}
-		<h3 class="mb-2 text-sm font-semibold text-gray-900 dark:text-gray-100">{note.title}</h3>
+		<h3 class="mb-2 text-sm font-semibold text-gray-900">{note.title}</h3>
 	{/if}
 
 	{#if note.checklistMode && checklistItems.length > 0}
 		<ul class="space-y-1" data-testid="note-checklist-preview">
 			{#each checklistItems.slice(0, 8) as item}
-				<li class="flex items-center gap-2 text-sm {item.checked ? 'text-gray-400 line-through' : 'text-gray-700 dark:text-gray-300'}">
+				<li class="flex items-center gap-2 text-sm {item.checked ? 'text-gray-400 line-through' : 'text-gray-700'}">
 					<input type="checkbox" checked={item.checked} disabled class="h-3.5 w-3.5 rounded border-gray-300 text-amber-600" />
 					<span class="truncate">{item.text}</span>
 				</li>
@@ -71,7 +69,7 @@
 			{/if}
 		</ul>
 	{:else if note.content}
-		<div class="prose prose-sm dark:prose-invert line-clamp-6 max-w-none text-sm text-gray-700 dark:text-gray-300" data-testid="note-content-preview">
+		<div class="prose prose-sm line-clamp-6 max-w-none text-sm text-gray-700" data-testid="note-content-preview">
 			{@html renderedContent}
 		</div>
 	{/if}
@@ -79,7 +77,7 @@
 	{#if note.tags && note.tags.length > 0}
 		<div class="mt-2 flex flex-wrap gap-1">
 			{#each note.tags as tag}
-				<span class="rounded-full bg-gray-200/60 px-2 py-0.5 text-xs text-gray-600 dark:bg-gray-700/60 dark:text-gray-400">
+				<span class="rounded-full bg-gray-200/60 px-2 py-0.5 text-xs text-gray-600">
 					#{tag}
 				</span>
 			{/each}
@@ -91,7 +89,7 @@
 		{#if $currentFilter === 'trashed'}
 			<button
 				onclick={stop(() => restoreNote(note.id))}
-				class="rounded-full p-1.5 hover:bg-black/10 dark:hover:bg-white/10"
+				class="rounded-full p-1.5 hover:bg-black/10"
 				title="Restore"
 				data-testid="restore-btn"
 			>
@@ -101,7 +99,7 @@
 			</button>
 			<button
 				onclick={stop(() => deleteNote(note.id))}
-				class="rounded-full p-1.5 hover:bg-black/10 dark:hover:bg-white/10"
+				class="rounded-full p-1.5 hover:bg-black/10"
 				title="Delete forever"
 				data-testid="delete-forever-btn"
 			>
@@ -112,7 +110,7 @@
 		{:else}
 			<button
 				onclick={stop(() => togglePin(note.id, note.pinned))}
-				class="rounded-full p-1.5 hover:bg-black/10 dark:hover:bg-white/10"
+				class="rounded-full p-1.5 hover:bg-black/10"
 				title={note.pinned ? 'Unpin' : 'Pin'}
 				data-testid="pin-btn"
 			>
@@ -123,7 +121,7 @@
 			{#if $currentFilter === 'archived'}
 				<button
 					onclick={stop(() => unarchiveNote(note.id))}
-					class="rounded-full p-1.5 hover:bg-black/10 dark:hover:bg-white/10"
+					class="rounded-full p-1.5 hover:bg-black/10"
 					title="Unarchive"
 					data-testid="unarchive-btn"
 				>
@@ -134,7 +132,7 @@
 			{:else}
 				<button
 					onclick={stop(() => archiveNote(note.id))}
-					class="rounded-full p-1.5 hover:bg-black/10 dark:hover:bg-white/10"
+					class="rounded-full p-1.5 hover:bg-black/10"
 					title="Archive"
 					data-testid="archive-btn"
 				>
@@ -145,7 +143,7 @@
 			{/if}
 			<button
 				onclick={stop(() => trashNote(note.id))}
-				class="rounded-full p-1.5 hover:bg-black/10 dark:hover:bg-white/10"
+				class="rounded-full p-1.5 hover:bg-black/10"
 				title="Delete"
 				data-testid="trash-btn"
 			>

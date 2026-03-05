@@ -58,7 +58,7 @@
 
 <div
 	bind:this={element}
-	class="tiptap-wrapper prose prose-sm dark:prose-invert min-h-[300px] max-w-none px-4 py-2 text-gray-800 dark:text-gray-200"
+	class="tiptap-wrapper prose prose-sm min-h-[300px] max-w-none px-4 py-2 text-gray-800"
 	data-testid="tiptap-editor"
 ></div>
 

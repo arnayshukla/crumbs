@@ -4,7 +4,6 @@
 	import Sidebar from '$lib/components/Layout/Sidebar.svelte';
 	import Toast from '$lib/components/Layout/Toast.svelte';
 	import { loadNotes } from '$lib/stores/notes.js';
-	import '$lib/stores/theme.js';
 	import { onMount } from 'svelte';
 
 	let { children } = $props();
@@ -15,7 +14,7 @@
 	});
 </script>
 
-<div class="min-h-screen bg-white text-gray-900 dark:bg-gray-900 dark:text-gray-100">
+<div class="min-h-screen bg-white text-gray-900">
 	<Header onMenuToggle={() => (sidebarOpen = !sidebarOpen)} />
 	<Sidebar open={sidebarOpen} />
 

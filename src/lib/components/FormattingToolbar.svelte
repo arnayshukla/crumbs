@@ -80,15 +80,15 @@
 	const chevronSize = 14;
 
 	function btnClass(active: boolean = false, disabled: boolean = false): string {
-		return `rounded p-1.5 text-gray-600 hover:bg-black/10 dark:text-gray-400 dark:hover:bg-white/10 ${active ? 'bg-black/10 dark:bg-white/10' : ''} ${disabled ? 'opacity-30' : ''}`;
+		return `rounded p-1.5 text-gray-600 hover:bg-black/10 ${active ? 'bg-black/10' : ''} ${disabled ? 'opacity-30' : ''}`;
 	}
 
 	function dropdownBtnClass(active: boolean = false): string {
-		return `flex items-center gap-0.5 rounded p-1.5 text-gray-600 hover:bg-black/10 dark:text-gray-400 dark:hover:bg-white/10 ${active ? 'bg-black/10 dark:bg-white/10' : ''}`;
+		return `flex items-center gap-0.5 rounded p-1.5 text-gray-600 hover:bg-black/10 ${active ? 'bg-black/10' : ''}`;
 	}
 
 	function dropdownItemClass(active: boolean = false): string {
-		return `flex w-full items-center gap-2 rounded px-3 py-1.5 text-sm text-gray-700 hover:bg-black/5 dark:text-gray-300 dark:hover:bg-white/10 ${active ? 'bg-black/5 dark:bg-white/10' : ''}`;
+		return `flex w-full items-center gap-2 rounded px-3 py-1.5 text-sm text-gray-700 hover:bg-black/5 ${active ? 'bg-black/5' : ''}`;
 	}
 
 	function handlePointerDown(event: PointerEvent) {
@@ -109,7 +109,7 @@
 <svelte:document onpointerdown={handlePointerDown} onkeydown={handleKeydown} />
 
 <div
-	class="flex flex-wrap items-center gap-0.5 border-b border-gray-200/50 px-2 py-1 dark:border-gray-700/50"
+	class="flex flex-wrap items-center gap-0.5 border-b border-gray-200/50 px-2 py-1"
 	data-testid="formatting-toolbar"
 >
 	<!-- History -->
@@ -132,7 +132,7 @@
 		<Redo2 size={iconSize} />
 	</button>
 
-	<div class="mx-1 h-4 w-px bg-gray-300 dark:bg-gray-600"></div>
+	<div class="mx-1 h-4 w-px bg-gray-300"></div>
 
 	<!-- Heading dropdown -->
 	<div class="relative" data-dropdown="heading">
@@ -146,7 +146,7 @@
 			<ChevronDown size={chevronSize} />
 		</button>
 		{#if openDropdown === 'heading'}
-			<div class="absolute left-0 top-full z-50 mt-1 min-w-[150px] rounded-lg border border-gray-200 bg-white py-1 shadow-lg dark:border-gray-700 dark:bg-gray-800">
+			<div class="absolute left-0 top-full z-50 mt-1 min-w-[150px] rounded-lg border border-gray-200 bg-white py-1 shadow-lg">
 				<button
 					onclick={() => { editor?.chain().focus().toggleHeading({ level: 1 }).run(); closeDropdowns(); }}
 					class={dropdownItemClass(editor?.isActive('heading', { level: 1 }) ?? false)}
@@ -187,7 +187,7 @@
 			<ChevronDown size={chevronSize} />
 		</button>
 		{#if openDropdown === 'list'}
-			<div class="absolute left-0 top-full z-50 mt-1 min-w-[170px] rounded-lg border border-gray-200 bg-white py-1 shadow-lg dark:border-gray-700 dark:bg-gray-800">
+			<div class="absolute left-0 top-full z-50 mt-1 min-w-[170px] rounded-lg border border-gray-200 bg-white py-1 shadow-lg">
 				<button
 					onclick={() => { editor?.chain().focus().toggleBulletList().run(); closeDropdowns(); }}
 					class={dropdownItemClass(editor?.isActive('bulletList') ?? false)}
@@ -225,7 +225,7 @@
 		<CodeXml size={iconSize} />
 	</button>
 
-	<div class="mx-1 h-4 w-px bg-gray-300 dark:bg-gray-600"></div>
+	<div class="mx-1 h-4 w-px bg-gray-300"></div>
 
 	<!-- Inline -->
 	<button
@@ -280,7 +280,7 @@
 			<Link size={iconSize} />
 		</button>
 		{#if openDropdown === 'link'}
-			<div class="absolute left-1/2 top-full z-50 mt-1 -translate-x-1/2 rounded-lg border border-gray-200 bg-white px-2 py-1.5 shadow-lg dark:border-gray-700 dark:bg-gray-800">
+			<div class="absolute left-1/2 top-full z-50 mt-1 -translate-x-1/2 rounded-lg border border-gray-200 bg-white px-2 py-1.5 shadow-lg">
 				<form
 					class="flex items-center gap-1"
 					onsubmit={(e) => { e.preventDefault(); applyLink(); }}
@@ -290,23 +290,23 @@
 						bind:value={linkUrl}
 						type="url"
 						placeholder="Paste a link..."
-						class="w-44 bg-transparent px-1.5 py-1 text-sm text-gray-700 outline-none placeholder:text-gray-400 dark:text-gray-300 dark:placeholder:text-gray-500"
+						class="w-44 bg-transparent px-1.5 py-1 text-sm text-gray-700 outline-none placeholder:text-gray-400"
 						data-testid="format-link-input"
 					/>
 					<button
 						type="submit"
-						class="rounded p-1 text-gray-400 hover:bg-black/5 hover:text-gray-600 dark:hover:bg-white/10 dark:hover:text-gray-300"
+						class="rounded p-1 text-gray-400 hover:bg-black/5 hover:text-gray-600"
 						title="Apply link"
 						data-testid="format-link-apply"
 					>
 						<CornerDownLeft size={16} />
 					</button>
-					<div class="mx-0.5 h-4 w-px bg-gray-300 dark:bg-gray-600"></div>
+					<div class="mx-0.5 h-4 w-px bg-gray-300"></div>
 					<button
 						type="button"
 						onclick={openLink}
 						disabled={!editor?.getAttributes('link').href}
-						class="rounded p-1 text-gray-400 hover:bg-black/5 hover:text-gray-600 disabled:opacity-30 dark:hover:bg-white/10 dark:hover:text-gray-300"
+						class="rounded p-1 text-gray-400 hover:bg-black/5 hover:text-gray-600 disabled:opacity-30"
 						title="Open link"
 						data-testid="format-link-open"
 					>
@@ -316,7 +316,7 @@
 						type="button"
 						onclick={removeLink}
 						disabled={!editor?.isActive('link')}
-						class="rounded p-1 text-gray-400 hover:bg-black/5 hover:text-red-500 disabled:opacity-30 dark:hover:bg-white/10 dark:hover:text-red-400"
+						class="rounded p-1 text-gray-400 hover:bg-black/5 hover:text-red-500 disabled:opacity-30"
 						title="Remove link"
 						data-testid="format-unlink"
 					>
@@ -327,7 +327,7 @@
 		{/if}
 	</div>
 
-	<div class="mx-1 h-4 w-px bg-gray-300 dark:bg-gray-600"></div>
+	<div class="mx-1 h-4 w-px bg-gray-300"></div>
 
 	<!-- Align dropdown -->
 	<div class="relative" data-dropdown="align">
@@ -341,7 +341,7 @@
 			<ChevronDown size={chevronSize} />
 		</button>
 		{#if openDropdown === 'align'}
-			<div class="absolute left-0 top-full z-50 mt-1 min-w-[150px] rounded-lg border border-gray-200 bg-white py-1 shadow-lg dark:border-gray-700 dark:bg-gray-800">
+			<div class="absolute left-0 top-full z-50 mt-1 min-w-[150px] rounded-lg border border-gray-200 bg-white py-1 shadow-lg">
 				<button
 					onclick={() => { editor?.chain().focus().setTextAlign('left').run(); closeDropdowns(); }}
 					class={dropdownItemClass(editor?.isActive({ textAlign: 'left' }) ?? false)}
@@ -378,7 +378,7 @@
 		{/if}
 	</div>
 
-	<div class="mx-1 h-4 w-px bg-gray-300 dark:bg-gray-600"></div>
+	<div class="mx-1 h-4 w-px bg-gray-300"></div>
 
 	<!-- Insert -->
 	<button
