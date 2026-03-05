@@ -29,7 +29,7 @@
 			class="w-full rounded-lg border border-gray-300 px-4 py-3 text-left text-sm text-gray-500 shadow-sm transition-shadow hover:shadow-md"
 			data-testid="new-note-btn"
 		>
-			Take a note...
+			Add a crumb...
 		</button>
 	</div>
 {/if}
@@ -63,13 +63,13 @@
 		</svg>
 		<p class="text-lg">
 			{#if $currentFilter === 'trashed'}
-				No notes in trash
+				No crumbs in trash
 			{:else if $currentFilter === 'archived'}
-				No archived notes
+				No archived crumbs
 			{:else if $selectedTag}
-				No notes with tag #{$selectedTag}
+				No crumbs with tag #{$selectedTag}
 			{:else}
-				Notes you add appear here
+				Your crumbs will appear here
 			{/if}
 		</p>
 	</div>

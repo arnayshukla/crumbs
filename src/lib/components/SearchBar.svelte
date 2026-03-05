@@ -43,7 +43,7 @@
 		</svg>
 		<input
 			type="text"
-			placeholder="Search notes..."
+			placeholder="Search crumbs..."
 			bind:value={query}
 			oninput={handleSearch}
 			class="w-full bg-transparent text-sm text-gray-800 outline-none placeholder:text-gray-500"

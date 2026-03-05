@@ -4,7 +4,7 @@ test.describe('Notes CRUD', () => {
 	test('Scenario: Fresh account shows an empty notes list', async ({ authenticatedPage: page }) => {
 		// Given the user has no notes
 		// Then the empty state message is displayed
-		await expect(page.getByText('Notes you add appear here')).toBeVisible();
+		await expect(page.getByText('Your crumbs will appear here')).toBeVisible();
 	});
 
 	test('Scenario: New note appears in the notes list after creation', async ({ authenticatedPage: page }) => {
