@@ -80,7 +80,7 @@ GitHub Actions with two workflows:
 5. **Docker Build** — validates the Docker image builds (depends on step 3)
 
 **Release** (`.github/workflows/release.yml`) — runs on `v*` tags:
-- Runs full CI pipeline, then builds + pushes Docker image to configured registry
+- Runs full CI pipeline, then builds + pushes Docker image to `ghcr.io` (GitHub Container Registry)
 - Creates a GitHub Release with auto-generated notes
 
 **Docker**: Multi-stage Dockerfile (node:22-slim), exposes port 3000, persists data to `/data` volume.
