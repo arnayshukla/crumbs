@@ -2,9 +2,9 @@
 	import { onMount } from 'svelte';
 	import { Editor } from '@tiptap/core';
 	import StarterKit from '@tiptap/starter-kit';
-	import TaskList from '@tiptap/extension-task-list';
-	import TaskItem from '@tiptap/extension-task-item';
 	import Link from '@tiptap/extension-link';
+	import Underline from '@tiptap/extension-underline';
+	import TextAlign from '@tiptap/extension-text-align';
 	import Placeholder from '@tiptap/extension-placeholder';
 	import { Markdown } from 'tiptap-markdown';
 
@@ -25,9 +25,9 @@
 			element: element!,
 			extensions: [
 				StarterKit,
-				TaskList,
-				TaskItem.configure({ nested: true }),
 				Link.configure({ openOnClick: false }),
+				Underline,
+				TextAlign.configure({ types: ['heading', 'paragraph'] }),
 				Placeholder.configure({ placeholder }),
 				Markdown
 			],
@@ -56,7 +56,7 @@
 
 <div
 	bind:this={element}
-	class="tiptap-wrapper prose prose-sm dark:prose-invert min-h-[100px] max-w-none px-4 py-2 text-gray-800 dark:text-gray-200"
+	class="tiptap-wrapper prose prose-sm dark:prose-invert min-h-[300px] max-w-none px-4 py-2 text-gray-800 dark:text-gray-200"
 	data-testid="tiptap-editor"
 ></div>
 
@@ -72,20 +72,5 @@
 		color: #9ca3af;
 		pointer-events: none;
 		height: 0;
-	}
-
-	.tiptap-wrapper :global(.tiptap ul[data-type='taskList']) {
-		list-style: none;
-		padding: 0;
-	}
-
-	.tiptap-wrapper :global(.tiptap ul[data-type='taskList'] li) {
-		display: flex;
-		align-items: flex-start;
-		gap: 0.5rem;
-	}
-
-	.tiptap-wrapper :global(.tiptap ul[data-type='taskList'] li label) {
-		margin-top: 0.25rem;
 	}
 </style>

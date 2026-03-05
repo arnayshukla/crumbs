@@ -101,6 +101,38 @@ test.describe('Rich text formatting', () => {
 		await expect(page.getByTestId('tiptap-editor').locator('strong')).toHaveText('bold');
 	});
 
+	test('Scenario: Toolbar dropdown closes when clicking outside', async ({ authenticatedPage: page }) => {
+		// Given the user has opened the heading dropdown
+		await page.getByTestId('new-note-btn').click();
+		await page.getByTestId('format-heading').click();
+		await expect(page.getByTestId('format-h1')).toBeVisible();
+
+		// When the user clicks inside the editor area
+		await page.getByTestId('tiptap-editor').click();
+
+		// Then the dropdown closes
+		await expect(page.getByTestId('format-h1')).not.toBeVisible();
+	});
+
+	test('Scenario: Link popover allows inserting a link inline', async ({ authenticatedPage: page }) => {
+		// Given the user is editing a note with selected text
+		await page.getByTestId('new-note-btn').click();
+		await typeViaMarkdown(page, 'visit example');
+		await runTiptapCommand(page, 'editor.chain().focus().setTextSelection({from:7,to:14}).run()');
+
+		// When the user opens the link popover and enters a URL
+		await page.getByTestId('format-link').click();
+		await expect(page.getByTestId('format-link-input')).toBeVisible();
+		await page.getByTestId('format-link-input').fill('https://example.com');
+		await page.getByTestId('format-link-apply').click();
+
+		// Then the selected text becomes a link
+		const editor = page.getByTestId('tiptap-editor').locator('.tiptap');
+		const link = editor.locator('a');
+		await expect(link).toHaveText('example');
+		await expect(link).toHaveAttribute('href', 'https://example.com');
+	});
+
 	test('Scenario: Markdown toggle shows raw markdown content', async ({ authenticatedPage: page }) => {
 		// Given the user is editing a note with bold content
 		await page.getByTestId('new-note-btn').click();

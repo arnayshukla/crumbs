@@ -103,8 +103,8 @@
 				bind:this={textareaEl}
 				placeholder="Take a note..."
 				bind:value={content}
-				class="min-h-[100px] w-full resize-none bg-transparent px-4 py-2 text-sm text-gray-800 outline-none placeholder:text-gray-500 dark:text-gray-200"
-				rows="6"
+				class="min-h-[300px] w-full resize-none bg-transparent px-4 py-2 text-sm text-gray-800 outline-none placeholder:text-gray-500 dark:text-gray-200"
+				rows="12"
 				data-testid="note-content-input"
 			></textarea>
 		{:else}

@@ -165,3 +165,25 @@
 		</div>
 	{/if}
 </article>
+
+<style>
+	article :global(.prose li:has(.task-checkbox)) {
+		list-style: none;
+		display: flex;
+		align-items: flex-start;
+		gap: 0.25rem;
+	}
+
+	article :global(.prose li:has(.task-checkbox))::before {
+		display: none;
+	}
+
+	article :global(.prose li:has(.task-checkbox))::marker {
+		content: none;
+	}
+
+	article :global(.task-checkbox) {
+		margin-top: 0.15rem;
+		flex-shrink: 0;
+	}
+</style>
