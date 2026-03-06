@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { NOTE_COLORS } from '$lib/utils/colors.js';
 	import { renderMarkdown } from '$lib/utils/markdown.js';
-	import { togglePin, trashNote, archiveNote, unarchiveNote, restoreNote, deleteNote, currentFilter } from '$lib/stores/notes.js';
+	import { togglePin, trashNote, archiveNote, unarchiveNote, restoreNote, deleteNote, updateNote, currentFilter } from '$lib/stores/notes.js';
 	import type { Note } from '$lib/types/index.js';
 
 	interface ChecklistItem {
@@ -40,6 +40,24 @@
 			fn();
 		};
 	}
+
+	function toggleChecklistItem(index: number) {
+		const lines = note.content.split('\n');
+		let checkIndex = 0;
+		for (let i = 0; i < lines.length; i++) {
+			const line = lines[i];
+			if (line.startsWith('- [x] ') || line.startsWith('- [ ] ')) {
+				if (checkIndex === index) {
+					lines[i] = line.startsWith('- [x] ')
+						? `- [ ] ${line.slice(6)}`
+						: `- [x] ${line.slice(6)}`;
+					break;
+				}
+				checkIndex++;
+			}
+		}
+		updateNote(note.id, { content: lines.join('\n') });
+	}
 </script>
 
 <article
@@ -58,9 +76,15 @@
 
 	{#if note.checklistMode && checklistItems.length > 0}
 		<ul class="space-y-1" data-testid="note-checklist-preview">
-			{#each checklistItems.slice(0, 8) as item}
+			{#each checklistItems.slice(0, 8) as item, index}
 				<li class="flex items-center gap-2 text-sm {item.checked ? 'text-[var(--text-muted)] line-through' : 'text-[var(--text)]'}">
-					<input type="checkbox" checked={item.checked} disabled class="h-3.5 w-3.5 rounded border-[var(--border-subtle)] text-[var(--primary)]" />
+					<input
+						type="checkbox"
+						checked={item.checked}
+						onclick={(e) => { e.stopPropagation(); toggleChecklistItem(index); }}
+						class="h-3.5 w-3.5 rounded border-[var(--border-subtle)] text-[var(--primary)] cursor-pointer"
+						data-testid="card-checklist-checkbox"
+					/>
 					<span class="truncate">{item.text}</span>
 				</li>
 			{/each}
