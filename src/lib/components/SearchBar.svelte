@@ -3,10 +3,22 @@
 	import type { Note } from '$lib/types/index.js';
 	import Search from 'lucide-svelte/icons/search';
 	import X from 'lucide-svelte/icons/x';
+	import ArrowLeft from 'lucide-svelte/icons/arrow-left';
+
+	interface Props {
+		onClose?: () => void;
+	}
+
+	let { onClose }: Props = $props();
 
 	let query = $state('');
 	let originalNotes: Note[] = [];
 	let isSearching = $state(false);
+	let inputEl: HTMLInputElement | undefined = $state();
+
+	$effect(() => {
+		if (onClose) inputEl?.focus();
+	});
 
 	async function handleSearch() {
 		if (!query.trim()) {
@@ -36,12 +48,24 @@
 			isSearching = false;
 		}
 	}
+
+	function close() {
+		clearSearch();
+		onClose?.();
+	}
 </script>
 
-<div class="relative max-w-2xl">
+<div class="relative flex-1 max-w-2xl">
 	<div class="flex items-center rounded-sm border border-[var(--border-subtle)] bg-[var(--bg-base)] px-4 py-2 focus-within:border-[var(--primary)]">
-		<Search class="mr-3 h-5 w-5 text-[var(--text-muted)]" />
+		{#if onClose}
+			<button onclick={close} class="mr-2 text-[var(--text-muted)] hover:text-[var(--text)]" aria-label="Back">
+				<ArrowLeft class="h-5 w-5" />
+			</button>
+		{:else}
+			<Search class="mr-3 h-5 w-5 text-[var(--text-muted)]" />
+		{/if}
 		<input
+			bind:this={inputEl}
 			type="text"
 			placeholder="Search crumbs..."
 			bind:value={query}
