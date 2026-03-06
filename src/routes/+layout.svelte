@@ -8,7 +8,7 @@
 	import { onMount, onDestroy } from 'svelte';
 
 	let { data, children } = $props();
-	let sidebarOpen = $state(false);
+	let sidebarOpen = $state(true);
 
 	onMount(() => {
 		loadNotes();
@@ -24,13 +24,13 @@
 	<Header onMenuToggle={() => (sidebarOpen = !sidebarOpen)} />
 	<Sidebar open={sidebarOpen} />
 
-	<main class="flex-1 pt-4 transition-all lg:ml-64">
+	<main class="flex-1 pt-4 transition-all {sidebarOpen ? 'lg:ml-64' : ''}">
 		<div class="mx-auto max-w-7xl px-4">
 			{@render children()}
 		</div>
 	</main>
 
-	<footer class="pb-4 pt-8 text-center text-xs text-[var(--text-muted)] lg:ml-64">
+	<footer class="pb-4 pt-8 text-center text-xs text-[var(--text-muted)] {sidebarOpen ? 'lg:ml-64' : ''}">
 		Crumbs by Bretzel v{data.appVersion} &mdash; made with 🥨 in Strasbourg
 	</footer>
 
