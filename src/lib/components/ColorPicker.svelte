@@ -15,7 +15,7 @@
 		{@const colors = NOTE_COLORS[option.value]}
 		<button
 			onclick={() => onSelect(option.value)}
-			class="h-8 w-8 rounded-full border-2 transition-transform hover:scale-110 {selected === option.value ? 'border-[var(--text)]' : 'border-transparent'}"
+			class="h-8 w-8 rounded-full border-2 transition-transform hover:scale-110 {selected === option.value ? 'border-[var(--text)]' : 'border-[var(--border-subtle)]'}"
 			style="background-color: {colors.bg}"
 			title={option.label}
 			data-testid="color-{option.value}"
