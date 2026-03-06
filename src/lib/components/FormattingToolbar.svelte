@@ -109,7 +109,7 @@
 <svelte:document onpointerdown={handlePointerDown} onkeydown={handleKeydown} />
 
 <div
-	class="flex flex-wrap items-center gap-0.5 border-b border-[var(--border-subtle)] px-2 py-1"
+	class="flex items-center gap-0.5 overflow-x-auto border-b border-[var(--border-subtle)] px-2 py-1"
 	data-testid="formatting-toolbar"
 >
 	<!-- History -->
@@ -132,7 +132,43 @@
 		<Redo2 size={iconSize} />
 	</button>
 
-	<div class="mx-1 h-4 w-px bg-[var(--border-subtle)]"></div>
+	<div class="mx-1 h-4 w-px shrink-0 bg-[var(--border-subtle)]"></div>
+
+	<!-- Inline -->
+	<button
+		onclick={() => editor?.chain().focus().toggleBold().run()}
+		class={btnClass(editor?.isActive('bold') ?? false)}
+		title="Bold (Ctrl+B)"
+		data-testid="format-bold"
+	>
+		<Bold size={iconSize} />
+	</button>
+	<button
+		onclick={() => editor?.chain().focus().toggleItalic().run()}
+		class={btnClass(editor?.isActive('italic') ?? false)}
+		title="Italic (Ctrl+I)"
+		data-testid="format-italic"
+	>
+		<Italic size={iconSize} />
+	</button>
+	<button
+		onclick={() => editor?.chain().focus().toggleStrike().run()}
+		class={btnClass(editor?.isActive('strike') ?? false)}
+		title="Strikethrough (Ctrl+Shift+X)"
+		data-testid="format-strikethrough"
+	>
+		<Strikethrough size={iconSize} />
+	</button>
+	<button
+		onclick={() => editor?.chain().focus().toggleUnderline().run()}
+		class={btnClass(editor?.isActive('underline') ?? false)}
+		title="Underline (Ctrl+U)"
+		data-testid="format-underline"
+	>
+		<Underline size={iconSize} />
+	</button>
+
+	<div class="mx-1 h-4 w-px shrink-0 bg-[var(--border-subtle)]"></div>
 
 	<!-- Heading dropdown -->
 	<div class="relative" data-dropdown="heading">
@@ -208,67 +244,6 @@
 		{/if}
 	</div>
 
-	<button
-		onclick={() => editor?.chain().focus().toggleBlockquote().run()}
-		class={btnClass(editor?.isActive('blockquote') ?? false)}
-		title="Blockquote"
-		data-testid="format-blockquote"
-	>
-		<TextQuote size={iconSize} />
-	</button>
-	<button
-		onclick={() => editor?.chain().focus().toggleCodeBlock().run()}
-		class={btnClass(editor?.isActive('codeBlock') ?? false)}
-		title="Code block"
-		data-testid="format-code-block"
-	>
-		<CodeXml size={iconSize} />
-	</button>
-
-	<div class="mx-1 h-4 w-px bg-[var(--border-subtle)]"></div>
-
-	<!-- Inline -->
-	<button
-		onclick={() => editor?.chain().focus().toggleBold().run()}
-		class={btnClass(editor?.isActive('bold') ?? false)}
-		title="Bold (Ctrl+B)"
-		data-testid="format-bold"
-	>
-		<Bold size={iconSize} />
-	</button>
-	<button
-		onclick={() => editor?.chain().focus().toggleItalic().run()}
-		class={btnClass(editor?.isActive('italic') ?? false)}
-		title="Italic (Ctrl+I)"
-		data-testid="format-italic"
-	>
-		<Italic size={iconSize} />
-	</button>
-	<button
-		onclick={() => editor?.chain().focus().toggleStrike().run()}
-		class={btnClass(editor?.isActive('strike') ?? false)}
-		title="Strikethrough (Ctrl+Shift+X)"
-		data-testid="format-strikethrough"
-	>
-		<Strikethrough size={iconSize} />
-	</button>
-	<button
-		onclick={() => editor?.chain().focus().toggleCode().run()}
-		class={btnClass(editor?.isActive('code') ?? false)}
-		title="Inline code (Ctrl+E)"
-		data-testid="format-code"
-	>
-		<Code size={iconSize} />
-	</button>
-	<button
-		onclick={() => editor?.chain().focus().toggleUnderline().run()}
-		class={btnClass(editor?.isActive('underline') ?? false)}
-		title="Underline (Ctrl+U)"
-		data-testid="format-underline"
-	>
-		<Underline size={iconSize} />
-	</button>
-
 	<!-- Link popover -->
 	<div class="relative" data-dropdown="link">
 		<button
@@ -327,28 +302,61 @@
 		{/if}
 	</div>
 
-	<div class="mx-1 h-4 w-px bg-[var(--border-subtle)]"></div>
+	<div class="mx-1 h-4 w-px shrink-0 bg-[var(--border-subtle)]"></div>
 
-	<!-- Align dropdown -->
-	<div class="relative" data-dropdown="align">
+	<!-- More dropdown -->
+	<div class="relative" data-dropdown="more">
 		<button
-			onclick={() => toggleDropdown('align')}
-			class={dropdownBtnClass(editor?.isActive({ textAlign: 'center' }) || editor?.isActive({ textAlign: 'right' }) || editor?.isActive({ textAlign: 'justify' }) ? true : false)}
-			title="Text alignment"
-			data-testid="format-align"
+			onclick={() => toggleDropdown('more')}
+			class={dropdownBtnClass(false)}
+			title="More options"
+			data-testid="format-more"
 		>
-			<AlignLeft size={iconSize} />
+			<Minus size={iconSize} />
 			<ChevronDown size={chevronSize} />
 		</button>
-		{#if openDropdown === 'align'}
-			<div class="absolute left-0 top-full z-50 mt-1 min-w-[150px] rounded-sm border border-[var(--border)] bg-[var(--bg-surface)] py-1">
+		{#if openDropdown === 'more'}
+			<div class="absolute right-0 top-full z-50 mt-1 min-w-[170px] rounded-sm border border-[var(--border)] bg-[var(--bg-surface)] py-1">
+				<button
+					onclick={() => { editor?.chain().focus().toggleCode().run(); closeDropdowns(); }}
+					class={dropdownItemClass(editor?.isActive('code') ?? false)}
+					data-testid="format-code"
+				>
+					<Code size={iconSize} />
+					<span>Inline code</span>
+				</button>
+				<button
+					onclick={() => { editor?.chain().focus().toggleBlockquote().run(); closeDropdowns(); }}
+					class={dropdownItemClass(editor?.isActive('blockquote') ?? false)}
+					data-testid="format-blockquote"
+				>
+					<TextQuote size={iconSize} />
+					<span>Blockquote</span>
+				</button>
+				<button
+					onclick={() => { editor?.chain().focus().toggleCodeBlock().run(); closeDropdowns(); }}
+					class={dropdownItemClass(editor?.isActive('codeBlock') ?? false)}
+					data-testid="format-code-block"
+				>
+					<CodeXml size={iconSize} />
+					<span>Code block</span>
+				</button>
+				<button
+					onclick={() => { editor?.chain().focus().setHorizontalRule().run(); closeDropdowns(); }}
+					class={dropdownItemClass()}
+					data-testid="format-hr"
+				>
+					<Minus size={iconSize} />
+					<span>Horizontal rule</span>
+				</button>
+				<div class="my-1 h-px bg-[var(--border-subtle)]"></div>
 				<button
 					onclick={() => { editor?.chain().focus().setTextAlign('left').run(); closeDropdowns(); }}
 					class={dropdownItemClass(editor?.isActive({ textAlign: 'left' }) ?? false)}
 					data-testid="format-align-left"
 				>
 					<AlignLeft size={iconSize} />
-					<span>Left</span>
+					<span>Align left</span>
 				</button>
 				<button
 					onclick={() => { editor?.chain().focus().setTextAlign('center').run(); closeDropdowns(); }}
@@ -356,7 +364,7 @@
 					data-testid="format-align-center"
 				>
 					<AlignCenter size={iconSize} />
-					<span>Center</span>
+					<span>Align center</span>
 				</button>
 				<button
 					onclick={() => { editor?.chain().focus().setTextAlign('right').run(); closeDropdowns(); }}
@@ -364,7 +372,7 @@
 					data-testid="format-align-right"
 				>
 					<AlignRight size={iconSize} />
-					<span>Right</span>
+					<span>Align right</span>
 				</button>
 				<button
 					onclick={() => { editor?.chain().focus().setTextAlign('justify').run(); closeDropdowns(); }}
@@ -377,16 +385,4 @@
 			</div>
 		{/if}
 	</div>
-
-	<div class="mx-1 h-4 w-px bg-[var(--border-subtle)]"></div>
-
-	<!-- Insert -->
-	<button
-		onclick={() => editor?.chain().focus().setHorizontalRule().run()}
-		class={btnClass()}
-		title="Horizontal rule"
-		data-testid="format-hr"
-	>
-		<Minus size={iconSize} />
-	</button>
 </div>

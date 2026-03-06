@@ -7,6 +7,7 @@
 - [x] on mobile the colour selection overflows outside the screen
 - [x] let's use another icon for toggling the raw md mode, also the active state doesn't make on this icon now, either we change the icon when it's in one state or the other, or the button should be active when the md state is active
 - [x] same for the list icon, toggling between this mode is nice but the icon becomes inactive which is weird
-- [ ] on mobile the toolbar collapose on two lines, can we do something so it stays only on one line and we have a dropdown to open the additional options
+- [x] on mobile the toolbar collapose on two lines, can we do something so it stays only on one line and we have a dropdown to open the additional options
 - [ ] add this todo.md to gitignore and remove from git
 - [ ] close the menu by default on mobile
+- [ ] when note content is really long on mobile (maybe on desktop also I didn't check) it overflows out of view without scrolling
