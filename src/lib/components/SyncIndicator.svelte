@@ -46,12 +46,12 @@
 
 <div class="flex items-center" title="Sync status: {status}" data-testid="sync-indicator">
 	{#if displayStatus === 'synced'}
-		<CloudCheck class="h-5 w-5 text-green-500" />
+		<CloudCheck class="h-5 w-5 text-[var(--primary)]" />
 	{:else if displayStatus === 'syncing'}
-		<CloudSync class="h-5 w-5 text-blue-500" />
+		<CloudSync class="h-5 w-5 text-[var(--primary)] opacity-60" />
 	{:else if displayStatus === 'offline'}
-		<CloudOff class="h-5 w-5 text-yellow-500" />
+		<CloudOff class="h-5 w-5 text-[var(--text-muted)]" />
 	{:else}
-		<CloudAlert class="h-5 w-5 text-red-500" />
+		<CloudAlert class="h-5 w-5 text-[#b44]" />
 	{/if}
 </div>
