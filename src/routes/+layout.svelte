@@ -6,6 +6,8 @@
 	import { loadNotes } from '$lib/stores/notes.js';
 	import { onMount } from 'svelte';
 
+	const appVersion = __APP_VERSION__;
+
 	let { children } = $props();
 	let sidebarOpen = $state(false);
 
@@ -25,7 +27,7 @@
 	</main>
 
 	<footer class="pb-4 pt-8 text-center text-xs text-gray-400 lg:ml-64">
-		Crumbs by Bretzel v{__APP_VERSION__} &mdash; made with 🥨 in Strasbourg
+		Crumbs by Bretzel v{appVersion} &mdash; made with 🥨 in Strasbourg
 	</footer>
 
 	<Toast />
