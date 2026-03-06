@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "skills": {
+    "drizzle-migrations": {
+      "source": "erichowens/some_claude_skills",
+      "sourceType": "github",
+      "computedHash": "d2af96b92935e26f53d97616aa51a02f114c9da8129c5943408d3b4b19a10423"
+    },
+    "svelte5-best-practices": {
+      "source": "ejirocodes/agent-skills",
+      "sourceType": "github",
+      "computedHash": "bfcbba3d355aede6f6be9720f195206d4dcaa7c152787ea00c06cb4a1ac44ba4"
+    },
+    "sveltekit-data-flow": {
+      "source": "spences10/svelte-skills-kit",
+      "sourceType": "github",
+      "computedHash": "1ef78409b38d1cb7324d8e0a78ac3f4303e0a9c5b5789bfc2d646c0806faa618"
+    },
+    "sveltekit-structure": {
+      "source": "spences10/svelte-skills-kit",
+      "sourceType": "github",
+      "computedHash": "a935fd51b32e4e37d23286c04748825a6a193ef74d9980385449aa4f80646f9d"
+    },
+    "typescript-best-practices": {
+      "source": "0xbigboss/claude-code",
+      "sourceType": "github",
+      "computedHash": "838d6737e59e8b15457a6af23112bc3a107a8ac098606a19a43c2be0db2dbe5a"
+    }
+  }
+}

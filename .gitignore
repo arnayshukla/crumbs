@@ -31,3 +31,6 @@ vite.config.ts.timestamp-*
 # Test results
 /test-results
 /playwright-report
+
+# Skills CLI (actual files are in .agents/skills/)
+/.claude/skills
