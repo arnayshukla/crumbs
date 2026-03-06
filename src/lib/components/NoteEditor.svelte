@@ -143,7 +143,7 @@
 						<Palette class="h-5 w-5 text-[var(--text-muted)]" />
 					</button>
 					{#if showColorPicker}
-						<div class="absolute left-0 top-full z-10 mt-2 w-[calc(100vw-4rem)] max-w-xs rounded-sm border border-[var(--border)] bg-[var(--bg-surface)] p-2">
+						<div class="absolute left-0 bottom-full z-10 mb-2 w-[calc(100vw-4rem)] max-w-xs rounded-sm border border-[var(--border)] bg-[var(--bg-surface)] p-2">
 							<ColorPicker selected={color} onSelect={handleColorSelect} />
 						</div>
 					{/if}
