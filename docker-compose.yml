@@ -1,6 +1,6 @@
 services:
   crumbs:
-    build: .
+    image: ghcr.io/bretzel-app/crumbs:latest
     container_name: crumbs
     ports:
       - "3000:3000"
@@ -10,7 +10,7 @@ services:
       - NODE_ENV=production
       - DATA_DIR=/data
       - DATABASE_URL=/data/crumbs.db
-      - ORIGIN=http://localhost:3000
+      - ORIGIN=${ORIGIN:-http://localhost:3000}
     restart: unless-stopped
 
 volumes:
