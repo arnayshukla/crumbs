@@ -54,3 +54,15 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           generate_release_notes: true
+
+      - name: Pin docker-compose image to released version
+        env:
+          VERSION: ${{ github.ref_name }}
+        run: |
+          VERSION="${VERSION#v}"
+          sed -i "s|image: ghcr.io/bretzel-app/crumbs:.*|image: ghcr.io/bretzel-app/crumbs:${VERSION}|" docker-compose.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docker-compose.yml
+          git commit -m "chore: pin docker-compose to v${VERSION} [skip ci]"
+          git push origin HEAD:main
