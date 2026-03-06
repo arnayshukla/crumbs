@@ -3,6 +3,11 @@
 	import { renderMarkdown } from '$lib/utils/markdown.js';
 	import { togglePin, trashNote, archiveNote, unarchiveNote, restoreNote, deleteNote, updateNote, currentFilter } from '$lib/stores/notes.js';
 	import type { Note } from '$lib/types/index.js';
+	import Undo2 from 'lucide-svelte/icons/undo-2';
+	import Trash2 from 'lucide-svelte/icons/trash-2';
+	import Bookmark from 'lucide-svelte/icons/bookmark';
+	import Archive from 'lucide-svelte/icons/archive';
+	import ArchiveRestore from 'lucide-svelte/icons/archive-restore';
 
 	interface ChecklistItem {
 		text: string;
@@ -117,9 +122,7 @@
 				title="Restore"
 				data-testid="restore-btn"
 			>
-				<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
-				</svg>
+				<Undo2 class="h-4 w-4" />
 			</button>
 			<button
 				onclick={stop(() => deleteNote(note.id))}
@@ -127,9 +130,7 @@
 				title="Delete forever"
 				data-testid="delete-forever-btn"
 			>
-				<svg class="h-4 w-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-				</svg>
+				<Trash2 class="h-4 w-4 text-[#b44]" />
 			</button>
 		{:else}
 			<button
@@ -138,9 +139,7 @@
 				title={note.pinned ? 'Unpin' : 'Pin'}
 				data-testid="pin-btn"
 			>
-				<svg class="h-4 w-4 {note.pinned ? 'text-[var(--primary)]' : ''}" fill={note.pinned ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
-					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-				</svg>
+				<Bookmark class="h-4 w-4 {note.pinned ? 'fill-[var(--primary)] text-[var(--primary)]' : ''}" />
 			</button>
 			{#if $currentFilter === 'archived'}
 				<button
@@ -149,9 +148,7 @@
 					title="Unarchive"
 					data-testid="unarchive-btn"
 				>
-					<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
-					</svg>
+					<ArchiveRestore class="h-4 w-4" />
 				</button>
 			{:else}
 				<button
@@ -160,9 +157,7 @@
 					title="Archive"
 					data-testid="archive-btn"
 				>
-					<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
-					</svg>
+					<Archive class="h-4 w-4" />
 				</button>
 			{/if}
 			<button
@@ -171,9 +166,7 @@
 				title="Delete"
 				data-testid="trash-btn"
 			>
-				<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-				</svg>
+				<Trash2 class="h-4 w-4" />
 			</button>
 		{/if}
 	</div>

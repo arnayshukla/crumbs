@@ -1,6 +1,7 @@
 <script lang="ts">
 	import SearchBar from '../SearchBar.svelte';
 	import SyncIndicator from '../SyncIndicator.svelte';
+	import Menu from 'lucide-svelte/icons/menu';
 
 	interface Props {
 		onMenuToggle: () => void;
@@ -15,9 +16,7 @@
 		class="rounded-sm p-2 hover:bg-[var(--border)]/10"
 		aria-label="Toggle sidebar"
 	>
-		<svg class="h-6 w-6 text-[var(--text)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-			<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-		</svg>
+		<Menu class="h-6 w-6 text-[var(--text)]" />
 	</button>
 
 	<div class="flex items-center gap-2">

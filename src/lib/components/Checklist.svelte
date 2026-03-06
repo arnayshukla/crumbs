@@ -1,4 +1,7 @@
 <script lang="ts">
+	import XIcon from 'lucide-svelte/icons/x';
+	import Plus from 'lucide-svelte/icons/plus';
+
 	interface ChecklistItem {
 		text: string;
 		checked: boolean;
@@ -101,9 +104,7 @@
 				aria-label="Remove item"
 				data-testid="checklist-remove"
 			>
-				<svg class="h-4 w-4 text-[var(--text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-				</svg>
+				<XIcon class="h-4 w-4 text-[var(--text-muted)]" />
 			</button>
 		</div>
 	{/each}
@@ -112,9 +113,7 @@
 		class="flex items-center gap-2 text-sm text-[var(--text-muted)] hover:text-[var(--text)]"
 		data-testid="checklist-add"
 	>
-		<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-			<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-		</svg>
+		<Plus class="h-4 w-4" />
 		Add item
 	</button>
 </div>

@@ -1,5 +1,4 @@
 - [x] use colors for the cloud status icon that fit more into the colour scheme
 - [x] do we actually have a colour palette and theme ?
-- [ ] choose diffent icon for the background colour
-- [ ] make sure we use only lucid icons everywhere
-- [ ]
+- [x] choose diffent icon for the background colour
+- [x] make sure we use only lucid icons everywhere

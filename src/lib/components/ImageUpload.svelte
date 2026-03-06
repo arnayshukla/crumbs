@@ -1,4 +1,5 @@
 <script lang="ts">
+	import XIcon from 'lucide-svelte/icons/x';
 	import type { Attachment } from '$lib/types/index.js';
 
 	interface Props {
@@ -69,9 +70,7 @@
 						aria-label="Remove attachment"
 						data-testid="remove-attachment"
 					>
-						<svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-						</svg>
+						<XIcon class="h-3 w-3" />
 					</button>
 				</div>
 			{/each}

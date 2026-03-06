@@ -7,6 +7,9 @@
 	import { NOTE_COLORS } from '$lib/utils/colors.js';
 	import type { Editor } from '@tiptap/core';
 	import type { Note, NoteColor } from '$lib/types/index.js';
+	import Palette from 'lucide-svelte/icons/palette';
+	import ListChecks from 'lucide-svelte/icons/list-checks';
+	import Code from 'lucide-svelte/icons/code';
 
 	interface Props {
 		note: Note | null;
@@ -133,9 +136,7 @@
 						title="Background color"
 						data-testid="color-picker-toggle"
 					>
-						<svg class="h-5 w-5 text-[var(--text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
-						</svg>
+						<Palette class="h-5 w-5 text-[var(--text-muted)]" />
 					</button>
 					{#if showColorPicker}
 						<div class="absolute left-0 top-full mt-2 rounded-sm border border-[var(--border)] bg-[var(--bg-surface)] p-2">
@@ -151,9 +152,7 @@
 					title="Checklist mode"
 					data-testid="checklist-toggle"
 				>
-					<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-					</svg>
+					<ListChecks class="h-5 w-5" />
 				</button>
 
 				<!-- Raw markdown mode toggle -->
@@ -163,9 +162,7 @@
 					title="Markdown mode"
 					data-testid="markdown-toggle"
 				>
-					<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
-					</svg>
+					<Code class="h-5 w-5" />
 				</button>
 			</div>
 

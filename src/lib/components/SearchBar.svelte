@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { notes, loadNotes, currentFilter } from '$lib/stores/notes.js';
 	import type { Note } from '$lib/types/index.js';
+	import Search from 'lucide-svelte/icons/search';
+	import X from 'lucide-svelte/icons/x';
 
 	let query = $state('');
 	let originalNotes: Note[] = [];
@@ -38,9 +40,7 @@
 
 <div class="relative max-w-2xl">
 	<div class="flex items-center rounded-sm border border-[var(--border-subtle)] bg-[var(--bg-base)] px-4 py-2 focus-within:border-[var(--primary)]">
-		<svg class="mr-3 h-5 w-5 text-[var(--text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-			<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-		</svg>
+		<Search class="mr-3 h-5 w-5 text-[var(--text-muted)]" />
 		<input
 			type="text"
 			placeholder="Search crumbs..."
@@ -51,9 +51,7 @@
 		/>
 		{#if query}
 			<button onclick={clearSearch} class="ml-2 text-[var(--text-muted)] hover:text-[var(--text)]" aria-label="Clear search">
-				<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-				</svg>
+				<X class="h-5 w-5" />
 			</button>
 		{/if}
 	</div>
