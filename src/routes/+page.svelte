@@ -2,7 +2,9 @@
 	import NoteGrid from '$lib/components/NoteGrid.svelte';
 	import NoteEditor from '$lib/components/NoteEditor.svelte';
 	import TagFilter from '$lib/components/TagFilter.svelte';
-	import { pinnedNotes, unpinnedNotes, selectedTag, currentFilter } from '$lib/stores/notes.js';
+	import { pinnedNotes, unpinnedNotes, selectedTag, currentFilter, notes } from '$lib/stores/notes.js';
+	import { onMount } from 'svelte';
+	import { get } from 'svelte/store';
 	import type { Note } from '$lib/types/index.js';
 
 	let editingNote: Note | null = $state(null);
@@ -10,12 +12,27 @@
 
 	function openEditor(note: Note) {
 		editingNote = note;
+		history.replaceState(null, '', `#${note.id}`);
 	}
 
 	function closeEditor() {
 		editingNote = null;
 		showNewNote = false;
+		history.replaceState(null, '', location.pathname);
 	}
+
+	onMount(() => {
+		const hash = location.hash.slice(1);
+		if (!hash) return;
+
+		// Notes may not be loaded yet — wait for them
+		const unsubscribe = notes.subscribe(($notes) => {
+			if ($notes.length === 0) return;
+			const note = $notes.find((n) => n.id === hash);
+			if (note) editingNote = note;
+			unsubscribe();
+		});
+	});
 </script>
 
 <svelte:head>
