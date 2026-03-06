@@ -9,7 +9,9 @@
 	import type { Note, NoteColor } from '$lib/types/index.js';
 	import Palette from 'lucide-svelte/icons/palette';
 	import ListChecks from 'lucide-svelte/icons/list-checks';
+	import List from 'lucide-svelte/icons/list';
 	import Code from 'lucide-svelte/icons/code';
+	import Eye from 'lucide-svelte/icons/eye';
 
 	interface Props {
 		note: Note | null;
@@ -149,20 +151,28 @@
 				<button
 					onclick={() => (checklistMode = !checklistMode)}
 					class="rounded-sm p-2 hover:bg-[var(--border)]/10 {checklistMode ? 'text-[var(--primary)]' : ''}"
-					title="Checklist mode"
+					title={checklistMode ? 'Switch to text' : 'Checklist mode'}
 					data-testid="checklist-toggle"
 				>
-					<ListChecks class="h-5 w-5" />
+					{#if checklistMode}
+						<ListChecks class="h-5 w-5" />
+					{:else}
+						<List class="h-5 w-5" />
+					{/if}
 				</button>
 
 				<!-- Raw markdown mode toggle -->
 				<button
 					onclick={toggleMarkdownMode}
 					class="rounded-sm p-2 hover:bg-[var(--border)]/10 {rawMarkdownMode ? 'text-[var(--primary)]' : ''}"
-					title="Markdown mode"
+					title={rawMarkdownMode ? 'Rich text mode' : 'Markdown mode'}
 					data-testid="markdown-toggle"
 				>
-					<Code class="h-5 w-5" />
+					{#if rawMarkdownMode}
+						<Code class="h-5 w-5" />
+					{:else}
+						<Eye class="h-5 w-5" />
+					{/if}
 				</button>
 			</div>
 

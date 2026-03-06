@@ -5,8 +5,8 @@
 - [x] on mobile the header is clutered, maybe we can colapse the search bar into a search icon, and when clicked it opens a search bar to search
 - [x] let's add an outline on the colour palette selection for the background to make each colour more visible
 - [x] on mobile the colour selection overflows outside the screen
-- [ ] let's use another icon for toggling the raw md mode, also the active state doesn't make on this icon now, either we change the icon when it's in one state or the other, or the button should be active when the md state is active
-- [ ] same for the list icon, toggling between this mode is nice but the icon becomes inactive which is weird
+- [x] let's use another icon for toggling the raw md mode, also the active state doesn't make on this icon now, either we change the icon when it's in one state or the other, or the button should be active when the md state is active
+- [x] same for the list icon, toggling between this mode is nice but the icon becomes inactive which is weird
 - [ ] on mobile the toolbar collapose on two lines, can we do something so it stays only on one line and we have a dropdown to open the additional options
 - [ ] add this todo.md to gitignore and remove from git
 - [ ] close the menu by default on mobile
