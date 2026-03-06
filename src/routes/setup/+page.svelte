@@ -47,17 +47,17 @@
 	<title>Setup - Crumbs</title>
 </svelte:head>
 
-<div class="flex min-h-screen items-center justify-center bg-gray-50">
-	<div class="w-full max-w-sm rounded-lg bg-white p-8 shadow-md">
+<div class="flex min-h-screen items-center justify-center bg-[var(--bg-base)]">
+	<div class="w-full max-w-sm rounded-sm border border-[var(--border)] bg-[var(--bg-surface)] p-8">
 		<div class="mb-6 text-center">
 			<span class="text-5xl">🥨</span>
-			<h1 class="text-2xl font-bold text-gray-800">Welcome to Crumbs</h1>
-			<p class="mt-1 text-sm text-gray-500">Set up your password to get started</p>
+			<h1 class="font-['Press_Start_2P'] text-xl text-[var(--primary)]">Welcome to Crumbs</h1>
+			<p class="mt-2 text-sm text-[var(--text-muted)]">Set up your password to get started</p>
 		</div>
 
 		<form onsubmit={handleSetup}>
 			{#if errorMsg}
-				<div class="mb-4 rounded bg-red-50 p-3 text-sm text-red-600" data-testid="error-message">
+				<div class="mb-4 rounded-sm border border-red-300 bg-red-50 p-3 text-sm text-red-600" data-testid="error-message">
 					{errorMsg}
 				</div>
 			{/if}
@@ -66,7 +66,7 @@
 				type="password"
 				bind:value={password}
 				placeholder="Password (min 8 characters)"
-				class="mb-3 w-full rounded-lg border border-gray-300 px-4 py-3 text-sm outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+				class="mb-3 w-full rounded-sm border border-[var(--border-subtle)] bg-[var(--bg-base)] px-4 py-3 text-sm text-[var(--text)] outline-none placeholder:text-[var(--text-muted)] focus:border-[var(--primary)]"
 				data-testid="password-input"
 				required
 			/>
@@ -75,7 +75,7 @@
 				type="password"
 				bind:value={confirmPassword}
 				placeholder="Confirm password"
-				class="mb-4 w-full rounded-lg border border-gray-300 px-4 py-3 text-sm outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+				class="mb-4 w-full rounded-sm border border-[var(--border-subtle)] bg-[var(--bg-base)] px-4 py-3 text-sm text-[var(--text)] outline-none placeholder:text-[var(--text-muted)] focus:border-[var(--primary)]"
 				data-testid="confirm-password-input"
 				required
 			/>
@@ -83,7 +83,7 @@
 			<button
 				type="submit"
 				disabled={loading}
-				class="w-full rounded-lg bg-amber-500 py-3 text-sm font-medium text-white transition-colors hover:bg-amber-600 disabled:opacity-50"
+				class="w-full rounded-sm bg-[var(--primary)] py-3 text-sm font-medium text-white transition-colors hover:bg-[var(--primary-hover)] disabled:opacity-50"
 				data-testid="setup-btn"
 			>
 				{loading ? 'Setting up...' : 'Set password & start'}

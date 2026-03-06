@@ -59,7 +59,7 @@
 
 <div
 	bind:this={element}
-	class="tiptap-wrapper prose prose-sm min-h-[300px] max-w-none px-4 py-2 text-gray-800"
+	class="tiptap-wrapper prose prose-sm min-h-[300px] max-w-none px-4 py-2 text-[var(--text)]"
 	data-testid="tiptap-editor"
 ></div>
 
@@ -72,7 +72,7 @@
 	.tiptap-wrapper :global(.tiptap p.is-editor-empty:first-child::before) {
 		content: attr(data-placeholder);
 		float: left;
-		color: #9ca3af;
+		color: var(--text-muted);
 		pointer-events: none;
 		height: 0;
 	}

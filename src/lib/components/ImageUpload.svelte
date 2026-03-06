@@ -60,7 +60,7 @@
 					<img
 						src="/api/notes/{noteId}/attachments/{attachment.id}"
 						alt={attachment.filename}
-						class="h-20 w-20 rounded object-cover"
+						class="h-20 w-20 rounded-sm object-cover"
 						data-testid="attachment-thumbnail"
 					/>
 					<button
@@ -80,7 +80,7 @@
 
 	<!-- Upload area -->
 	<div
-		class="rounded-lg border-2 border-dashed p-4 text-center transition-colors {dragOver ? 'border-amber-500 bg-amber-50' : 'border-gray-300'}"
+		class="rounded-sm border-2 border-dashed p-4 text-center transition-colors {dragOver ? 'border-[var(--primary)] bg-[var(--primary)]/5' : 'border-[var(--border-subtle)]'}"
 		ondrop={handleDrop}
 		ondragover={handleDragOver}
 		ondragleave={() => (dragOver = false)}
@@ -89,10 +89,10 @@
 		data-testid="upload-dropzone"
 	>
 		{#if uploading}
-			<p class="text-sm text-gray-500">Uploading...</p>
+			<p class="text-sm text-[var(--text-muted)]">Uploading...</p>
 		{:else}
 			<label class="cursor-pointer">
-				<span class="text-sm text-gray-500">Drop images here or <span class="text-amber-600 underline">browse</span></span>
+				<span class="text-sm text-[var(--text-muted)]">Drop images here or <span class="text-[var(--primary)] underline">browse</span></span>
 				<input
 					type="file"
 					accept="image/*"

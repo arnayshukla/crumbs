@@ -83,7 +83,7 @@
 				type="checkbox"
 				checked={item.checked}
 				onchange={() => toggleItem(index)}
-				class="h-4 w-4 rounded border-gray-300 text-amber-600 focus:ring-amber-500"
+				class="h-4 w-4 rounded border-[var(--border-subtle)] text-[var(--primary)] focus:ring-[var(--primary)]"
 				data-testid="checklist-checkbox"
 			/>
 			<input
@@ -91,7 +91,7 @@
 				value={item.text}
 				oninput={(e) => updateText(index, (e.target as HTMLInputElement).value)}
 				onkeydown={(e) => handleKeydown(e, index)}
-				class="flex-1 bg-transparent text-sm outline-none {item.checked ? 'text-gray-400 line-through' : 'text-gray-800'}"
+				class="flex-1 bg-transparent text-sm outline-none {item.checked ? 'text-[var(--text-muted)] line-through' : 'text-[var(--text)]'}"
 				placeholder="List item"
 				data-testid="checklist-input"
 			/>
@@ -101,7 +101,7 @@
 				aria-label="Remove item"
 				data-testid="checklist-remove"
 			>
-				<svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<svg class="h-4 w-4 text-[var(--text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
 				</svg>
 			</button>
@@ -109,7 +109,7 @@
 	{/each}
 	<button
 		onclick={() => addItem(items.length - 1)}
-		class="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700"
+		class="flex items-center gap-2 text-sm text-[var(--text-muted)] hover:text-[var(--text)]"
 		data-testid="checklist-add"
 	>
 		<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

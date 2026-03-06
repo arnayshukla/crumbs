@@ -14,7 +14,7 @@
 	});
 </script>
 
-<div class="flex min-h-screen flex-col bg-white text-gray-900">
+<div class="flex min-h-screen flex-col bg-[var(--bg-base)] text-[var(--text)]">
 	<Header onMenuToggle={() => (sidebarOpen = !sidebarOpen)} />
 	<Sidebar open={sidebarOpen} />
 
@@ -24,7 +24,7 @@
 		</div>
 	</main>
 
-	<footer class="pb-4 pt-8 text-center text-xs text-gray-400 lg:ml-64">
+	<footer class="pb-4 pt-8 text-center text-xs text-[var(--text-muted)] lg:ml-64">
 		Crumbs by Bretzel v{data.appVersion} &mdash; made with 🥨 in Strasbourg
 	</footer>
 

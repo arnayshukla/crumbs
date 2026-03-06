@@ -78,7 +78,7 @@
 >
 	<!-- svelte-ignore a11y_no_static_element_interactions -->
 	<div
-		class="mx-4 w-full max-w-xl rounded-lg border border-gray-200 shadow-xl"
+		class="mx-4 w-full max-w-xl rounded-sm border border-[var(--border)]"
 		style={bgStyle}
 		onclick={(e) => e.stopPropagation()}
 		onkeydown={(e) => { e.stopPropagation(); handleKeydown(e); }}
@@ -89,7 +89,7 @@
 			type="text"
 			placeholder="Title"
 			bind:value={title}
-			class="w-full bg-transparent px-4 pt-4 text-lg font-semibold text-gray-900 outline-none placeholder:text-gray-500"
+			class="w-full bg-transparent px-4 pt-4 text-lg font-semibold text-[var(--text)] outline-none placeholder:text-[var(--text-muted)]"
 			data-testid="note-title-input"
 		/>
 
@@ -103,7 +103,7 @@
 				bind:this={textareaEl}
 				placeholder="Add a crumb..."
 				bind:value={content}
-				class="min-h-[300px] w-full resize-none bg-transparent px-4 py-2 text-sm text-gray-800 outline-none placeholder:text-gray-500"
+				class="min-h-[300px] w-full resize-none bg-transparent px-4 py-2 text-sm text-[var(--text)] outline-none placeholder:text-[var(--text-muted)]"
 				rows="12"
 				data-testid="note-content-input"
 			></textarea>
@@ -123,22 +123,22 @@
 		{/if}
 
 		<!-- Toolbar -->
-		<div class="flex items-center justify-between border-t border-gray-200/50 px-2 py-2">
+		<div class="flex items-center justify-between border-t border-[var(--border-subtle)] px-2 py-2">
 			<div class="flex items-center gap-1">
 				<!-- Color picker toggle -->
 				<div class="relative">
 					<button
 						onclick={() => (showColorPicker = !showColorPicker)}
-						class="rounded-full p-2 hover:bg-black/10"
+						class="rounded-sm p-2 hover:bg-[var(--border)]/10"
 						title="Background color"
 						data-testid="color-picker-toggle"
 					>
-						<svg class="h-5 w-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<svg class="h-5 w-5 text-[var(--text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
 						</svg>
 					</button>
 					{#if showColorPicker}
-						<div class="absolute left-0 top-full mt-2 rounded-lg border border-gray-200 bg-white p-2 shadow-lg">
+						<div class="absolute left-0 top-full mt-2 rounded-sm border border-[var(--border)] bg-[var(--bg-surface)] p-2">
 							<ColorPicker selected={color} onSelect={handleColorSelect} />
 						</div>
 					{/if}
@@ -147,7 +147,7 @@
 				<!-- Checklist mode toggle -->
 				<button
 					onclick={() => (checklistMode = !checklistMode)}
-					class="rounded-full p-2 hover:bg-black/10 {checklistMode ? 'text-amber-600' : ''}"
+					class="rounded-sm p-2 hover:bg-[var(--border)]/10 {checklistMode ? 'text-[var(--primary)]' : ''}"
 					title="Checklist mode"
 					data-testid="checklist-toggle"
 				>
@@ -159,7 +159,7 @@
 				<!-- Raw markdown mode toggle -->
 				<button
 					onclick={toggleMarkdownMode}
-					class="rounded-full p-2 hover:bg-black/10 {rawMarkdownMode ? 'text-amber-600' : ''}"
+					class="rounded-sm p-2 hover:bg-[var(--border)]/10 {rawMarkdownMode ? 'text-[var(--primary)]' : ''}"
 					title="Markdown mode"
 					data-testid="markdown-toggle"
 				>
@@ -171,7 +171,7 @@
 
 			<button
 				onclick={save}
-				class="rounded px-4 py-1 text-sm font-medium text-gray-700 hover:bg-black/10"
+				class="rounded-sm px-4 py-1 text-sm font-medium text-[var(--text)] hover:bg-[var(--border)]/10"
 				data-testid="close-editor-btn"
 			>
 				Close

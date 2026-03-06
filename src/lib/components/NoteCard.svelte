@@ -43,7 +43,7 @@
 </script>
 
 <article
-	class="group relative cursor-pointer rounded-lg border border-gray-200 p-4 shadow-sm transition-shadow hover:shadow-md"
+	class="group relative cursor-pointer rounded-sm border border-[var(--border)] p-4 transition-colors hover:border-[var(--primary)]"
 	style={cardStyle}
 	onclick={() => onEdit(note)}
 	onkeydown={(e) => e.key === 'Enter' && onEdit(note)}
@@ -53,23 +53,23 @@
 	data-note-id={note.id}
 >
 	{#if note.title}
-		<h3 class="mb-2 text-sm font-semibold text-gray-900">{note.title}</h3>
+		<h3 class="mb-2 text-sm font-semibold text-[var(--text)]">{note.title}</h3>
 	{/if}
 
 	{#if note.checklistMode && checklistItems.length > 0}
 		<ul class="space-y-1" data-testid="note-checklist-preview">
 			{#each checklistItems.slice(0, 8) as item}
-				<li class="flex items-center gap-2 text-sm {item.checked ? 'text-gray-400 line-through' : 'text-gray-700'}">
-					<input type="checkbox" checked={item.checked} disabled class="h-3.5 w-3.5 rounded border-gray-300 text-amber-600" />
+				<li class="flex items-center gap-2 text-sm {item.checked ? 'text-[var(--text-muted)] line-through' : 'text-[var(--text)]'}">
+					<input type="checkbox" checked={item.checked} disabled class="h-3.5 w-3.5 rounded border-[var(--border-subtle)] text-[var(--primary)]" />
 					<span class="truncate">{item.text}</span>
 				</li>
 			{/each}
 			{#if checklistItems.length > 8}
-				<li class="text-xs text-gray-400">+{checklistItems.length - 8} more</li>
+				<li class="text-xs text-[var(--text-muted)]">+{checklistItems.length - 8} more</li>
 			{/if}
 		</ul>
 	{:else if note.content}
-		<div class="prose prose-sm line-clamp-6 max-w-none text-sm text-gray-700" data-testid="note-content-preview">
+		<div class="prose prose-sm line-clamp-6 max-w-none text-sm text-[var(--text-muted)]" data-testid="note-content-preview">
 			{@html renderedContent}
 		</div>
 	{/if}
@@ -77,7 +77,7 @@
 	{#if note.tags && note.tags.length > 0}
 		<div class="mt-2 flex flex-wrap gap-1">
 			{#each note.tags as tag}
-				<span class="rounded-full bg-gray-200/60 px-2 py-0.5 text-xs text-gray-600">
+				<span class="rounded-sm bg-[var(--border)]/10 px-2 py-0.5 text-xs text-[var(--text-muted)]">
 					#{tag}
 				</span>
 			{/each}
@@ -89,7 +89,7 @@
 		{#if $currentFilter === 'trashed'}
 			<button
 				onclick={stop(() => restoreNote(note.id))}
-				class="rounded-full p-1.5 hover:bg-black/10"
+				class="rounded-sm p-1.5 hover:bg-[var(--border)]/10"
 				title="Restore"
 				data-testid="restore-btn"
 			>
@@ -99,7 +99,7 @@
 			</button>
 			<button
 				onclick={stop(() => deleteNote(note.id))}
-				class="rounded-full p-1.5 hover:bg-black/10"
+				class="rounded-sm p-1.5 hover:bg-[var(--border)]/10"
 				title="Delete forever"
 				data-testid="delete-forever-btn"
 			>
@@ -110,18 +110,18 @@
 		{:else}
 			<button
 				onclick={stop(() => togglePin(note.id, note.pinned))}
-				class="rounded-full p-1.5 hover:bg-black/10"
+				class="rounded-sm p-1.5 hover:bg-[var(--border)]/10"
 				title={note.pinned ? 'Unpin' : 'Pin'}
 				data-testid="pin-btn"
 			>
-				<svg class="h-4 w-4 {note.pinned ? 'text-amber-600' : ''}" fill={note.pinned ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+				<svg class="h-4 w-4 {note.pinned ? 'text-[var(--primary)]' : ''}" fill={note.pinned ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
 					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
 				</svg>
 			</button>
 			{#if $currentFilter === 'archived'}
 				<button
 					onclick={stop(() => unarchiveNote(note.id))}
-					class="rounded-full p-1.5 hover:bg-black/10"
+					class="rounded-sm p-1.5 hover:bg-[var(--border)]/10"
 					title="Unarchive"
 					data-testid="unarchive-btn"
 				>
@@ -132,7 +132,7 @@
 			{:else}
 				<button
 					onclick={stop(() => archiveNote(note.id))}
-					class="rounded-full p-1.5 hover:bg-black/10"
+					class="rounded-sm p-1.5 hover:bg-[var(--border)]/10"
 					title="Archive"
 					data-testid="archive-btn"
 				>
@@ -143,7 +143,7 @@
 			{/if}
 			<button
 				onclick={stop(() => trashNote(note.id))}
-				class="rounded-full p-1.5 hover:bg-black/10"
+				class="rounded-sm p-1.5 hover:bg-[var(--border)]/10"
 				title="Delete"
 				data-testid="trash-btn"
 			>
@@ -157,7 +157,7 @@
 	<!-- Pin indicator -->
 	{#if note.pinned}
 		<div class="absolute right-2 top-2">
-			<svg class="h-4 w-4 text-amber-600" fill="currentColor" viewBox="0 0 24 24">
+			<svg class="h-4 w-4 text-[var(--primary)]" fill="currentColor" viewBox="0 0 24 24">
 				<path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
 			</svg>
 		</div>

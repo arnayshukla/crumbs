@@ -15,8 +15,8 @@ export default defineConfig({
 				description: 'A self-hostable, offline-first note-taking app by Bretzel',
 				start_url: '/',
 				display: 'standalone',
-				background_color: '#202124',
-				theme_color: '#f59e0b',
+				background_color: '#f0e6d3',
+				theme_color: '#C8860A',
 				icons: [
 					{ src: 'pwa-192x192.png', sizes: '192x192', type: 'image/png' },
 					{ src: 'pwa-512x512.png', sizes: '512x512', type: 'image/png' },

@@ -1,7 +1,7 @@
 import type { NoteColor } from '$lib/types/index.js';
 
 export const NOTE_COLORS: Record<NoteColor, { bg: string; label: string }> = {
-	default: { bg: '#ffffff', label: 'Default' },
+	default: { bg: '#faf5eb', label: 'Default' },
 	coral: { bg: '#faafa8', label: 'Coral' },
 	peach: { bg: '#f39f76', label: 'Peach' },
 	sand: { bg: '#fff8b8', label: 'Sand' },
