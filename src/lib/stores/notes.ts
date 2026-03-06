@@ -1,6 +1,6 @@
 import { writable, derived } from 'svelte/store';
 import type { Note, NoteFilter, NoteCreate, NoteUpdate } from '$lib/types/index.js';
-import { addToSyncQueue, putNote, deleteNoteFromIdb, getAllNotes } from '$lib/sync/idb.js';
+import { addToSyncQueue, putNote, deleteNoteFromIdb, getAllNotes, clearNotes as clearIdbNotes } from '$lib/sync/idb.js';
 import { showToast } from '$lib/stores/toast.js';
 import { extractTags } from '$lib/utils/tags.js';
 
@@ -45,21 +45,27 @@ function isNetworkError(err: unknown): boolean {
 }
 
 export async function loadNotes(filter: NoteFilter = 'all') {
+	// Load from IDB first for instant display
+	const cached = await getAllNotes();
+	if (cached.length > 0) {
+		notes.set(cached);
+		currentFilter.set(filter);
+	}
+
+	// Then fetch from server in the background
 	try {
 		const res = await fetch(`/api/notes?filter=${filter}`);
 		if (res.ok) {
-			const data = await res.json();
+			const data: Note[] = await res.json();
 			notes.set(data);
 			currentFilter.set(filter);
+
+			// Update IDB with server state
+			await clearIdbNotes();
+			await Promise.all(data.map((n) => putNote(n)));
 		}
-	} catch (err) {
-		if (isNetworkError(err)) {
-			const cached = await getAllNotes();
-			if (cached.length > 0) {
-				notes.set(cached);
-				currentFilter.set(filter);
-			}
-		}
+	} catch {
+		// Offline — IDB data already loaded above
 	}
 }
 
@@ -71,8 +77,9 @@ export async function createNote(note: NoteCreate): Promise<Note | null> {
 			body: JSON.stringify(note)
 		});
 		if (res.ok) {
-			const created = await res.json();
+			const created: Note = await res.json();
 			notes.update((list) => [created, ...list]);
+			await putNote(created);
 			return created;
 		}
 		return null;
@@ -115,8 +122,9 @@ export async function updateNote(id: string, updates: NoteUpdate): Promise<Note 
 			body: JSON.stringify(updates)
 		});
 		if (res.ok) {
-			const updated = await res.json();
+			const updated: Note = await res.json();
 			notes.update((list) => list.map((n) => (n.id === id ? updated : n)));
+			await putNote(updated);
 			return updated;
 		}
 		showToast('Failed to save note', 'error');
@@ -152,6 +160,7 @@ export async function deleteNote(id: string): Promise<boolean> {
 		const res = await fetch(`/api/notes/${id}`, { method: 'DELETE' });
 		if (res.ok) {
 			notes.update((list) => list.filter((n) => n.id !== id));
+			await deleteNoteFromIdb(id);
 			return true;
 		}
 		return false;

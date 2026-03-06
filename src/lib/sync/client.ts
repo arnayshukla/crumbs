@@ -2,7 +2,7 @@ import { browser } from '$app/environment';
 import type { Note } from '$lib/types/index.js';
 import { putNote, getAllNotes, addToSyncQueue, getSyncQueue, clearSyncQueue, deleteNoteFromIdb, getMeta, setMeta } from './idb.js';
 import { mergeNotes } from './crdt.js';
-import { notes as notesStore, currentFilter } from '$lib/stores/notes.js';
+import { loadNotes, currentFilter } from '$lib/stores/notes.js';
 import { get } from 'svelte/store';
 
 export type SyncStatus = 'synced' | 'syncing' | 'offline' | 'error';
@@ -101,13 +101,8 @@ export async function sync(): Promise<void> {
 		await pullChanges();
 		setStatus('synced');
 
-		// Reload notes from server to reflect synced state
-		const filter = get(currentFilter);
-		const res = await fetch(`/api/notes?filter=${filter}`);
-		if (res.ok) {
-			const data = await res.json();
-			notesStore.set(data);
-		}
+		// Reload notes from server and persist to IDB
+		await loadNotes(get(currentFilter));
 	} catch {
 		setStatus('error');
 	}

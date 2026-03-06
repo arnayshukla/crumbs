@@ -79,6 +79,23 @@ test.describe('Offline Support', () => {
 		await expect(page.getByText('Survive Reload')).toBeVisible();
 	});
 
+	test('Scenario: Notes load from local cache when the API is unavailable', async ({ authenticatedPage: page }) => {
+		// Given a note titled "Cached Note" exists
+		await page.getByTestId('new-note-btn').click();
+		await page.getByTestId('note-title-input').fill('Cached Note');
+		await page.getByTestId('close-editor-btn').click();
+		await expect(page.getByText('Cached Note')).toBeVisible();
+
+		// When the API is unavailable (simulating service worker serving cached shell)
+		await page.route('**/api/**', (route) => route.abort());
+
+		// And the user reloads the page
+		await page.reload();
+
+		// Then the note is still visible (loaded from IDB cache)
+		await expect(page.getByText('Cached Note')).toBeVisible();
+	});
+
 	test('Scenario: Trashed note disappears from the list when offline', async ({ authenticatedPage: page }) => {
 		// Given a note titled "Offline Trash" exists
 		await page.getByTestId('new-note-btn').click();
