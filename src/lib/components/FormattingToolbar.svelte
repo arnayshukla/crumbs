@@ -22,7 +22,8 @@
 		AlignRight,
 		AlignJustify,
 		Minus,
-		ChevronDown
+		ChevronDown,
+		Ellipsis
 	} from 'lucide-svelte';
 
 	interface Props {
@@ -80,11 +81,11 @@
 	const chevronSize = 14;
 
 	function btnClass(active: boolean = false, disabled: boolean = false): string {
-		return `rounded p-1.5 text-[var(--text)] hover:bg-[var(--border)]/10 ${active ? 'text-[var(--primary)] bg-[var(--border)]/10' : ''} ${disabled ? 'opacity-30' : ''}`;
+		return `shrink-0 rounded p-1.5 text-[var(--text)] hover:bg-[var(--border)]/10 ${active ? 'text-[var(--primary)] bg-[var(--border)]/10' : ''} ${disabled ? 'opacity-30' : ''}`;
 	}
 
 	function dropdownBtnClass(active: boolean = false): string {
-		return `flex items-center gap-0.5 rounded p-1.5 text-[var(--text)] hover:bg-[var(--border)]/10 ${active ? 'text-[var(--primary)] bg-[var(--border)]/10' : ''}`;
+		return `shrink-0 flex items-center gap-0.5 rounded p-1.5 text-[var(--text)] hover:bg-[var(--border)]/10 ${active ? 'text-[var(--primary)] bg-[var(--border)]/10' : ''}`;
 	}
 
 	function dropdownItemClass(active: boolean = false): string {
@@ -109,31 +110,9 @@
 <svelte:document onpointerdown={handlePointerDown} onkeydown={handleKeydown} />
 
 <div
-	class="flex items-center gap-0.5 overflow-x-auto border-b border-[var(--border-subtle)] px-2 py-1"
+	class="flex items-center gap-0.5 border-b border-[var(--border-subtle)] px-2 py-1"
 	data-testid="formatting-toolbar"
 >
-	<!-- History -->
-	<button
-		onclick={() => editor?.chain().focus().undo().run()}
-		disabled={!canUndo()}
-		class={btnClass(false, !canUndo())}
-		title="Undo (Ctrl+Z)"
-		data-testid="format-undo"
-	>
-		<Undo2 size={iconSize} />
-	</button>
-	<button
-		onclick={() => editor?.chain().focus().redo().run()}
-		disabled={!canRedo()}
-		class={btnClass(false, !canRedo())}
-		title="Redo (Ctrl+Shift+Z)"
-		data-testid="format-redo"
-	>
-		<Redo2 size={iconSize} />
-	</button>
-
-	<div class="mx-1 h-4 w-px shrink-0 bg-[var(--border-subtle)]"></div>
-
 	<!-- Inline -->
 	<button
 		onclick={() => editor?.chain().focus().toggleBold().run()}
@@ -182,7 +161,7 @@
 			<ChevronDown size={chevronSize} />
 		</button>
 		{#if openDropdown === 'heading'}
-			<div class="absolute left-0 top-full z-50 mt-1 min-w-[150px] rounded-sm border border-[var(--border)] bg-[var(--bg-surface)] py-1">
+			<div class="absolute left-0 bottom-full z-50 mb-1 min-w-[150px] rounded-sm border border-[var(--border)] bg-[var(--bg-surface)] py-1">
 				<button
 					onclick={() => { editor?.chain().focus().toggleHeading({ level: 1 }).run(); closeDropdowns(); }}
 					class={dropdownItemClass(editor?.isActive('heading', { level: 1 }) ?? false)}
@@ -223,7 +202,7 @@
 			<ChevronDown size={chevronSize} />
 		</button>
 		{#if openDropdown === 'list'}
-			<div class="absolute left-0 top-full z-50 mt-1 min-w-[170px] rounded-sm border border-[var(--border)] bg-[var(--bg-surface)] py-1">
+			<div class="absolute left-0 bottom-full z-50 mb-1 min-w-[170px] rounded-sm border border-[var(--border)] bg-[var(--bg-surface)] py-1">
 				<button
 					onclick={() => { editor?.chain().focus().toggleBulletList().run(); closeDropdowns(); }}
 					class={dropdownItemClass(editor?.isActive('bulletList') ?? false)}
@@ -255,7 +234,7 @@
 			<Link size={iconSize} />
 		</button>
 		{#if openDropdown === 'link'}
-			<div class="absolute left-1/2 top-full z-50 mt-1 -translate-x-1/2 rounded-sm border border-[var(--border)] bg-[var(--bg-surface)] px-2 py-1.5">
+			<div class="absolute left-1/2 bottom-full z-50 mb-1 -translate-x-1/2 rounded-sm border border-[var(--border)] bg-[var(--bg-surface)] px-2 py-1.5">
 				<form
 					class="flex items-center gap-1"
 					onsubmit={(e) => { e.preventDefault(); applyLink(); }}
@@ -312,11 +291,29 @@
 			title="More options"
 			data-testid="format-more"
 		>
-			<Minus size={iconSize} />
-			<ChevronDown size={chevronSize} />
+			<Ellipsis size={iconSize} />
 		</button>
 		{#if openDropdown === 'more'}
-			<div class="absolute right-0 top-full z-50 mt-1 min-w-[170px] rounded-sm border border-[var(--border)] bg-[var(--bg-surface)] py-1">
+			<div class="absolute right-0 bottom-full z-50 mb-1 min-w-[170px] rounded-sm border border-[var(--border)] bg-[var(--bg-surface)] py-1">
+				<button
+					onclick={() => { editor?.chain().focus().undo().run(); closeDropdowns(); }}
+					disabled={!canUndo()}
+					class={dropdownItemClass()}
+					data-testid="format-undo"
+				>
+					<Undo2 size={iconSize} />
+					<span>Undo</span>
+				</button>
+				<button
+					onclick={() => { editor?.chain().focus().redo().run(); closeDropdowns(); }}
+					disabled={!canRedo()}
+					class={dropdownItemClass()}
+					data-testid="format-redo"
+				>
+					<Redo2 size={iconSize} />
+					<span>Redo</span>
+				</button>
+				<div class="my-1 h-px bg-[var(--border-subtle)]"></div>
 				<button
 					onclick={() => { editor?.chain().focus().toggleCode().run(); closeDropdowns(); }}
 					class={dropdownItemClass(editor?.isActive('code') ?? false)}
