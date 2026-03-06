@@ -8,10 +8,10 @@
 	import type { Editor } from '@tiptap/core';
 	import type { Note, NoteColor } from '$lib/types/index.js';
 	import Palette from 'lucide-svelte/icons/palette';
-	import ListChecks from 'lucide-svelte/icons/list-checks';
-	import List from 'lucide-svelte/icons/list';
-	import Code from 'lucide-svelte/icons/code';
-	import Eye from 'lucide-svelte/icons/eye';
+	import SquareCheck from 'lucide-svelte/icons/square-check';
+	import Type from 'lucide-svelte/icons/type';
+	import FileCode from 'lucide-svelte/icons/file-code';
+	import FileText from 'lucide-svelte/icons/file-text';
 
 	interface Props {
 		note: Note | null;
@@ -152,28 +152,28 @@
 				<!-- Checklist mode toggle -->
 				<button
 					onclick={() => (checklistMode = !checklistMode)}
-					class="rounded-sm p-2 hover:bg-[var(--border)]/10 {checklistMode ? 'text-[var(--primary)]' : ''}"
+					class="rounded-sm p-2 hover:bg-[var(--border)]/10"
 					title={checklistMode ? 'Switch to text' : 'Checklist mode'}
 					data-testid="checklist-toggle"
 				>
 					{#if checklistMode}
-						<ListChecks class="h-5 w-5" />
+						<Type class="h-5 w-5" />
 					{:else}
-						<List class="h-5 w-5" />
+						<SquareCheck class="h-5 w-5" />
 					{/if}
 				</button>
 
 				<!-- Raw markdown mode toggle -->
 				<button
 					onclick={toggleMarkdownMode}
-					class="rounded-sm p-2 hover:bg-[var(--border)]/10 {rawMarkdownMode ? 'text-[var(--primary)]' : ''}"
+					class="rounded-sm p-2 hover:bg-[var(--border)]/10"
 					title={rawMarkdownMode ? 'Rich text mode' : 'Markdown mode'}
 					data-testid="markdown-toggle"
 				>
 					{#if rawMarkdownMode}
-						<Code class="h-5 w-5" />
+						<FileText class="h-5 w-5" />
 					{:else}
-						<Eye class="h-5 w-5" />
+						<FileCode class="h-5 w-5" />
 					{/if}
 				</button>
 			</div>
