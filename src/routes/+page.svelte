@@ -2,7 +2,7 @@
 	import NoteGrid from '$lib/components/NoteGrid.svelte';
 	import NoteEditor from '$lib/components/NoteEditor.svelte';
 	import TagFilter from '$lib/components/TagFilter.svelte';
-	import { pinnedNotes, unpinnedNotes, selectedTag, currentFilter, notes } from '$lib/stores/notes.js';
+	import { pinnedNotes, unpinnedNotes, selectedTag, currentFilter, notes, notesLoaded } from '$lib/stores/notes.js';
 	import { onMount } from 'svelte';
 	import { get } from 'svelte/store';
 	import type { Note } from '$lib/types/index.js';
@@ -73,7 +73,7 @@
 	onEdit={openEditor}
 />
 
-{#if $pinnedNotes.length === 0 && $unpinnedNotes.length === 0}
+{#if $notesLoaded && $pinnedNotes.length === 0 && $unpinnedNotes.length === 0}
 	<div class="flex flex-col items-center justify-center py-20 text-[var(--text-muted)]">
 		<span class="mb-4 text-7xl">🥨</span>
 		<p class="font-['Press_Start_2P'] text-xs">

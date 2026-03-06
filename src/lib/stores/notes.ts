@@ -7,6 +7,7 @@ import { extractTags } from '$lib/utils/tags.js';
 export const notes = writable<Note[]>([]);
 export const currentFilter = writable<NoteFilter>('all');
 export const selectedTag = writable<string | null>(null);
+export const notesLoaded = writable(false);
 
 export const filteredNotes = derived(
 	[notes, selectedTag, currentFilter],
@@ -49,8 +50,9 @@ export async function loadNotes(filter: NoteFilter = 'all') {
 	const cached = await getAllNotes();
 	if (cached.length > 0) {
 		notes.set(cached);
-		currentFilter.set(filter);
 	}
+	currentFilter.set(filter);
+	notesLoaded.set(true);
 
 	// Then fetch from server in the background
 	try {
