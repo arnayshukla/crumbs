@@ -8,9 +8,10 @@
 	import { onMount, onDestroy } from 'svelte';
 
 	let { data, children } = $props();
-	let sidebarOpen = $state(true);
+	let sidebarOpen = $state(false);
 
 	onMount(() => {
+		sidebarOpen = window.matchMedia('(min-width: 1024px)').matches;
 		loadNotes();
 		startSync();
 	});
