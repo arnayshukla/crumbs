@@ -178,14 +178,6 @@
 		{/if}
 	</div>
 
-	<!-- Pin indicator -->
-	{#if note.pinned}
-		<div class="absolute right-2 top-2">
-			<svg class="h-4 w-4 text-[var(--primary)]" fill="currentColor" viewBox="0 0 24 24">
-				<path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-			</svg>
-		</div>
-	{/if}
 </article>
 
 <style>
