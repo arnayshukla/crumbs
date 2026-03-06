@@ -2,6 +2,7 @@ import { writable, derived } from 'svelte/store';
 import type { Note, NoteFilter, NoteCreate, NoteUpdate } from '$lib/types/index.js';
 import { addToSyncQueue, putNote, deleteNoteFromIdb, getAllNotes } from '$lib/sync/idb.js';
 import { showToast } from '$lib/stores/toast.js';
+import { extractTags } from '$lib/utils/tags.js';
 
 export const notes = writable<Note[]>([]);
 export const currentFilter = writable<NoteFilter>('all');
@@ -78,10 +79,12 @@ export async function createNote(note: NoteCreate): Promise<Note | null> {
 	} catch (err) {
 		if (isNetworkError(err)) {
 			const now = new Date();
+			const title = note.title ?? '';
+			const content = note.content ?? '';
 			const optimistic: Note = {
 				id: crypto.randomUUID(),
-				title: note.title ?? '',
-				content: note.content ?? '',
+				title,
+				content,
 				color: note.color ?? 'default',
 				pinned: note.pinned ?? false,
 				archived: false,
@@ -91,7 +94,8 @@ export async function createNote(note: NoteCreate): Promise<Note | null> {
 				sortOrder: 0,
 				createdAt: now,
 				updatedAt: now,
-				version: 1
+				version: 1,
+				tags: extractTags(`${title} ${content}`)
 			};
 			notes.update((list) => [optimistic, ...list]);
 			await putNote(optimistic);
@@ -124,6 +128,9 @@ export async function updateNote(id: string, updates: NoteUpdate): Promise<Note 
 				list.map((n) => {
 					if (n.id === id) {
 						optimistic = { ...n, ...updates, updatedAt: new Date() };
+						if (updates.title !== undefined || updates.content !== undefined) {
+							optimistic.tags = extractTags(`${optimistic.title} ${optimistic.content}`);
+						}
 						return optimistic;
 					}
 					return n;
