@@ -2,6 +2,7 @@
 	import { NOTE_COLORS } from '$lib/utils/colors.js';
 	import { renderMarkdown } from '$lib/utils/markdown.js';
 	import { togglePin, trashNote, archiveNote, unarchiveNote, restoreNote, deleteNote, updateNote, currentFilter } from '$lib/stores/notes.js';
+	import TagChip from './TagChip.svelte';
 	import type { Note } from '$lib/types/index.js';
 	import Undo2 from 'lucide-svelte/icons/undo-2';
 	import Trash2 from 'lucide-svelte/icons/trash-2';
@@ -75,6 +76,17 @@
 	data-testid="note-card"
 	data-note-id={note.id}
 >
+	{#if note.pinned}
+		<button
+			onclick={stop(() => togglePin(note.id, note.pinned))}
+			class="absolute top-1.5 right-1.5 rounded-sm p-1 text-[var(--primary)] hover:bg-[var(--border)]/10"
+			title="Unpin"
+			data-testid="pin-indicator"
+		>
+			<Bookmark class="h-4 w-4 fill-[var(--primary)]" />
+		</button>
+	{/if}
+
 	{#if note.title}
 		<h3 class="mb-2 text-sm font-semibold text-[var(--text)]">{note.title}</h3>
 	{/if}
@@ -106,9 +118,7 @@
 	{#if note.tags && note.tags.length > 0}
 		<div class="mt-2 flex flex-wrap gap-1">
 			{#each note.tags as tag}
-				<span class="rounded-sm bg-[var(--border)]/10 px-2 py-0.5 text-xs text-[var(--text-muted)]">
-					#{tag}
-				</span>
+				<TagChip {tag} />
 			{/each}
 		</div>
 	{/if}
@@ -133,14 +143,16 @@
 				<Trash2 class="h-4 w-4 text-[var(--destructive)]" />
 			</button>
 		{:else}
-			<button
-				onclick={stop(() => togglePin(note.id, note.pinned))}
-				class="rounded-sm p-1.5 hover:bg-[var(--border)]/10"
-				title={note.pinned ? 'Unpin' : 'Pin'}
-				data-testid="pin-btn"
-			>
-				<Bookmark class="h-4 w-4 {note.pinned ? 'fill-[var(--primary)] text-[var(--primary)]' : ''}" />
-			</button>
+			{#if !note.pinned}
+				<button
+					onclick={stop(() => togglePin(note.id, note.pinned))}
+					class="rounded-sm p-1.5 hover:bg-[var(--border)]/10"
+					title="Pin"
+					data-testid="pin-btn"
+				>
+					<Bookmark class="h-4 w-4" />
+				</button>
+			{/if}
 			{#if $currentFilter === 'archived'}
 				<button
 					onclick={stop(() => unarchiveNote(note.id))}

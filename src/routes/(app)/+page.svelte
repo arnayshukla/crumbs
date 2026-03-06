@@ -6,6 +6,7 @@
 	import { onMount } from 'svelte';
 	import { get } from 'svelte/store';
 	import type { Note } from '$lib/types/index.js';
+	import Plus from 'lucide-svelte/icons/plus';
 
 	let editingNote: Note | null = $state(null);
 	let showNewNote = $state(false);
@@ -43,9 +44,10 @@
 	<div class="mx-auto mb-6 max-w-xl">
 		<button
 			onclick={() => (showNewNote = true)}
-			class="w-full rounded-sm border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-4 py-3 text-left text-sm text-[var(--text-muted)] transition-colors hover:border-[var(--primary)]"
+			class="flex w-full items-center gap-3 rounded-sm border border-dashed border-[var(--border-subtle)] bg-[var(--bg-surface)] px-4 py-3 text-left text-sm text-[var(--text-muted)] transition-colors hover:border-[var(--primary)] hover:text-[var(--primary)]"
 			data-testid="new-note-btn"
 		>
+			<Plus class="h-4 w-4" />
 			Add a crumb...
 		</button>
 	</div>

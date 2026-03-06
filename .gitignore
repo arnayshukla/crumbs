@@ -32,8 +32,8 @@ vite.config.ts.timestamp-*
 /test-results
 /playwright-report
 
-# Skills CLI (actual files are in .agents/skills/)
-/.claude/skills
+# Claude Code
+/.claude/
 
 # Local notes
 todo.md
