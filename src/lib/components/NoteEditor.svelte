@@ -76,14 +76,14 @@
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
-	class="fixed inset-0 z-40 flex items-start justify-center bg-black/50 pt-20"
+	class="fixed inset-0 z-40 flex items-start justify-center overflow-y-auto bg-black/50 pt-20 pb-10"
 	onclick={save}
 	onkeydown={handleKeydown}
 	data-testid="note-editor-overlay"
 >
 	<!-- svelte-ignore a11y_no_static_element_interactions -->
 	<div
-		class="mx-4 w-full max-w-xl rounded-sm border border-[var(--border)]"
+		class="mx-4 flex w-full max-w-xl flex-col rounded-sm border border-[var(--border)]"
 		style={bgStyle}
 		onclick={(e) => e.stopPropagation()}
 		onkeydown={(e) => { e.stopPropagation(); handleKeydown(e); }}
@@ -99,28 +99,30 @@
 		/>
 
 		<!-- Content -->
-		{#if checklistMode}
-			<div class="px-4 py-2">
-				<Checklist {content} onChange={(c) => (content = c)} />
-			</div>
-		{:else if rawMarkdownMode}
-			<textarea
-				bind:this={textareaEl}
-				placeholder="Add a crumb..."
-				bind:value={content}
-				class="min-h-[300px] w-full resize-none bg-transparent px-4 py-2 text-sm text-[var(--text)] outline-none placeholder:text-[var(--text-muted)]"
-				rows="12"
-				data-testid="note-content-input"
-			></textarea>
-		{:else}
-			<TiptapEditor
-				{content}
-				onUpdate={(md) => (content = md)}
-				onEditor={(e) => (tiptapEditor = e)}
-				onTransaction={() => editorTick++}
-				placeholder="Add a crumb..."
-			/>
-		{/if}
+		<div class="max-h-[60vh] overflow-y-auto">
+			{#if checklistMode}
+				<div class="px-4 py-2">
+					<Checklist {content} onChange={(c) => (content = c)} />
+				</div>
+			{:else if rawMarkdownMode}
+				<textarea
+					bind:this={textareaEl}
+					placeholder="Add a crumb..."
+					bind:value={content}
+					class="min-h-[300px] w-full resize-none bg-transparent px-4 py-2 text-sm text-[var(--text)] outline-none placeholder:text-[var(--text-muted)]"
+					rows="12"
+					data-testid="note-content-input"
+				></textarea>
+			{:else}
+				<TiptapEditor
+					{content}
+					onUpdate={(md) => (content = md)}
+					onEditor={(e) => (tiptapEditor = e)}
+					onTransaction={() => editorTick++}
+					placeholder="Add a crumb..."
+				/>
+			{/if}
+		</div>
 
 		<!-- Formatting toolbar -->
 		{#if !rawMarkdownMode && !checklistMode}
