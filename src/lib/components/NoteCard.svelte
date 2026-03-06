@@ -66,7 +66,7 @@
 </script>
 
 <article
-	class="group relative cursor-pointer rounded-sm border border-[var(--border)] p-4 transition-colors hover:border-[var(--primary)]"
+	class="group relative cursor-pointer rounded-sm border border-[var(--border-subtle)] p-4 transition-all hover:border-[var(--primary)] shadow-[var(--card-shadow)] hover:shadow-[var(--card-shadow-hover)]"
 	style={cardStyle}
 	onclick={() => onEdit(note)}
 	onkeydown={(e) => e.key === 'Enter' && onEdit(note)}
@@ -130,7 +130,7 @@
 				title="Delete forever"
 				data-testid="delete-forever-btn"
 			>
-				<Trash2 class="h-4 w-4 text-[#b44]" />
+				<Trash2 class="h-4 w-4 text-[var(--destructive)]" />
 			</button>
 		{:else}
 			<button

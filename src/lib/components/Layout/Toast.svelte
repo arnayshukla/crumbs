@@ -5,7 +5,7 @@
 <div class="fixed bottom-4 left-1/2 z-50 flex -translate-x-1/2 flex-col gap-2">
 	{#each $toasts as toast (toast.id)}
 		<div
-			class="flex items-center gap-3 rounded-sm border border-[var(--border)] px-4 py-3 {toast.type === 'error' ? 'bg-red-600 text-white' : toast.type === 'success' ? 'bg-green-600 text-white' : 'bg-[var(--text)] text-[var(--bg-base)]'}"
+			class="flex items-center gap-3 rounded-sm border px-4 py-3 shadow-[var(--card-shadow)] {toast.type === 'error' ? 'border-[var(--error-border)] bg-[var(--error-bg)] text-[var(--error-text)]' : toast.type === 'success' ? 'border-[var(--border-subtle)] bg-[var(--success-bg)] text-[var(--success-text)]' : 'border-[var(--border)] bg-[var(--text)] text-[var(--bg-base)]'}"
 		>
 			<span class="text-sm">{toast.text}</span>
 			{#if toast.action}

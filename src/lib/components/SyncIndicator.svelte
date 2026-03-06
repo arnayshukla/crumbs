@@ -52,6 +52,6 @@
 	{:else if displayStatus === 'offline'}
 		<CloudOff class="h-5 w-5 text-[var(--text-muted)]" />
 	{:else}
-		<CloudAlert class="h-5 w-5 text-[#b44]" />
+		<CloudAlert class="h-5 w-5 text-[var(--destructive)]" />
 	{/if}
 </div>

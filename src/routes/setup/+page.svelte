@@ -48,7 +48,7 @@
 </svelte:head>
 
 <div class="flex min-h-screen items-center justify-center bg-[var(--bg-base)]">
-	<div class="w-full max-w-sm rounded-sm border border-[var(--border)] bg-[var(--bg-surface)] p-8">
+	<div class="w-full max-w-sm rounded-sm border border-[var(--border)] bg-[var(--bg-surface)] p-8 shadow-[var(--card-shadow)]">
 		<div class="mb-6 text-center">
 			<span class="text-5xl">🥨</span>
 			<h1 class="font-['Press_Start_2P'] text-xl text-[var(--primary)]">Welcome to Crumbs</h1>
@@ -57,7 +57,7 @@
 
 		<form onsubmit={handleSetup}>
 			{#if errorMsg}
-				<div class="mb-4 rounded-sm border border-red-300 bg-red-50 p-3 text-sm text-red-600" data-testid="error-message">
+				<div class="mb-4 rounded-sm border border-[var(--error-border)] bg-[var(--error-bg)] p-3 text-sm text-[var(--error-text)]" data-testid="error-message">
 					{errorMsg}
 				</div>
 			{/if}
