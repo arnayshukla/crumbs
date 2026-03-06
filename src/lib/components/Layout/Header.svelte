@@ -21,7 +21,6 @@
 	</button>
 
 	<div class="flex items-center gap-2">
-		<span class="text-2xl">🥨</span>
 		<h1 class="font-['Press_Start_2P'] text-lg text-[var(--primary)]">Crumbs</h1>
 	</div>
 
