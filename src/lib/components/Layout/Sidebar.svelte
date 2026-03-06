@@ -5,9 +5,10 @@
 
 	interface Props {
 		open: boolean;
+		onClose?: () => void;
 	}
 
-	let { open }: Props = $props();
+	let { open, onClose }: Props = $props();
 
 	function setFilter(filter: NoteFilter) {
 		selectedTag.set(null);
@@ -19,6 +20,15 @@
 		loadNotes('all');
 	}
 </script>
+
+{#if open}
+	<!-- svelte-ignore a11y_no_static_element_interactions -->
+	<div
+		class="fixed inset-0 top-16 z-10 bg-black/30 lg:hidden"
+		onclick={onClose}
+		onkeydown={(e) => { if (e.key === 'Escape') onClose?.(); }}
+	></div>
+{/if}
 
 <aside
 	class="fixed left-0 top-16 z-20 h-[calc(100vh-4rem)] w-64 transform border-r border-[var(--border)] bg-[var(--bg-surface)] transition-transform duration-200 {open ? 'translate-x-0' : '-translate-x-full'}"
