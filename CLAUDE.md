@@ -67,6 +67,10 @@ A `Makefile` wraps all common tasks for tool-agnostic usage. Run `make help` to 
 | `make docker-down` | — | Stop containers |
 | `make docker-logs` | — | Tail container logs |
 | `make clean` | — | Remove build artifacts + test DBs |
+| `make release` | — | Auto-bump version from commits, tag, and push |
+| `make release-patch` | — | Bump patch version, tag, and push |
+| `make release-minor` | — | Bump minor version, tag, and push |
+| `make release-major` | — | Bump major version, tag, and push |
 
 ## CI/CD
 
