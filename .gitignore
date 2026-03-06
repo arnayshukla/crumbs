@@ -34,3 +34,6 @@ vite.config.ts.timestamp-*
 
 # Skills CLI (actual files are in .agents/skills/)
 /.claude/skills
+
+# Local notes
+todo.md
