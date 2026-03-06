@@ -76,6 +76,12 @@ sqlite.exec(`
 		timestamp INTEGER NOT NULL,
 		client_id TEXT NOT NULL
 	);
+
+	CREATE INDEX IF NOT EXISTS notes_trashed_archived_idx ON notes(trashed, archived);
+	CREATE INDEX IF NOT EXISTS notes_updated_at_idx ON notes(updated_at);
+	CREATE INDEX IF NOT EXISTS note_tags_note_id_idx ON note_tags(note_id);
+	CREATE INDEX IF NOT EXISTS note_tags_tag_id_idx ON note_tags(tag_id);
+	CREATE INDEX IF NOT EXISTS sync_log_timestamp_idx ON sync_log(timestamp);
 `);
 
 export const db = drizzle(sqlite, { schema });

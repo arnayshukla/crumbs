@@ -2,7 +2,8 @@ import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types.js';
 import { db } from '$lib/server/db/index.js';
 import { notes, noteTags, tags } from '$lib/server/db/schema.js';
-import { and, eq, like, or } from 'drizzle-orm';
+import { and, eq, like, or, inArray } from 'drizzle-orm';
+import { fetchTagsForNotes } from '$lib/server/tags.js';
 
 export const GET: RequestHandler = async ({ url }) => {
 	const query = url.searchParams.get('q')?.trim();
@@ -13,7 +14,7 @@ export const GET: RequestHandler = async ({ url }) => {
 
 	const pattern = `%${query}%`;
 
-	const results = await db
+	const results = db
 		.select()
 		.from(notes)
 		.where(
@@ -21,45 +22,37 @@ export const GET: RequestHandler = async ({ url }) => {
 				eq(notes.trashed, false),
 				or(like(notes.title, pattern), like(notes.content, pattern))
 			)
-		);
+		)
+		.all();
 
 	// Also search by tag name
-	const tagResults = await db
+	const tagResults = db
 		.select({ noteId: noteTags.noteId })
 		.from(noteTags)
 		.innerJoin(tags, eq(noteTags.tagId, tags.id))
-		.where(like(tags.name, pattern));
+		.where(like(tags.name, pattern))
+		.all();
 
-	const tagNoteIds = new Set(tagResults.map((r) => r.noteId));
-	const allNoteIds = new Set(results.map((n) => n.id));
+	const resultIds = new Set(results.map((n) => n.id));
+	const extraNoteIds = [...new Set(tagResults.map((r) => r.noteId))].filter(
+		(id) => !resultIds.has(id)
+	);
 
-	// Fetch tag-matched notes not already in results
-	const extraNoteIds = [...tagNoteIds].filter((id) => !allNoteIds.has(id));
 	let extraNotes: typeof results = [];
 	if (extraNoteIds.length > 0) {
-		for (const id of extraNoteIds) {
-			const note = await db
-				.select()
-				.from(notes)
-				.where(and(eq(notes.id, id), eq(notes.trashed, false)))
-				.get();
-			if (note) extraNotes.push(note);
-		}
+		extraNotes = db
+			.select()
+			.from(notes)
+			.where(and(inArray(notes.id, extraNoteIds), eq(notes.trashed, false)))
+			.all();
 	}
 
 	const combined = [...results, ...extraNotes];
-
-	// Attach tags to each note
-	const withTags = await Promise.all(
-		combined.map(async (note) => {
-			const tagRows = await db
-				.select({ name: tags.name })
-				.from(noteTags)
-				.innerJoin(tags, eq(noteTags.tagId, tags.id))
-				.where(eq(noteTags.noteId, note.id));
-			return { ...note, tags: tagRows.map((t) => t.name) };
-		})
-	);
+	const tagMap = fetchTagsForNotes(combined.map((n) => n.id));
+	const withTags = combined.map((note) => ({
+		...note,
+		tags: tagMap.get(note.id) ?? []
+	}));
 
 	return json(withTags);
 };

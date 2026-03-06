@@ -1,6 +1,6 @@
 import { db } from './db/index.js';
 import { users, sessions } from './db/schema.js';
-import { eq } from 'drizzle-orm';
+import { eq, lt } from 'drizzle-orm';
 import * as argon2 from 'argon2';
 import { randomBytes } from 'crypto';
 
@@ -61,12 +61,5 @@ export async function deleteSession(token: string): Promise<void> {
 }
 
 export async function cleanExpiredSessions(): Promise<void> {
-	const now = new Date();
-	// Delete all expired sessions by checking each one
-	const allSessions = await db.select().from(sessions);
-	for (const session of allSessions) {
-		if (session.expiresAt < now) {
-			await db.delete(sessions).where(eq(sessions.id, session.id));
-		}
-	}
+	await db.delete(sessions).where(lt(sessions.expiresAt, new Date()));
 }

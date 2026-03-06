@@ -1,10 +1,11 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types.js';
 import { db } from '$lib/server/db/index.js';
-import { notes, noteTags, tags } from '$lib/server/db/schema.js';
+import { notes } from '$lib/server/db/schema.js';
 import { eq, and, desc } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
 import { extractTags } from '$lib/utils/tags.js';
+import { fetchTagsForNotes, syncNoteTags } from '$lib/server/tags.js';
 
 export const GET: RequestHandler = async ({ url }) => {
 	const filter = url.searchParams.get('filter') || 'all';
@@ -21,23 +22,18 @@ export const GET: RequestHandler = async ({ url }) => {
 			conditions = and(eq(notes.archived, false), eq(notes.trashed, false));
 	}
 
-	const result = await db
+	const result = db
 		.select()
 		.from(notes)
 		.where(conditions)
-		.orderBy(desc(notes.pinned), desc(notes.updatedAt));
+		.orderBy(desc(notes.pinned), desc(notes.updatedAt))
+		.all();
 
-	// Fetch tags for each note
-	const notesWithTags = await Promise.all(
-		result.map(async (note) => {
-			const tagRows = await db
-				.select({ name: tags.name })
-				.from(noteTags)
-				.innerJoin(tags, eq(noteTags.tagId, tags.id))
-				.where(eq(noteTags.noteId, note.id));
-			return { ...note, tags: tagRows.map((t) => t.name) };
-		})
-	);
+	const tagMap = fetchTagsForNotes(result.map((n) => n.id));
+	const notesWithTags = result.map((note) => ({
+		...note,
+		tags: tagMap.get(note.id) ?? []
+	}));
 
 	return json(notesWithTags);
 };
@@ -63,27 +59,13 @@ export const POST: RequestHandler = async ({ request }) => {
 		version: 1
 	};
 
-	await db.insert(notes).values(newNote);
-
-	// Extract and save tags
 	const content = `${newNote.title} ${newNote.content}`;
 	const extractedTags = extractTags(content);
-	await syncNoteTags(id, extractedTags);
+
+	db.transaction((tx) => {
+		tx.insert(notes).values(newNote).run();
+	});
+	syncNoteTags(id, extractedTags);
 
 	return json({ ...newNote, tags: extractedTags }, { status: 201 });
 };
-
-async function syncNoteTags(noteId: string, tagNames: string[]) {
-	// Remove existing tag associations
-	await db.delete(noteTags).where(eq(noteTags.noteId, noteId));
-
-	for (const name of tagNames) {
-		// Upsert tag
-		let tagRow = await db.select().from(tags).where(eq(tags.name, name)).get();
-		if (!tagRow) {
-			const result = await db.insert(tags).values({ name }).returning();
-			tagRow = result[0];
-		}
-		await db.insert(noteTags).values({ noteId, tagId: tagRow.id });
-	}
-}
