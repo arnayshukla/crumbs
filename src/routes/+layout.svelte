@@ -4,13 +4,19 @@
 	import Sidebar from '$lib/components/Layout/Sidebar.svelte';
 	import Toast from '$lib/components/Layout/Toast.svelte';
 	import { loadNotes } from '$lib/stores/notes.js';
-	import { onMount } from 'svelte';
+	import { startSync, stopSync } from '$lib/sync/client.js';
+	import { onMount, onDestroy } from 'svelte';
 
 	let { data, children } = $props();
 	let sidebarOpen = $state(false);
 
 	onMount(() => {
 		loadNotes();
+		startSync();
+	});
+
+	onDestroy(() => {
+		stopSync();
 	});
 </script>
 
