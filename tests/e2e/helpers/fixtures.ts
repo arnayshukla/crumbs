@@ -1,6 +1,11 @@
-import { test as base, expect, type Page } from '@playwright/test';
+import { test as base, expect, type Page, type Locator } from '@playwright/test';
 
 const TEST_PASSWORD = 'testpassword123';
+
+/** Find a specific note card by its title text */
+export function noteCard(page: Page, title: string): Locator {
+	return page.locator('[data-testid="note-card"]', { hasText: title });
+}
 
 /**
  * Extended test fixture that handles setup/auth.
@@ -40,6 +45,10 @@ export async function setupAndLogin(page: Page) {
 		await page.waitForURL('/');
 	}
 	// else: already on main page (session still valid)
+
+	// Wait for full hydration after auth redirect (window.location.href causes full reload).
+	// networkidle ensures JS bundles have loaded and executed.
+	await page.waitForLoadState('networkidle');
 }
 
 export { expect };

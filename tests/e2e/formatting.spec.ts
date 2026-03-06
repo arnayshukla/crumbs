@@ -1,4 +1,4 @@
-import { test, expect } from './helpers/fixtures.js';
+import { test, expect, noteCard } from './helpers/fixtures.js';
 import type { Page, Locator } from '@playwright/test';
 
 /** Run a TipTap command chain via the exposed editor instance on the DOM element */
@@ -94,7 +94,7 @@ test.describe('Rich text formatting', () => {
 		await page.getByTestId('close-editor-btn').click();
 
 		// When the user reopens the note
-		await page.getByTestId('note-card').click();
+		await noteCard(page, 'Rich Text Note').click();
 
 		// Then the content is rendered as rich text in the TipTap editor
 		await expect(page.getByTestId('tiptap-editor')).toBeVisible();

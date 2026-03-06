@@ -1,4 +1,4 @@
-import { test, expect } from './helpers/fixtures.js';
+import { test, expect, noteCard } from './helpers/fixtures.js';
 
 test.describe('Checklist', () => {
 	test('Scenario: Checklist UI replaces editor when checklist mode is enabled', async ({ authenticatedPage: page }) => {
@@ -27,7 +27,7 @@ test.describe('Checklist', () => {
 		await expect(page.getByText('Shopping List')).toBeVisible();
 
 		// When the user reopens the note
-		await page.getByTestId('note-card').click();
+		await noteCard(page, 'Shopping List').click();
 
 		// Then the checklist is displayed with the saved item
 		await expect(page.getByTestId('checklist')).toBeVisible();
@@ -43,12 +43,12 @@ test.describe('Checklist', () => {
 		await page.getByTestId('close-editor-btn').click();
 
 		// When the user reopens the note and checks the item
-		await page.getByTestId('note-card').click();
+		await noteCard(page, 'Tasks').click();
 		await page.getByTestId('checklist-checkbox').first().check();
 		await page.getByTestId('close-editor-btn').click();
 
 		// Then reopening the note shows the item is still checked
-		await page.getByTestId('note-card').click();
+		await noteCard(page, 'Tasks').click();
 		await expect(page.getByTestId('checklist-checkbox').first()).toBeChecked();
 	});
 

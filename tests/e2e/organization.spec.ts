@@ -1,4 +1,4 @@
-import { test, expect } from './helpers/fixtures.js';
+import { test, expect, noteCard } from './helpers/fixtures.js';
 
 test.describe('Organization Features', () => {
 	test('Scenario: Pinned note appears under the Pinned section', async ({ authenticatedPage: page }) => {
@@ -8,8 +8,9 @@ test.describe('Organization Features', () => {
 		await page.getByTestId('close-editor-btn').click();
 
 		// When the user pins the note
-		await page.getByTestId('note-card').hover();
-		await page.getByTestId('pin-btn').click();
+		const pinCard = noteCard(page, 'Pin Me');
+		await pinCard.hover();
+		await pinCard.getByTestId('pin-btn').click();
 
 		// Then the "Pinned" section is visible
 		await expect(page.getByText('Pinned')).toBeVisible();
@@ -22,8 +23,9 @@ test.describe('Organization Features', () => {
 		await page.getByTestId('close-editor-btn').click();
 
 		// When the user archives the note
-		await page.getByTestId('note-card').hover();
-		await page.getByTestId('archive-btn').click();
+		const archiveCard = noteCard(page, 'Archive Me');
+		await archiveCard.hover();
+		await archiveCard.getByTestId('archive-btn').click();
 
 		// Then the note is no longer visible in the main view
 		await expect(page.getByText('Archive Me')).not.toBeVisible();
@@ -40,7 +42,7 @@ test.describe('Organization Features', () => {
 		await page.getByTestId('close-editor-btn').click();
 
 		// Then the note is saved and visible in the notes list
-		await expect(page.getByTestId('note-card')).toBeVisible();
+		await expect(noteCard(page, 'Colored Note')).toBeVisible();
 	});
 
 	test('Scenario: Filtering by tag shows only matching notes', async ({ authenticatedPage: page }) => {
@@ -57,7 +59,7 @@ test.describe('Organization Features', () => {
 		await page.getByTestId('close-editor-btn').click();
 
 		// When the user filters by the #important tag
-		const tagChip = page.getByTestId('tag-chip').filter({ hasText: '#important' });
+		const tagChip = page.getByTestId('tag-filter').getByTestId('tag-chip').filter({ hasText: '#important' });
 		if (await tagChip.isVisible()) {
 			await tagChip.click();
 

@@ -1,4 +1,4 @@
-import { test, expect } from './helpers/fixtures.js';
+import { test, expect, noteCard } from './helpers/fixtures.js';
 
 test.describe('Offline Support', () => {
 	test('Scenario: Sync status is visible to the user', async ({ authenticatedPage: page }) => {
@@ -28,7 +28,7 @@ test.describe('Offline Support', () => {
 		await page.context().setOffline(true);
 
 		// And the user edits the note title to "Offline Edited"
-		await page.getByTestId('note-card').click();
+		await noteCard(page, 'Offline Edit').click();
 		await page.getByTestId('note-title-input').clear();
 		await page.getByTestId('note-title-input').fill('Offline Edited');
 		await page.getByTestId('close-editor-btn').click();
@@ -107,8 +107,9 @@ test.describe('Offline Support', () => {
 		await page.context().setOffline(true);
 
 		// And the user trashes the note
-		await page.getByTestId('note-card').hover();
-		await page.getByTestId('trash-btn').click();
+		const card = noteCard(page, 'Offline Trash');
+		await card.hover();
+		await card.getByTestId('trash-btn').click();
 
 		// Then the note is no longer visible
 		await expect(page.getByText('Offline Trash')).not.toBeVisible();

@@ -1,4 +1,4 @@
-import { test, expect } from './helpers/fixtures.js';
+import { test, expect, noteCard } from './helpers/fixtures.js';
 
 test.describe('Search', () => {
 	test('Scenario: Searching by title returns the matching note', async ({ authenticatedPage: page }) => {
@@ -42,6 +42,6 @@ test.describe('Search', () => {
 		await page.waitForTimeout(500);
 
 		// Then no notes are displayed
-		await expect(page.getByTestId('note-card')).not.toBeVisible();
+		await expect(page.getByTestId('note-card')).toHaveCount(0);
 	});
 });

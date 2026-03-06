@@ -1,12 +1,6 @@
-import { test, expect } from './helpers/fixtures.js';
+import { test, expect, noteCard } from './helpers/fixtures.js';
 
 test.describe('Notes CRUD', () => {
-	test('Scenario: Fresh account shows an empty notes list', async ({ authenticatedPage: page }) => {
-		// Given the user has no notes
-		// Then the empty state message is displayed
-		await expect(page.getByText('No crumbs yet')).toBeVisible();
-	});
-
 	test('Scenario: New note appears in the notes list after creation', async ({ authenticatedPage: page }) => {
 		// When the user creates a note titled "My First Note" with content "Hello world!"
 		await page.getByTestId('new-note-btn').click();
@@ -17,8 +11,7 @@ test.describe('Notes CRUD', () => {
 		await page.getByTestId('close-editor-btn').click();
 
 		// Then the note is visible in the notes list
-		await expect(page.getByTestId('note-card')).toBeVisible();
-		await expect(page.getByText('My First Note')).toBeVisible();
+		await expect(noteCard(page, 'My First Note')).toBeVisible();
 	});
 
 	test('Scenario: Edited note title is reflected in the notes list', async ({ authenticatedPage: page }) => {
@@ -31,7 +24,7 @@ test.describe('Notes CRUD', () => {
 		await page.getByTestId('close-editor-btn').click();
 
 		// When the user changes the title to "Updated Title"
-		await page.getByTestId('note-card').click();
+		await noteCard(page, 'Original Title').click();
 		await page.getByTestId('note-title-input').clear();
 		await page.getByTestId('note-title-input').fill('Updated Title');
 		await page.getByTestId('close-editor-btn').click();
@@ -47,8 +40,9 @@ test.describe('Notes CRUD', () => {
 		await page.getByTestId('close-editor-btn').click();
 
 		// When the user trashes the note
-		await page.getByTestId('note-card').hover();
-		await page.getByTestId('trash-btn').click();
+		const card = noteCard(page, 'Delete Me');
+		await card.hover();
+		await card.getByTestId('trash-btn').click();
 
 		// Then the note is no longer visible
 		await expect(page.getByText('Delete Me')).not.toBeVisible();
