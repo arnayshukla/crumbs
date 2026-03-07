@@ -1,4 +1,13 @@
-# 🥨 Crumbs by Bretzel
+[![CI](https://github.com/bretzel-app/crumbs/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/bretzel-app/crumbs/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-yellow.svg)](LICENSE)
+[![Version](https://img.shields.io/github/v/release/bretzel-app/crumbs)](https://github.com/bretzel-app/crumbs/releases)
+[![Docker](https://img.shields.io/badge/docker-ghcr.io-blue.svg)](https://github.com/bretzel-app/crumbs/pkgs/container/crumbs)
+
+<p align="center">
+  <img src="static/favicon-96x96.png" alt="Crumbs logo" width="96" height="96">
+</p>
+
+# Crumbs by Bretzel
 
 A self-hostable, offline-first note-taking app inspired by Google Keep. Part of the [Bretzel](https://bretzel.app) app universe.
 
@@ -62,6 +71,9 @@ See [docs/FEATURES.md](docs/FEATURES.md) for detailed feature documentation.
 | [Architecture](docs/ARCHITECTURE.md) | Local-first sync design, tech rationale, DB schema |
 | [Deployment](docs/DEPLOYMENT.md) | Docker, Node.js, reverse proxy, backups, env vars |
 | [API](docs/API.md) | REST API reference (auto-generated) |
+| [Contributing](CONTRIBUTING.md) | How to contribute |
+| [Security](SECURITY.md) | Vulnerability reporting policy |
+| [Changelog](CHANGELOG.md) | Release history |
 
 ## CI/CD
 
@@ -72,4 +84,4 @@ Configure registry via GitHub Secrets: `REGISTRY_URL`, `REGISTRY_USER`, `REGISTR
 
 ## License
 
-MIT
+[MIT](LICENSE)

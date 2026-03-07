@@ -3,6 +3,13 @@
   "private": true,
   "version": "0.3.3",
   "type": "module",
+  "license": "MIT",
+  "author": "Bretzel (https://bretzel.app)",
+  "homepage": "https://crumbs.bretzel.app",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bretzel-app/crumbs.git"
+  },
   "scripts": {
     "dev": "vite dev",
     "build": "vite build",
