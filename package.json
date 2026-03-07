@@ -29,43 +29,43 @@
     "docs:api": "tsx scripts/generate-api-docs.ts"
   },
   "dependencies": {
-    "@sveltejs/adapter-node": "^5.0.0",
-    "@tiptap/core": "^3.20.0",
-    "@tiptap/extension-link": "^3.20.0",
-    "@tiptap/extension-placeholder": "^3.20.0",
-    "@tiptap/extension-task-item": "^3.20.0",
-    "@tiptap/extension-task-list": "^3.20.0",
-    "@tiptap/extension-text-align": "^3.20.0",
-    "@tiptap/extension-underline": "^3.20.0",
-    "@tiptap/pm": "^3.20.0",
-    "@tiptap/starter-kit": "^3.20.0",
-    "argon2": "^0.43.0",
-    "better-sqlite3": "^11.0.0",
-    "drizzle-orm": "^0.44.0",
-    "idb": "^8.0.0",
+    "@sveltejs/adapter-node": "^5.5.4",
+    "@tiptap/core": "^3.20.1",
+    "@tiptap/extension-link": "^3.20.1",
+    "@tiptap/extension-placeholder": "^3.20.1",
+    "@tiptap/extension-task-item": "^3.20.1",
+    "@tiptap/extension-task-list": "^3.20.1",
+    "@tiptap/extension-text-align": "^3.20.1",
+    "@tiptap/extension-underline": "^3.20.1",
+    "@tiptap/pm": "^3.20.1",
+    "@tiptap/starter-kit": "^3.20.1",
+    "argon2": "^0.43.1",
+    "better-sqlite3": "^11.10.0",
+    "drizzle-orm": "^0.44.7",
+    "idb": "^8.0.3",
     "lucide-svelte": "^0.577.0",
-    "markdown-it": "^14.0.0",
+    "markdown-it": "^14.1.1",
     "tiptap-markdown": "^0.9.0",
-    "uuid": "^11.0.0"
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
-    "@playwright/test": "^1.50.0",
-    "@sveltejs/kit": "^2.50.2",
+    "@playwright/test": "^1.58.2",
+    "@sveltejs/kit": "^2.53.4",
     "@sveltejs/vite-plugin-svelte": "^6.2.4",
     "@tailwindcss/typography": "^0.5.19",
-    "@tailwindcss/vite": "^4.0.0",
-    "@types/better-sqlite3": "^7.6.0",
-    "@types/markdown-it": "^14.0.0",
+    "@tailwindcss/vite": "^4.2.1",
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/markdown-it": "^14.1.2",
     "@types/uuid": "^10.0.0",
-    "@vite-pwa/sveltekit": "^1.0.0",
-    "drizzle-kit": "^0.31.0",
-    "svelte": "^5.51.0",
-    "svelte-check": "^4.4.2",
-    "tailwindcss": "^4.0.0",
+    "@vite-pwa/sveltekit": "^1.1.0",
+    "drizzle-kit": "^0.31.9",
+    "svelte": "^5.53.7",
+    "svelte-check": "^4.4.4",
+    "tailwindcss": "^4.2.1",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
     "vite": "^7.3.1",
-    "vitest": "^3.0.0",
+    "vitest": "^3.2.4",
     "yaml": "^2.8.2"
   },
   "pnpm": {
@@ -73,6 +73,11 @@
       "argon2",
       "better-sqlite3",
       "esbuild"
-    ]
+    ],
+    "overrides": {
+      "serialize-javascript": ">=7.0.3",
+      "esbuild@<0.25.0": "0.25.12",
+      "cookie": ">=0.7.0"
+    }
   }
 }
