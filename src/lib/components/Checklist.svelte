@@ -1,8 +1,13 @@
 <script lang="ts">
 	import XIcon from 'lucide-svelte/icons/x';
 	import Plus from 'lucide-svelte/icons/plus';
+	import GripVertical from 'lucide-svelte/icons/grip-vertical';
+	import ChevronRight from 'lucide-svelte/icons/chevron-right';
+	import { dragHandleZone, dragHandle, type DndEvent } from 'svelte-dnd-action';
+	import { flip } from 'svelte/animate';
 
 	interface ChecklistItem {
+		id: string;
 		text: string;
 		checked: boolean;
 	}
@@ -15,14 +20,25 @@
 	let { content, onChange }: Props = $props();
 
 	let items = $state<ChecklistItem[]>(parseChecklist(content));
+	let hideCompleted = $state(false);
+	let showDoneSection = $state(false);
+	const flipDurationMs = 150;
+
+	let activeItems = $derived(hideCompleted ? items.filter((i) => !i.checked) : items);
+	let doneItems = $derived(items.filter((i) => i.checked));
+	let doneCount = $derived(doneItems.length);
+
+	function generateId(): string {
+		return crypto.randomUUID();
+	}
 
 	function parseChecklist(text: string): ChecklistItem[] {
-		if (!text.trim()) return [{ text: '', checked: false }];
+		if (!text.trim()) return [{ id: generateId(), text: '', checked: false }];
 		const lines = text.split('\n');
 		return lines.map((line) => {
-			if (line.startsWith('- [x] ')) return { text: line.slice(6), checked: true };
-			if (line.startsWith('- [ ] ')) return { text: line.slice(6), checked: false };
-			return { text: line, checked: false };
+			if (line.startsWith('- [x] ')) return { id: generateId(), text: line.slice(6), checked: true };
+			if (line.startsWith('- [ ] ')) return { id: generateId(), text: line.slice(6), checked: false };
+			return { id: generateId(), text: line, checked: false };
 		});
 	}
 
@@ -36,78 +52,106 @@
 		onChange(serializeChecklist(items));
 	}
 
-	function toggleItem(index: number) {
-		items[index].checked = !items[index].checked;
-		emitChange();
+	function toggleItem(id: string) {
+		const item = items.find((i) => i.id === id);
+		if (item) {
+			item.checked = !item.checked;
+			emitChange();
+		}
 	}
 
-	function updateText(index: number, text: string) {
-		items[index].text = text;
-		emitChange();
+	function updateText(id: string, text: string) {
+		const item = items.find((i) => i.id === id);
+		if (item) {
+			item.text = text;
+			emitChange();
+		}
 	}
 
 	function addItem(afterIndex: number) {
-		items.splice(afterIndex + 1, 0, { text: '', checked: false });
+		const newItem = { id: generateId(), text: '', checked: false };
+		items.splice(afterIndex + 1, 0, newItem);
 		items = [...items];
 		emitChange();
-		// Focus new input on next tick
 		setTimeout(() => {
 			const inputs = document.querySelectorAll<HTMLInputElement>('[data-testid="checklist-input"]');
 			inputs[afterIndex + 1]?.focus();
 		}, 0);
 	}
 
-	function removeItem(index: number) {
+	function removeItem(id: string) {
 		if (items.length <= 1) return;
+		const index = items.findIndex((i) => i.id === id);
 		items.splice(index, 1);
 		items = [...items];
 		emitChange();
 	}
 
-	function handleKeydown(e: KeyboardEvent, index: number) {
+	function handleKeydown(e: KeyboardEvent, id: string) {
+		const index = items.findIndex((i) => i.id === id);
 		if (e.key === 'Enter') {
 			e.preventDefault();
 			addItem(index);
 		} else if (e.key === 'Backspace' && items[index].text === '' && items.length > 1) {
 			e.preventDefault();
-			removeItem(index);
+			removeItem(id);
 			setTimeout(() => {
 				const inputs = document.querySelectorAll<HTMLInputElement>('[data-testid="checklist-input"]');
 				inputs[Math.max(0, index - 1)]?.focus();
 			}, 0);
 		}
 	}
+
+	function handleDndConsider(e: CustomEvent<DndEvent<ChecklistItem>>) {
+		items = e.detail.items;
+	}
+
+	function handleDndFinalize(e: CustomEvent<DndEvent<ChecklistItem>>) {
+		items = e.detail.items;
+		emitChange();
+	}
 </script>
 
 <div class="space-y-1" data-testid="checklist">
-	{#each items as item, index}
-		<div class="flex items-center gap-2">
-			<input
-				type="checkbox"
-				checked={item.checked}
-				onchange={() => toggleItem(index)}
-				class="h-4 w-4 rounded border-[var(--border-subtle)] text-[var(--primary)] focus:ring-[var(--primary)]"
-				data-testid="checklist-checkbox"
-			/>
-			<input
-				type="text"
-				value={item.text}
-				oninput={(e) => updateText(index, (e.target as HTMLInputElement).value)}
-				onkeydown={(e) => handleKeydown(e, index)}
-				class="flex-1 bg-transparent text-sm outline-none {item.checked ? 'text-[var(--text-muted)] line-through' : 'text-[var(--text)]'}"
-				placeholder="List item"
-				data-testid="checklist-input"
-			/>
-			<button
-				onclick={() => removeItem(index)}
-				class="opacity-0 hover:opacity-100 focus:opacity-100"
-				aria-label="Remove item"
-				data-testid="checklist-remove"
-			>
-				<XIcon class="h-4 w-4 text-[var(--text-muted)]" />
-			</button>
-		</div>
-	{/each}
+	<section
+		use:dragHandleZone={{ items: activeItems, flipDurationMs, dropTargetStyle: {} }}
+		onconsider={handleDndConsider}
+		onfinalize={handleDndFinalize}
+		class="space-y-1"
+	>
+		{#each activeItems as item (item.id)}
+			<div class="group flex items-center gap-1" animate:flip={{ duration: flipDurationMs }}>
+				<div use:dragHandle aria-label="drag handle" class="drag-handle cursor-grab opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity duration-150" data-testid="checklist-drag-handle">
+					<GripVertical class="h-4 w-4 text-[var(--text-muted)]" />
+				</div>
+				<input
+					type="checkbox"
+					checked={item.checked}
+					onchange={() => toggleItem(item.id)}
+					class="h-4 w-4 rounded border-[var(--border-subtle)] text-[var(--primary)] focus:ring-[var(--primary)]"
+					data-testid="checklist-checkbox"
+				/>
+				<input
+					type="text"
+					value={item.text}
+					oninput={(e) => updateText(item.id, (e.target as HTMLInputElement).value)}
+					onkeydown={(e) => handleKeydown(e, item.id)}
+					class="flex-1 bg-transparent text-sm outline-none {item.checked ? 'text-[var(--text-muted)] line-through' : 'text-[var(--text)]'}"
+					placeholder="List item"
+					data-testid="checklist-input"
+				/>
+				<button
+					onclick={() => removeItem(item.id)}
+					class="opacity-0 hover:opacity-100 focus:opacity-100"
+					aria-label="Remove item"
+					data-testid="checklist-remove"
+				>
+					<XIcon class="h-4 w-4 text-[var(--text-muted)]" />
+				</button>
+			</div>
+		{/each}
+	</section>
+
 	<button
 		onclick={() => addItem(items.length - 1)}
 		class="flex items-center gap-2 text-sm text-[var(--text-muted)] hover:text-[var(--text)]"
@@ -116,4 +160,43 @@
 		<Plus class="h-4 w-4" />
 		Add item
 	</button>
+
+	{#if doneCount > 0}
+		<div class="mt-2 border-t border-[var(--border-subtle)] pt-2">
+			<button
+				onclick={() => {
+					if (!hideCompleted) {
+						hideCompleted = true;
+						showDoneSection = false;
+					} else {
+						showDoneSection = !showDoneSection;
+					}
+				}}
+				class="flex items-center gap-1 text-xs text-[var(--text-muted)] hover:text-[var(--text)]"
+				data-testid="checklist-toggle-done"
+			>
+				<ChevronRight class="h-3 w-3 transition-transform duration-150 {hideCompleted && showDoneSection ? 'rotate-90' : ''}" />
+				{doneCount} done
+			</button>
+
+			{#if !hideCompleted}
+				<!-- Completed items are inline in the main list, toggle hides them -->
+			{:else if showDoneSection}
+				<div class="mt-1 space-y-1 pl-5" data-testid="checklist-done-section">
+					{#each doneItems as item (item.id)}
+						<div class="flex items-center gap-2">
+							<input
+								type="checkbox"
+								checked={item.checked}
+								onchange={() => toggleItem(item.id)}
+								class="h-4 w-4 rounded border-[var(--border-subtle)] text-[var(--primary)] focus:ring-[var(--primary)]"
+								data-testid="checklist-done-checkbox"
+							/>
+							<span class="text-sm text-[var(--text-muted)] line-through">{item.text}</span>
+						</div>
+					{/each}
+				</div>
+			{/if}
+		</div>
+	{/if}
 </div>

@@ -45,6 +45,7 @@
     "idb": "^8.0.3",
     "lucide-svelte": "^0.577.0",
     "markdown-it": "^14.1.1",
+    "svelte-dnd-action": "^0.9.69",
     "tiptap-markdown": "^0.9.0",
     "uuid": "^11.1.0"
   },
