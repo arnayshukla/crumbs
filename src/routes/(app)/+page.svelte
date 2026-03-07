@@ -77,7 +77,7 @@
 
 {#if $notesLoaded && $pinnedNotes.length === 0 && $unpinnedNotes.length === 0}
 	<div class="flex flex-col items-center justify-center py-20 text-[var(--text-muted)]">
-		<span class="mb-4 text-7xl">🥨</span>
+		<img src="/favicon.svg" alt="" class="mb-4 h-18 w-18" />
 		<p class="font-['Press_Start_2P'] text-xs">
 			{#if $currentFilter === 'trashed'}
 				No crumbs in trash

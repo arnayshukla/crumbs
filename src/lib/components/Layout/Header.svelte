@@ -28,6 +28,7 @@
 		</button>
 
 		<div class="flex items-center gap-2">
+			<img src="/favicon.svg" alt="" class="h-8 w-8" />
 			<h1 class="font-['Press_Start_2P'] text-lg text-[var(--primary)]">Crumbs</h1>
 		</div>
 

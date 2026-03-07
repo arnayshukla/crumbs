@@ -47,7 +47,7 @@
 
 <div class="w-full max-w-sm rounded-sm border border-[var(--border)] bg-[var(--bg-surface)] p-8 shadow-[var(--card-shadow)]">
 	<div class="mb-6 text-center">
-		<span class="text-5xl">🥨</span>
+		<img src="/favicon.svg" alt="Crumbs" class="mx-auto h-12 w-12" />
 		<h1 class="font-['Press_Start_2P'] text-xl text-[var(--primary)]">Welcome to Crumbs</h1>
 		<p class="mt-2 text-sm text-[var(--text-muted)]">Set up your password to get started</p>
 	</div>
