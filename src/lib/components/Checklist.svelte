@@ -175,7 +175,7 @@
 			{#if doneExpanded}
 				<div class="mt-1 space-y-1 pl-5" data-testid="checklist-done-section">
 					{#each doneItems as item (item.id)}
-						<div class="flex items-center gap-2">
+						<div class="group flex items-center gap-2">
 							<input
 								type="checkbox"
 								checked={item.checked}
@@ -183,7 +183,15 @@
 								class="h-4 w-4 rounded border-[var(--border-subtle)] text-[var(--primary)] focus:ring-[var(--primary)]"
 								data-testid="checklist-done-checkbox"
 							/>
-							<span class="text-sm text-[var(--text-muted)] line-through">{item.text}</span>
+							<span class="flex-1 text-sm text-[var(--text-muted)] line-through">{item.text}</span>
+							<button
+								onclick={() => removeItem(item.id)}
+								class="opacity-0 group-hover:opacity-100 focus:opacity-100"
+								aria-label="Remove item"
+								data-testid="checklist-done-remove"
+							>
+								<XIcon class="h-4 w-4 text-[var(--text-muted)]" />
+							</button>
 						</div>
 					{/each}
 				</div>
