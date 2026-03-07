@@ -6,9 +6,10 @@
 	interface Props {
 		open: boolean;
 		onClose?: () => void;
+		appVersion?: string;
 	}
 
-	let { open, onClose }: Props = $props();
+	let { open, onClose, appVersion }: Props = $props();
 
 	function setFilter(filter: NoteFilter) {
 		selectedTag.set(null);
@@ -83,4 +84,9 @@
 			</div>
 		{/if}
 	</nav>
+	{#if appVersion}
+		<div class="absolute bottom-0 left-0 w-full border-t border-[var(--border-subtle)] px-6 py-3 text-right text-xs text-[var(--text-muted)]">
+			v{appVersion}
+		</div>
+	{/if}
 </aside>

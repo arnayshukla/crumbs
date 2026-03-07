@@ -60,7 +60,11 @@ echo "Bumping $BUMP version..."
 npm version "$BUMP" -m "chore: bump version to %s" --no-git-tag-version
 
 NEW_VERSION=$(node -p "require('./package.json').version")
-git add package.json
+
+# Update version in marketing website
+sed -i '' "s|<span class=\"footer-version\">v[^<]*</span>|<span class=\"footer-version\">v$NEW_VERSION</span>|" website/index.html
+
+git add package.json website/index.html
 git commit -m "chore: bump version to $NEW_VERSION"
 git tag "v$NEW_VERSION"
 
