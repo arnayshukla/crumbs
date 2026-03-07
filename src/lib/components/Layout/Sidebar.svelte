@@ -11,14 +11,22 @@
 
 	let { open, onClose, appVersion }: Props = $props();
 
+	function closeMobile() {
+		if (window.matchMedia('(max-width: 1023px)').matches) {
+			onClose?.();
+		}
+	}
+
 	function setFilter(filter: NoteFilter) {
 		selectedTag.set(null);
 		loadNotes(filter);
+		closeMobile();
 	}
 
 	function selectTag(tag: string | null) {
 		selectedTag.set(tag);
 		loadNotes('all');
+		closeMobile();
 	}
 </script>
 
