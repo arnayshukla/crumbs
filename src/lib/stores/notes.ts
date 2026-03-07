@@ -3,6 +3,7 @@ import type { Note, NoteFilter, NoteCreate, NoteUpdate } from '$lib/types/index.
 import { addToSyncQueue, putNote, deleteNoteFromIdb, getAllNotes, clearNotes as clearIdbNotes } from '$lib/sync/idb.js';
 import { showToast } from '$lib/stores/toast.js';
 import { extractTags } from '$lib/utils/tags.js';
+import { sortMode, type SortMode } from '$lib/stores/sort.js';
 
 export const notes = writable<Note[]>([]);
 export const currentFilter = writable<NoteFilter>('all');
@@ -27,12 +28,25 @@ export const filteredNotes = derived(
 	}
 );
 
-export const pinnedNotes = derived(filteredNotes, ($notes) =>
-	$notes.filter((n) => n.pinned)
+function sortNotes(list: Note[], mode: SortMode): Note[] {
+	return [...list].sort((a, b) => {
+		if (mode === 'created') {
+			return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+		}
+		if (mode === 'custom') {
+			return a.sortOrder - b.sortOrder;
+		}
+		// default: updated
+		return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+	});
+}
+
+export const pinnedNotes = derived([filteredNotes, sortMode], ([$notes, $sortMode]) =>
+	sortNotes($notes.filter((n) => n.pinned), $sortMode)
 );
 
-export const unpinnedNotes = derived(filteredNotes, ($notes) =>
-	$notes.filter((n) => !n.pinned)
+export const unpinnedNotes = derived([filteredNotes, sortMode], ([$notes, $sortMode]) =>
+	sortNotes($notes.filter((n) => !n.pinned), $sortMode)
 );
 
 export const allTags = derived(notes, ($notes) => {
@@ -198,4 +212,26 @@ export async function unarchiveNote(id: string): Promise<Note | null> {
 
 export async function togglePin(id: string, currentPinned: boolean): Promise<Note | null> {
 	return updateNote(id, { pinned: !currentPinned });
+}
+
+export async function updateSortOrders(orders: { id: string; sortOrder: number }[]): Promise<boolean> {
+	// Optimistic update
+	notes.update((list) =>
+		list.map((n) => {
+			const order = orders.find((o) => o.id === n.id);
+			return order ? { ...n, sortOrder: order.sortOrder } : n;
+		})
+	);
+
+	try {
+		const res = await fetch('/api/notes/reorder', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ orders })
+		});
+		return res.ok;
+	} catch {
+		// Offline — optimistic update stands
+		return false;
+	}
 }

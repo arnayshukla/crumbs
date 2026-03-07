@@ -2,7 +2,9 @@
 	import NoteGrid from '$lib/components/NoteGrid.svelte';
 	import NoteEditor from '$lib/components/NoteEditor.svelte';
 	import TagFilter from '$lib/components/TagFilter.svelte';
-	import { pinnedNotes, unpinnedNotes, selectedTag, currentFilter, notes, notesLoaded } from '$lib/stores/notes.js';
+	import SortSelector from '$lib/components/SortSelector.svelte';
+	import { pinnedNotes, unpinnedNotes, selectedTag, currentFilter, notes, notesLoaded, updateSortOrders } from '$lib/stores/notes.js';
+	import { sortMode } from '$lib/stores/sort.js';
 	import { onMount } from 'svelte';
 	import { get } from 'svelte/store';
 	import type { Note } from '$lib/types/index.js';
@@ -20,6 +22,11 @@
 		editingNote = null;
 		showNewNote = false;
 		history.replaceState(null, '', location.pathname);
+	}
+
+	function handleReorder(noteIds: string[]) {
+		const orders = noteIds.map((id, index) => ({ id, sortOrder: index }));
+		updateSortOrders(orders);
 	}
 
 	onMount(() => {
@@ -53,9 +60,16 @@
 	</div>
 {/if}
 
-<div class="mb-4">
-	<TagFilter />
-</div>
+{#if $currentFilter === 'all'}
+	<div class="mb-4 flex flex-wrap items-start justify-between gap-3">
+		<TagFilter />
+		<SortSelector />
+	</div>
+{:else}
+	<div class="mb-4">
+		<TagFilter />
+	</div>
+{/if}
 
 {#if $currentFilter === 'archived'}
 	<h2 class="mb-4 text-lg font-medium text-[var(--text-muted)]">Archive</h2>
@@ -65,7 +79,7 @@
 
 {#if $pinnedNotes.length > 0}
 	<div class="mb-6">
-		<NoteGrid notes={$pinnedNotes} label="Pinned" onEdit={openEditor} />
+		<NoteGrid notes={$pinnedNotes} label="Pinned" onEdit={openEditor} draggable={$sortMode === 'custom'} onReorder={handleReorder} />
 	</div>
 {/if}
 
@@ -73,6 +87,8 @@
 	notes={$unpinnedNotes}
 	label={$pinnedNotes.length > 0 ? 'Others' : ''}
 	onEdit={openEditor}
+	draggable={$sortMode === 'custom'}
+	onReorder={handleReorder}
 />
 
 {#if $notesLoaded && $pinnedNotes.length === 0 && $unpinnedNotes.length === 0}
