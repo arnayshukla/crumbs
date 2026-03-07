@@ -16,7 +16,7 @@ Open http://localhost:3000 and set your password.
 # docker-compose.yml
 services:
   crumbs:
-    build: .
+    image: ghcr.io/bretzel-app/crumbs:latest
     ports:
       - "8080:3000"  # Change external port
     volumes:

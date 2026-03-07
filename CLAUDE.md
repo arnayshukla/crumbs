@@ -135,9 +135,13 @@ GitHub Actions with two workflows:
 4. **E2E Tests** — Playwright with Chromium (depends on step 3, uploads report on failure)
 5. **Docker Build** — validates the Docker image builds (depends on step 3)
 
-**Release** (`.github/workflows/release.yml`) — runs on `v*` tags:
-- Runs full CI pipeline, then builds + pushes Docker image to `ghcr.io` (GitHub Container Registry)
+**Bump & Release** (`.github/workflows/bump.yml`) — workflow_dispatch (primary release method):
+- Runs `scripts/release.sh` to bump version in `package.json` + `docker-compose.yml`, tag, and push
+- Runs full CI pipeline, then builds + pushes Docker image to `ghcr.io`
 - Creates a GitHub Release with auto-generated notes
+
+**Release** (`.github/workflows/release.yml`) — runs on `v*` tags (fallback for manual/local tag pushes):
+- Same as above: CI pipeline, Docker build/push, GitHub Release
 
 **Docker**: Multi-stage Dockerfile (node:22-slim), exposes port 3000, persists data to `/data` volume.
 
@@ -188,3 +192,14 @@ E2E tests follow Cucumber BDD conventions via comments. Follow the [Better Gherk
 ```
 
 **Resilience test** — ask: *"Will this comment need to change if the UI implementation changes?"* If yes, rewrite it to remove implementation details. The Playwright code underneath handles the *how*; the comments describe the *what*.
+
+## Documentation
+
+Keep docs in `docs/` up to date when making changes. If a feature, API endpoint, deployment config, or architectural decision changes, update the relevant doc file in the same commit or PR:
+
+| Doc | Covers |
+|-----|--------|
+| `docs/FEATURES.md` | User-facing feature list |
+| `docs/ARCHITECTURE.md` | System design, data flow, schema, tech stack |
+| `docs/DEPLOYMENT.md` | Docker, env vars, reverse proxy, backups |
+| `docs/openapi.yaml` | API spec (run `pnpm docs:api` to regenerate `docs/API.md`) |

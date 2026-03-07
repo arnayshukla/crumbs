@@ -8,16 +8,27 @@
 - Content supports full Markdown syntax
 - Auto-save on editor close
 
-### Markdown Support
-- **Bold** (`**text**`)
-- *Italic* (`*text*`)
+### Rich Text Editor
+- WYSIWYG editing powered by Tiptap
+- Formatting toolbar with visual controls
+- Raw Markdown mode toggle for direct editing
+- Undo/Redo with keyboard shortcuts
+
+### Text Formatting
+- **Bold** (`**text**` / Ctrl+B)
+- *Italic* (`*text*` / Ctrl+I)
+- Underline (Ctrl+U)
+- ~~Strikethrough~~ (`~~text~~` / Ctrl+Shift+X)
 - Headings (`# H1` through `###### H6`)
+- Blockquotes (`> quote`)
 - Unordered lists (`- item`)
 - Ordered lists (`1. item`)
 - Code blocks (triple backtick)
 - Inline code (single backtick)
 - Tables
-- Links (auto-linkified URLs)
+- Links — insert, edit, and remove with URL input
+- Dividers (horizontal rules)
+- Text alignment (left, center, right, justify)
 - Line breaks
 
 ### Checklists / Task Lists
