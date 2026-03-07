@@ -20,7 +20,7 @@
 	let { content, onChange }: Props = $props();
 
 	let items = $state<ChecklistItem[]>(parseChecklist(content));
-	let doneExpanded = $state(false);
+	let doneExpanded = $state(true);
 	const flipDurationMs = 150;
 
 	let activeItems = $derived(items.filter((i) => !i.checked));
@@ -142,7 +142,7 @@
 				/>
 				<button
 					onclick={() => removeItem(item.id)}
-					class="opacity-0 hover:opacity-100 focus:opacity-100"
+					class="opacity-0 group-hover:opacity-100 focus:opacity-100"
 					aria-label="Remove item"
 					data-testid="checklist-remove"
 				>
