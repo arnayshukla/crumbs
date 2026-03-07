@@ -44,12 +44,16 @@ test.describe('Checklist', () => {
 
 		// When the user reopens the note and checks the item
 		await noteCard(page, 'Tasks').click();
-		await page.getByTestId('checklist-checkbox').first().check();
+		await page.getByTestId('checklist-checkbox').first().click();
+
+		// Then the item moves to the done section
+		await expect(page.getByTestId('checklist-toggle-done')).toContainText('1 done');
 		await page.getByTestId('close-editor-btn').click();
 
-		// Then reopening the note shows the item is still checked
+		// And reopening the note shows the item in the done section
 		await noteCard(page, 'Tasks').click();
-		await expect(page.getByTestId('checklist-checkbox').first()).toBeChecked();
+		await page.getByTestId('checklist-toggle-done').click();
+		await expect(page.getByTestId('checklist-done-checkbox').first()).toBeChecked();
 	});
 
 	test('Scenario: New checklist item is added by pressing Enter', async ({ authenticatedPage: page }) => {
@@ -80,7 +84,7 @@ test.describe('Checklist', () => {
 		await expect(page.getByTestId('checklist-input')).toHaveCount(1);
 	});
 
-	test('Scenario: Completed checklist items can be hidden and shown', async ({ authenticatedPage: page }) => {
+	test('Scenario: Completed checklist items are separated and can be expanded', async ({ authenticatedPage: page }) => {
 		// Given a checklist note with a completed item and an uncompleted item
 		await page.getByTestId('new-note-btn').click();
 		await page.getByTestId('note-title-input').fill('Hide Done Test');
@@ -88,18 +92,15 @@ test.describe('Checklist', () => {
 		await page.getByTestId('checklist-input').first().fill('Done task');
 		await page.getByTestId('checklist-input').first().press('Enter');
 		await page.getByTestId('checklist-input').nth(1).fill('Pending task');
-		await page.getByTestId('checklist-checkbox').first().check();
+		await page.getByTestId('checklist-checkbox').first().click();
 
-		// Then the "done" toggle is visible
-		await expect(page.getByTestId('checklist-toggle-done')).toBeVisible();
-		await expect(page.getByTestId('checklist-toggle-done')).toContainText('1 done');
-
-		// When the user clicks the "done" toggle to hide completed items
-		await page.getByTestId('checklist-toggle-done').click();
-
-		// Then the completed item is hidden from the main list
+		// Then the completed item is separated from the active list
 		await expect(page.getByTestId('checklist-input')).toHaveCount(1);
 		await expect(page.getByTestId('checklist-input').first()).toHaveValue('Pending task');
+
+		// And the "done" toggle shows the count
+		await expect(page.getByTestId('checklist-toggle-done')).toBeVisible();
+		await expect(page.getByTestId('checklist-toggle-done')).toContainText('1 done');
 
 		// When the user expands the done section
 		await page.getByTestId('checklist-toggle-done').click();

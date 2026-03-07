@@ -20,11 +20,10 @@
 	let { content, onChange }: Props = $props();
 
 	let items = $state<ChecklistItem[]>(parseChecklist(content));
-	let hideCompleted = $state(false);
-	let showDoneSection = $state(false);
+	let doneExpanded = $state(false);
 	const flipDurationMs = 150;
 
-	let activeItems = $derived(hideCompleted ? items.filter((i) => !i.checked) : items);
+	let activeItems = $derived(items.filter((i) => !i.checked));
 	let doneItems = $derived(items.filter((i) => i.checked));
 	let doneCount = $derived(doneItems.length);
 
@@ -103,11 +102,12 @@
 	}
 
 	function handleDndConsider(e: CustomEvent<DndEvent<ChecklistItem>>) {
-		items = e.detail.items;
+		// Merge reordered active items with done items
+		items = [...e.detail.items, ...items.filter((i) => i.checked)];
 	}
 
 	function handleDndFinalize(e: CustomEvent<DndEvent<ChecklistItem>>) {
-		items = e.detail.items;
+		items = [...e.detail.items, ...items.filter((i) => i.checked)];
 		emitChange();
 	}
 </script>
@@ -164,24 +164,15 @@
 	{#if doneCount > 0}
 		<div class="mt-2 border-t border-[var(--border-subtle)] pt-2">
 			<button
-				onclick={() => {
-					if (!hideCompleted) {
-						hideCompleted = true;
-						showDoneSection = false;
-					} else {
-						showDoneSection = !showDoneSection;
-					}
-				}}
+				onclick={() => (doneExpanded = !doneExpanded)}
 				class="flex items-center gap-1 text-xs text-[var(--text-muted)] hover:text-[var(--text)]"
 				data-testid="checklist-toggle-done"
 			>
-				<ChevronRight class="h-3 w-3 transition-transform duration-150 {hideCompleted && showDoneSection ? 'rotate-90' : ''}" />
+				<ChevronRight class="h-3 w-3 transition-transform duration-150 {doneExpanded ? 'rotate-90' : ''}" />
 				{doneCount} done
 			</button>
 
-			{#if !hideCompleted}
-				<!-- Completed items are inline in the main list, toggle hides them -->
-			{:else if showDoneSection}
+			{#if doneExpanded}
 				<div class="mt-1 space-y-1 pl-5" data-testid="checklist-done-section">
 					{#each doneItems as item (item.id)}
 						<div class="flex items-center gap-2">

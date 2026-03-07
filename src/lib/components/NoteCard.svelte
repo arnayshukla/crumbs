@@ -40,6 +40,10 @@
 			: []
 	);
 
+	const activeChecklistItems = $derived(checklistItems.filter(i => !i.checked));
+	const doneChecklistItems = $derived(checklistItems.filter(i => i.checked));
+	const sortedChecklistItems = $derived([...activeChecklistItems, ...doneChecklistItems]);
+
 	function stop(fn: () => void) {
 		return (e: Event) => {
 			e.stopPropagation();
@@ -47,19 +51,16 @@
 		};
 	}
 
-	function toggleChecklistItem(index: number) {
+	function toggleChecklistItem(item: ChecklistItem) {
 		const lines = note.content.split('\n');
-		let checkIndex = 0;
 		for (let i = 0; i < lines.length; i++) {
 			const line = lines[i];
-			if (line.startsWith('- [x] ') || line.startsWith('- [ ] ')) {
-				if (checkIndex === index) {
-					lines[i] = line.startsWith('- [x] ')
-						? `- [ ] ${line.slice(6)}`
-						: `- [x] ${line.slice(6)}`;
-					break;
-				}
-				checkIndex++;
+			const text = line.replace(/^- \[[ x]\] /, '');
+			if (text === item.text && line.startsWith(item.checked ? '- [x] ' : '- [ ] ')) {
+				lines[i] = item.checked
+					? `- [ ] ${text}`
+					: `- [x] ${text}`;
+				break;
 			}
 		}
 		updateNote(note.id, { content: lines.join('\n') });
@@ -93,12 +94,12 @@
 
 	{#if note.checklistMode && checklistItems.length > 0}
 		<ul class="space-y-1" data-testid="note-checklist-preview">
-			{#each checklistItems.slice(0, 8) as item, index}
+			{#each sortedChecklistItems.slice(0, 8) as item}
 				<li class="flex items-center gap-2 text-sm {item.checked ? 'text-[var(--text-muted)] line-through' : 'text-[var(--text)]'}">
 					<input
 						type="checkbox"
 						checked={item.checked}
-						onclick={(e) => { e.stopPropagation(); toggleChecklistItem(index); }}
+						onclick={(e) => { e.stopPropagation(); toggleChecklistItem(item); }}
 						class="h-3.5 w-3.5 rounded border-[var(--border-subtle)] text-[var(--primary)] cursor-pointer"
 						data-testid="card-checklist-checkbox"
 					/>
