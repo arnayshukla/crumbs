@@ -126,7 +126,7 @@ section {
 	display: flex;
 	align-items: center;
 	gap: 0.75rem;
-	color: var(--text);
+	color: var(--primary);
 	font-family: 'Press Start 2P', cursive;
 	font-size: 1rem;
 }
@@ -404,13 +404,35 @@ section {
 .screenshots h2 {
 	text-align: center;
 	font-size: clamp(0.9rem, 2.5vw, 1.25rem);
-	margin-bottom: 3rem;
+	margin-bottom: 2rem;
+}
+
+.screenshots-subtitle {
+	text-align: center;
+	font-size: 0.7rem;
+	color: var(--text-muted);
+	text-transform: uppercase;
+	letter-spacing: 0.1em;
+	margin-bottom: 1.5rem;
 }
 
 .screenshots-grid {
 	display: grid;
 	grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
 	gap: 1.5rem;
+	margin-bottom: 3rem;
+}
+
+.screenshots-grid-mobile {
+	grid-template-columns: repeat(3, 1fr);
+	max-width: 48rem;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+.screenshot-card-mobile {
+	max-width: 14rem;
+	justify-self: center;
 }
 
 .screenshot-card {
@@ -569,6 +591,46 @@ section {
 	padding: 0.2rem 0.6rem;
 }
 
+/* ── Lightbox ── */
+.lightbox {
+	position: fixed;
+	inset: 0;
+	z-index: 200;
+	background: rgba(26, 26, 46, 0.85);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 2rem;
+	cursor: zoom-out;
+	opacity: 0;
+	visibility: hidden;
+	transition: opacity 150ms ease-out, visibility 150ms ease-out;
+}
+
+.lightbox.active {
+	opacity: 1;
+	visibility: visible;
+}
+
+.lightbox img {
+	max-width: 100%;
+	max-height: 90vh;
+	border: 2px solid var(--border-subtle);
+	border-radius: 2px;
+	box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.3);
+	transform: scale(0.95);
+	transition: transform 150ms ease-out;
+}
+
+.lightbox.active img {
+	transform: scale(1);
+}
+
+.screenshot-card img,
+.hero-screenshot img {
+	cursor: zoom-in;
+}
+
 /* ── Animations ── */
 @keyframes fade-up {
 	from {
@@ -633,6 +695,14 @@ section {
 
 	.screenshots-grid {
 		grid-template-columns: 1fr;
+	}
+
+	.screenshots-grid-mobile {
+		grid-template-columns: repeat(3, 1fr);
+	}
+
+	.screenshot-card-mobile {
+		max-width: none;
 	}
 }
 

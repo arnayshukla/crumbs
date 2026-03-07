@@ -70,7 +70,7 @@
 					</a>
 				</div>
 				<div class="hero-screenshot animate-in delay-3">
-					<div class="screenshot-placeholder"></div>
+					<img src="assets/screenshot-grid.png" alt="Crumbs notes grid view showing colorful note cards with checklists, tags, and rich text" width="1280" height="800" loading="eager">
 				</div>
 			</div>
 		</section>
@@ -142,18 +142,34 @@
 	<section class="screenshots" id="screenshots">
 		<div class="container">
 			<h2 class="animate-in">See it in action</h2>
+			<h3 class="screenshots-subtitle animate-in">Desktop</h3>
 			<div class="screenshots-grid">
 				<div class="screenshot-card animate-in delay-1">
-					<div class="screenshot-placeholder"></div>
+					<img src="assets/screenshot-grid.png" alt="Notes grid view with colorful cards, checklists, and tags" width="1280" height="800" loading="lazy">
 					<div class="screenshot-label">Notes grid view</div>
 				</div>
 				<div class="screenshot-card animate-in delay-2">
-					<div class="screenshot-placeholder"></div>
+					<img src="assets/screenshot-editor.png" alt="Rich text editor with formatting toolbar" width="1280" height="800" loading="lazy">
 					<div class="screenshot-label">Rich text editor</div>
 				</div>
 				<div class="screenshot-card animate-in delay-3">
-					<div class="screenshot-placeholder"></div>
-					<div class="screenshot-label">Mobile view</div>
+					<img src="assets/screenshot-tags.png" alt="Tag filtering showing bretzel-tagged notes" width="1280" height="800" loading="lazy">
+					<div class="screenshot-label">Tag filtering</div>
+				</div>
+			</div>
+			<h3 class="screenshots-subtitle animate-in">Mobile</h3>
+			<div class="screenshots-grid screenshots-grid-mobile">
+				<div class="screenshot-card screenshot-card-mobile animate-in delay-1">
+					<img src="assets/screenshot-mobile-grid.png" alt="Mobile grid view with notes and tags" width="390" height="844" loading="lazy">
+					<div class="screenshot-label">Notes view</div>
+				</div>
+				<div class="screenshot-card screenshot-card-mobile animate-in delay-2">
+					<img src="assets/screenshot-mobile-editor.png" alt="Mobile checklist editor" width="390" height="844" loading="lazy">
+					<div class="screenshot-label">Checklist editor</div>
+				</div>
+				<div class="screenshot-card screenshot-card-mobile animate-in delay-3">
+					<img src="assets/screenshot-mobile-sidebar.png" alt="Mobile sidebar with tags" width="390" height="844" loading="lazy">
+					<div class="screenshot-label">Sidebar & tags</div>
 				</div>
 			</div>
 		</div>
@@ -209,7 +225,32 @@
 		</div>
 	</footer>
 
+	<!-- Lightbox -->
+	<div class="lightbox" id="lightbox" role="dialog" aria-label="Image preview">
+		<img src="" alt="">
+	</div>
+
 	<script>
+		// Lightbox
+		const lightbox = document.getElementById('lightbox');
+		const lightboxImg = lightbox.querySelector('img');
+
+		document.querySelectorAll('.screenshot-card img, .hero-screenshot img').forEach(img => {
+			img.addEventListener('click', () => {
+				lightboxImg.src = img.src;
+				lightboxImg.alt = img.alt;
+				lightbox.classList.add('active');
+			});
+		});
+
+		lightbox.addEventListener('click', () => {
+			lightbox.classList.remove('active');
+		});
+
+		document.addEventListener('keydown', (e) => {
+			if (e.key === 'Escape') lightbox.classList.remove('active');
+		});
+
 		// Mobile nav toggle
 		const toggle = document.querySelector('.nav-toggle');
 		const navLinks = document.querySelector('.nav-links');
