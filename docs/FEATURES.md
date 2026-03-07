@@ -56,7 +56,7 @@
 12 colors matching Google Keep's palette:
 - Default, Coral, Peach, Sand, Mint, Sage
 - Fog, Storm, Dusk, Blossom, Clay, Chalk
-- Colors adapt to light/dark mode
+- Colors adapt to note theme
 
 ### Pin Notes
 - Pin important notes to always appear at top
@@ -79,13 +79,6 @@
 - Real-time search results as you type
 - Clear search to restore original view
 - Case-insensitive matching
-
-### Dark Mode
-- System preference detection (auto)
-- Manual toggle override
-- Preference persisted in localStorage
-- All components adapt to theme
-- Note colors adjust for dark backgrounds
 
 ### Single-User Auth
 - First-run setup: create password (min 8 chars)

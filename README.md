@@ -41,7 +41,6 @@ pnpm build         # Production build
 - Rich notes with Markdown, checklists, image attachments, and 12 color themes
 - Organize with #tags, pinning, archive, and trash
 - Full-text search across titles, content, and tags
-- Dark mode with system detection
 - PWA — installable, works offline via IndexedDB + LWW CRDT sync
 - Single-user password auth (Argon2)
 - Docker deployment with a single command
