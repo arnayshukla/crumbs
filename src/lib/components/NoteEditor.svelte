@@ -30,7 +30,7 @@
 	// svelte-ignore state_referenced_locally
 	let checklistMode = $state(note?.checklistMode ?? false);
 	let showColorPicker = $state(false);
-	let rawMarkdownMode = $state(false);
+	let rawMarkdownMode = $state(note?.checklistMode ?? false);
 	let textareaEl: HTMLTextAreaElement | undefined = $state();
 	let tiptapEditor: Editor | undefined = $state();
 	let editorTick = $state(0);
@@ -166,8 +166,9 @@
 				<!-- Raw markdown mode toggle -->
 				<button
 					onclick={toggleMarkdownMode}
-					class="rounded-sm p-2 hover:bg-[var(--border)]/10"
+					class="rounded-sm p-2 hover:bg-[var(--border)]/10 disabled:opacity-30 disabled:cursor-not-allowed"
 					title={rawMarkdownMode ? 'Rich text mode' : 'Markdown mode'}
+					disabled={checklistMode}
 					data-testid="markdown-toggle"
 				>
 					{#if rawMarkdownMode}
