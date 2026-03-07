@@ -344,7 +344,7 @@
 					data-testid="format-hr"
 				>
 					<Minus size={iconSize} />
-					<span>Horizontal rule</span>
+					<span>Divider</span>
 				</button>
 				<div class="my-1 h-px bg-[var(--border-subtle)]"></div>
 				<button
