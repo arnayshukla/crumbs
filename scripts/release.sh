@@ -60,8 +60,7 @@ echo "Bumping $BUMP version..."
 npm version "$BUMP" -m "chore: bump version to %s" --no-git-tag-version
 
 NEW_VERSION=$(node -p "require('./package.json').version")
-sed -i'' -e "s|image: ghcr.io/bretzel-app/crumbs:.*|image: ghcr.io/bretzel-app/crumbs:${NEW_VERSION}|" docker-compose.yml
-git add package.json docker-compose.yml
+git add package.json
 git commit -m "chore: bump version to $NEW_VERSION"
 git tag "v$NEW_VERSION"
 

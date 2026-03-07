@@ -95,3 +95,28 @@ jobs:
         with:
           tag_name: ${{ needs.bump.outputs.tag }}
           generate_release_notes: true
+
+  pin-docker-compose:
+    name: Pin docker-compose to released version
+    runs-on: ubuntu-latest
+    needs: [bump, release]
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update docker-compose.yml
+        env:
+          TAG: ${{ needs.bump.outputs.tag }}
+        run: |
+          VERSION="${TAG#v}"
+          sed -i "s|image: ghcr.io/bretzel-app/crumbs:.*|image: ghcr.io/bretzel-app/crumbs:${VERSION}|" docker-compose.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docker-compose.yml
+          git diff --cached --quiet && exit 0
+          git commit -m "chore: pin docker-compose to ${TAG} [skip ci]"
+          git push origin main
