@@ -18,9 +18,10 @@
 	interface Props {
 		note: Note;
 		onEdit: (note: Note) => void;
+		fullHeight?: boolean;
 	}
 
-	let { note, onEdit }: Props = $props();
+	let { note, onEdit, fullHeight = false }: Props = $props();
 
 	$effect(() => {
 		const colors = NOTE_COLORS[note.color];
@@ -68,7 +69,7 @@
 </script>
 
 <article
-	class="group relative cursor-pointer rounded-sm border border-[var(--border-subtle)] p-4 transition-all hover:border-[var(--primary)] shadow-[var(--card-shadow)] hover:shadow-[var(--card-shadow-hover)]"
+	class="group relative cursor-pointer rounded-sm border border-[var(--border-subtle)] p-4 transition-all hover:border-[var(--primary)] shadow-[var(--card-shadow)] hover:shadow-[var(--card-shadow-hover)] {fullHeight ? 'h-full' : ''}"
 	style={cardStyle}
 	onclick={() => onEdit(note)}
 	onkeydown={(e) => e.key === 'Enter' && onEdit(note)}

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import NoteCard from './NoteCard.svelte';
-	import { dndzone, type DndEvent } from 'svelte-dnd-action';
+	import GripVertical from 'lucide-svelte/icons/grip-vertical';
+	import { dragHandleZone, dragHandle, type DndEvent } from 'svelte-dnd-action';
 	import { flip } from 'svelte/animate';
 	import type { Note } from '$lib/types/index.js';
 
@@ -9,10 +10,11 @@
 		label?: string;
 		onEdit: (note: Note) => void;
 		draggable?: boolean;
+		dndType?: string;
 		onReorder?: (noteIds: string[]) => void;
 	}
 
-	let { notes, label = '', onEdit, draggable = false, onReorder }: Props = $props();
+	let { notes, label = '', onEdit, draggable = false, dndType = 'notes', onReorder }: Props = $props();
 
 	let localItems = $state<Note[]>([]);
 
@@ -42,13 +44,21 @@
 		<div
 			class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
 			data-testid="note-grid"
-			use:dndzone={{ items: localItems, flipDurationMs, type: 'notes', dropTargetStyle: {} }}
+			use:dragHandleZone={{ items: localItems, flipDurationMs, type: dndType, dropTargetStyle: {} }}
 			onconsider={handleConsider}
 			onfinalize={handleFinalize}
 		>
 			{#each localItems as note (note.id)}
-				<div animate:flip={{ duration: flipDurationMs }}>
-					<NoteCard {note} {onEdit} />
+				<div class="relative h-full" animate:flip={{ duration: flipDurationMs }}>
+					<div
+						use:dragHandle
+						aria-label="drag handle for {note.title || 'note'}"
+						class="absolute top-2 right-2 z-10 cursor-grab rounded-sm p-1 text-[var(--text-muted)] opacity-60 hover:opacity-100 hover:bg-[var(--border-subtle)]/50 transition-opacity duration-150"
+						data-testid="note-drag-handle"
+					>
+						<GripVertical class="h-4 w-4" />
+					</div>
+					<NoteCard {note} {onEdit} fullHeight />
 				</div>
 			{/each}
 		</div>

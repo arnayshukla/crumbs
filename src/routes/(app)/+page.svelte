@@ -79,7 +79,7 @@
 
 {#if $pinnedNotes.length > 0}
 	<div class="mb-6">
-		<NoteGrid notes={$pinnedNotes} label="Pinned" onEdit={openEditor} draggable={$sortMode === 'custom'} onReorder={handleReorder} />
+		<NoteGrid notes={$pinnedNotes} label="Pinned" onEdit={openEditor} draggable={$sortMode === 'custom'} dndType="pinned-notes" onReorder={handleReorder} />
 	</div>
 {/if}
 
@@ -88,6 +88,7 @@
 	label={$pinnedNotes.length > 0 ? 'Others' : ''}
 	onEdit={openEditor}
 	draggable={$sortMode === 'custom'}
+	dndType="unpinned-notes"
 	onReorder={handleReorder}
 />
 
