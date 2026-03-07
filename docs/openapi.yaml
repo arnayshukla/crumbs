@@ -187,7 +187,13 @@ paths:
             type: string
       responses:
         '200':
-          description: Attachment list or file content
+          description: Attachment list (without attachmentId) or file content (with attachmentId)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Attachment'
     post:
       summary: Upload an image attachment
       tags: [Attachments]
@@ -306,6 +312,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Success'
+        '400':
+          description: Invalid changes payload
 
 components:
   securitySchemes:
@@ -340,6 +348,10 @@ components:
           type: boolean
         trashed:
           type: boolean
+        trashedAt:
+          type: string
+          format: date-time
+          nullable: true
         checklistMode:
           type: boolean
         sortOrder:
@@ -360,6 +372,10 @@ components:
     NoteInput:
       type: object
       properties:
+        id:
+          type: string
+          format: uuid
+          description: Optional — generated if omitted
         title:
           type: string
         content:

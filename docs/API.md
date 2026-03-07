@@ -103,6 +103,7 @@ List notes
     "pinned": true,
     "archived": true,
     "trashed": true,
+    "trashedAt": "2025-01-01T00:00:00.000Z",
     "checklistMode": true,
     "sortOrder": 1,
     "createdAt": "2025-01-01T00:00:00.000Z",
@@ -125,6 +126,7 @@ Create a note
 
 ```json
 {
+  "id": "uuid",
   "title": "title",
   "content": "content",
   "color": "default",
@@ -147,6 +149,7 @@ Create a note
   "pinned": true,
   "archived": true,
   "trashed": true,
+  "trashedAt": "2025-01-01T00:00:00.000Z",
   "checklistMode": true,
   "sortOrder": 1,
   "createdAt": "2025-01-01T00:00:00.000Z",
@@ -181,6 +184,7 @@ Get a note
   "pinned": true,
   "archived": true,
   "trashed": true,
+  "trashedAt": "2025-01-01T00:00:00.000Z",
   "checklistMode": true,
   "sortOrder": 1,
   "createdAt": "2025-01-01T00:00:00.000Z",
@@ -212,6 +216,7 @@ Partial update — only include changed fields.
 
 ```json
 {
+  "id": "uuid",
   "title": "title",
   "content": "content",
   "color": "default",
@@ -234,6 +239,7 @@ Partial update — only include changed fields.
   "pinned": true,
   "archived": true,
   "trashed": true,
+  "trashedAt": "2025-01-01T00:00:00.000Z",
   "checklistMode": true,
   "sortOrder": 1,
   "createdAt": "2025-01-01T00:00:00.000Z",
@@ -287,6 +293,19 @@ Without `attachmentId`, lists all attachments. With `attachmentId`, returns the 
 | `attachmentId` | query | string | no |  |
 
 **Response:** `200`
+
+```json
+[
+  {
+    "id": "id",
+    "noteId": "noteId",
+    "filename": "filename",
+    "mimeType": "mimeType",
+    "size": 1,
+    "createdAt": "2025-01-01T00:00:00.000Z"
+  }
+]
+```
 
 ---
 
@@ -366,6 +385,7 @@ Searches across note titles, content, and tags. Excludes trashed notes.
     "pinned": true,
     "archived": true,
     "trashed": true,
+    "trashedAt": "2025-01-01T00:00:00.000Z",
     "checklistMode": true,
     "sortOrder": 1,
     "createdAt": "2025-01-01T00:00:00.000Z",
@@ -423,6 +443,7 @@ Pull changes since timestamp
     "pinned": true,
     "archived": true,
     "trashed": true,
+    "trashedAt": "2025-01-01T00:00:00.000Z",
     "checklistMode": true,
     "sortOrder": 1,
     "createdAt": "2025-01-01T00:00:00.000Z",
@@ -451,6 +472,7 @@ Push local changes
       "operation": "create",
       "timestamp": 1,
       "data": {
+        "id": "uuid",
         "title": "title",
         "content": "content",
         "color": "default",
@@ -472,5 +494,7 @@ Push local changes
   "success": true
 }
 ```
+
+**Errors:** `400` Invalid changes payload
 
 ---
