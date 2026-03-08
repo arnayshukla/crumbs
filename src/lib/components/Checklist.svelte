@@ -121,7 +121,7 @@
 	>
 		{#each activeItems as item (item.id)}
 			<div class="group flex items-center gap-2" animate:flip={{ duration: flipDurationMs }}>
-				<div use:dragHandle aria-label="drag handle" class="drag-handle cursor-grab opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity duration-150" data-testid="checklist-drag-handle">
+				<div use:dragHandle aria-label="drag handle" class="drag-handle cursor-grab max-md:opacity-100 md:opacity-0 md:group-hover:opacity-100 focus:opacity-100 transition-opacity duration-150" data-testid="checklist-drag-handle">
 					<GripVertical class="h-4 w-4 text-[var(--text-muted)]" />
 				</div>
 				<input
@@ -142,7 +142,7 @@
 				/>
 				<button
 					onclick={() => removeItem(item.id)}
-					class="opacity-0 group-hover:opacity-100 focus:opacity-100"
+					class="max-md:opacity-100 md:opacity-0 md:group-hover:opacity-100 focus:opacity-100"
 					aria-label="Remove item"
 					data-testid="checklist-remove"
 				>
@@ -186,7 +186,7 @@
 							<span class="flex-1 text-sm text-[var(--text-muted)] line-through">{item.text}</span>
 							<button
 								onclick={() => removeItem(item.id)}
-								class="opacity-0 group-hover:opacity-100 focus:opacity-100"
+								class="max-md:opacity-100 md:opacity-0 md:group-hover:opacity-100 focus:opacity-100"
 								aria-label="Remove item"
 								data-testid="checklist-done-remove"
 							>
