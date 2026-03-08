@@ -31,7 +31,7 @@
 	</main>
 
 	<footer class="pb-4 pt-8 text-center text-xs text-[var(--text-muted)] {sidebarOpen ? 'lg:ml-64' : ''}">
-		Crumbs by Bretzel &mdash; made with 🥨 in Strasbourg
+		Crumbs by <a href="https://bretzel.app" target="_blank" rel="noopener noreferrer" class="hover:text-[var(--primary)] transition-colors">Bretzel</a> &mdash; made with 🥨 in Strasbourg
 	</footer>
 
 	<Toast />
