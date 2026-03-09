@@ -19,10 +19,11 @@
 	let editingNote: Note | null = $state(null);
 	let showNewNote = $state(false);
 
-	// Sync store with route props
+	// Sync store with route props and reload notes when filter changes
 	$effect(() => {
 		currentFilter.set(filter);
 		selectedTag.set(tag);
+		loadNotes(filter);
 	});
 
 	function openEditor(note: Note) {
