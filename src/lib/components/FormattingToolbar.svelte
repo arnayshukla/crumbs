@@ -38,6 +38,9 @@
 
 	function canUndo() { void tick; return editor?.can().chain().focus().undo().run() ?? false; }
 	function canRedo() { void tick; return editor?.can().chain().focus().redo().run() ?? false; }
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	function isActive(nameOrAttrs: any, attrs?: Record<string, any>): boolean { void tick; return editor?.isActive(nameOrAttrs, attrs) ?? false; }
+	function getAttrs(type: string) { void tick; return editor?.getAttributes(type) ?? {}; }
 
 	let openDropdown: string | null = $state(null);
 	let linkUrl: string = $state('');
@@ -141,7 +144,7 @@
 	<!-- Inline -->
 	<button
 		onclick={() => editor?.chain().focus().toggleBold().run()}
-		class={btnClass(editor?.isActive('bold') ?? false)}
+		class={btnClass(isActive('bold'))}
 		title="Bold (Ctrl+B)"
 		data-testid="format-bold"
 	>
@@ -149,7 +152,7 @@
 	</button>
 	<button
 		onclick={() => editor?.chain().focus().toggleItalic().run()}
-		class={btnClass(editor?.isActive('italic') ?? false)}
+		class={btnClass(isActive('italic'))}
 		title="Italic (Ctrl+I)"
 		data-testid="format-italic"
 	>
@@ -157,7 +160,7 @@
 	</button>
 	<button
 		onclick={() => editor?.chain().focus().toggleStrike().run()}
-		class={btnClass(editor?.isActive('strike') ?? false)}
+		class={btnClass(isActive('strike'))}
 		title="Strikethrough (Ctrl+Shift+X)"
 		data-testid="format-strikethrough"
 	>
@@ -165,7 +168,7 @@
 	</button>
 	<button
 		onclick={() => editor?.chain().focus().toggleUnderline().run()}
-		class={btnClass(editor?.isActive('underline') ?? false)}
+		class={btnClass(isActive('underline'))}
 		title="Underline (Ctrl+U)"
 		data-testid="format-underline"
 	>
@@ -178,7 +181,7 @@
 	<div class="relative" data-dropdown="heading">
 		<button
 			onclick={() => toggleDropdown('heading')}
-			class={dropdownBtnClass(editor?.isActive('heading') ?? false)}
+			class={dropdownBtnClass(isActive('heading'))}
 			title="Heading"
 			data-testid="format-heading"
 		>
@@ -189,7 +192,7 @@
 			<div class="absolute left-0 bottom-full z-50 mb-1 min-w-[150px] rounded-sm border border-[var(--border)] bg-[var(--bg-surface)] py-1">
 				<button
 					onclick={() => { editor?.chain().focus().toggleHeading({ level: 1 }).run(); closeDropdowns(); }}
-					class={dropdownItemClass(editor?.isActive('heading', { level: 1 }) ?? false)}
+					class={dropdownItemClass(isActive('heading', { level: 1 }))}
 					data-testid="format-h1"
 				>
 					<span class="w-6 text-xs font-semibold text-[var(--text-muted)]">H1</span>
@@ -197,7 +200,7 @@
 				</button>
 				<button
 					onclick={() => { editor?.chain().focus().toggleHeading({ level: 2 }).run(); closeDropdowns(); }}
-					class={dropdownItemClass(editor?.isActive('heading', { level: 2 }) ?? false)}
+					class={dropdownItemClass(isActive('heading', { level: 2 }))}
 					data-testid="format-h2"
 				>
 					<span class="w-6 text-xs font-semibold text-[var(--text-muted)]">H2</span>
@@ -205,7 +208,7 @@
 				</button>
 				<button
 					onclick={() => { editor?.chain().focus().toggleHeading({ level: 3 }).run(); closeDropdowns(); }}
-					class={dropdownItemClass(editor?.isActive('heading', { level: 3 }) ?? false)}
+					class={dropdownItemClass(isActive('heading', { level: 3 }))}
 					data-testid="format-h3"
 				>
 					<span class="w-6 text-xs font-semibold text-[var(--text-muted)]">H3</span>
@@ -219,7 +222,7 @@
 	<div class="relative" data-dropdown="list">
 		<button
 			onclick={() => toggleDropdown('list')}
-			class={dropdownBtnClass((editor?.isActive('bulletList') || editor?.isActive('orderedList')) ?? false)}
+			class={dropdownBtnClass(isActive('bulletList') || isActive('orderedList'))}
 			title="Lists"
 			data-testid="format-list"
 		>
@@ -230,7 +233,7 @@
 			<div class="absolute left-0 bottom-full z-50 mb-1 min-w-[170px] rounded-sm border border-[var(--border)] bg-[var(--bg-surface)] py-1">
 				<button
 					onclick={() => { editor?.chain().focus().toggleBulletList().run(); closeDropdowns(); }}
-					class={dropdownItemClass(editor?.isActive('bulletList') ?? false)}
+					class={dropdownItemClass(isActive('bulletList'))}
 					data-testid="format-bullet-list"
 				>
 					<List size={iconSize} />
@@ -238,7 +241,7 @@
 				</button>
 				<button
 					onclick={() => { editor?.chain().focus().toggleOrderedList().run(); closeDropdowns(); }}
-					class={dropdownItemClass(editor?.isActive('orderedList') ?? false)}
+					class={dropdownItemClass(isActive('orderedList'))}
 					data-testid="format-ordered-list"
 				>
 					<ListOrdered size={iconSize} />
@@ -252,7 +255,7 @@
 	<div class="relative" data-dropdown="link">
 		<button
 			onclick={() => toggleDropdown('link')}
-			class={btnClass(editor?.isActive('link') ?? false)}
+			class={btnClass(isActive('link'))}
 			title="Insert link (Ctrl+K)"
 			data-testid="format-link"
 		>
@@ -284,7 +287,7 @@
 					<button
 						type="button"
 						onclick={openLink}
-						disabled={!editor?.getAttributes('link').href}
+						disabled={!getAttrs('link').href}
 						class="rounded p-1 text-[var(--text-muted)] hover:bg-[var(--border)]/5 hover:text-[var(--text)] disabled:opacity-30"
 						title="Open link"
 						data-testid="format-link-open"
@@ -294,7 +297,7 @@
 					<button
 						type="button"
 						onclick={removeLink}
-						disabled={!editor?.isActive('link')}
+						disabled={!isActive('link')}
 						class="rounded p-1 text-[var(--text-muted)] hover:bg-[var(--border)]/5 hover:text-red-500 disabled:opacity-30"
 						title="Remove link"
 						data-testid="format-unlink"
@@ -310,7 +313,7 @@
 	<div class="relative" data-dropdown="table">
 		<button
 			onclick={() => toggleDropdown('table')}
-			class={dropdownBtnClass(editor?.isActive('table') ?? false)}
+			class={dropdownBtnClass(isActive('table'))}
 			title="Table"
 			data-testid="format-table"
 		>
@@ -327,7 +330,7 @@
 					<Table2 size={iconSize} />
 					<span>Insert table</span>
 				</button>
-				{#if editor?.isActive('table')}
+				{#if isActive('table')}
 					<div class="my-1 h-px bg-[var(--border-subtle)]"></div>
 					<button
 						onclick={() => { editor?.chain().focus().addRowAfter().run(); closeDropdowns(); }}
@@ -379,15 +382,15 @@
 	<div class="relative" data-dropdown="align">
 		<button
 			onclick={() => toggleDropdown('align')}
-			class={dropdownBtnClass(editor?.isActive({ textAlign: 'center' }) || editor?.isActive({ textAlign: 'right' }) || editor?.isActive({ textAlign: 'justify' }) ? true : false)}
+			class={dropdownBtnClass(isActive({ textAlign: 'center' }) || isActive({ textAlign: 'right' }) || isActive({ textAlign: 'justify' }))}
 			title="Text alignment"
 			data-testid="format-align"
 		>
-			{#if editor?.isActive({ textAlign: 'center' })}
+			{#if isActive({ textAlign: 'center' })}
 				<AlignCenter size={iconSize} />
-			{:else if editor?.isActive({ textAlign: 'right' })}
+			{:else if isActive({ textAlign: 'right' })}
 				<AlignRight size={iconSize} />
-			{:else if editor?.isActive({ textAlign: 'justify' })}
+			{:else if isActive({ textAlign: 'justify' })}
 				<AlignJustify size={iconSize} />
 			{:else}
 				<AlignLeft size={iconSize} />
@@ -398,7 +401,7 @@
 			<div class="absolute right-0 bottom-full z-50 mb-1 min-w-[160px] rounded-sm border border-[var(--border)] bg-[var(--bg-surface)] py-1">
 				<button
 					onclick={() => { editor?.chain().focus().setTextAlign('left').run(); closeDropdowns(); }}
-					class={dropdownItemClass(editor?.isActive({ textAlign: 'left' }) ?? false)}
+					class={dropdownItemClass(isActive({ textAlign: 'left' }))}
 					data-testid="format-align-left"
 				>
 					<AlignLeft size={iconSize} />
@@ -406,7 +409,7 @@
 				</button>
 				<button
 					onclick={() => { editor?.chain().focus().setTextAlign('center').run(); closeDropdowns(); }}
-					class={dropdownItemClass(editor?.isActive({ textAlign: 'center' }) ?? false)}
+					class={dropdownItemClass(isActive({ textAlign: 'center' }))}
 					data-testid="format-align-center"
 				>
 					<AlignCenter size={iconSize} />
@@ -414,7 +417,7 @@
 				</button>
 				<button
 					onclick={() => { editor?.chain().focus().setTextAlign('right').run(); closeDropdowns(); }}
-					class={dropdownItemClass(editor?.isActive({ textAlign: 'right' }) ?? false)}
+					class={dropdownItemClass(isActive({ textAlign: 'right' }))}
 					data-testid="format-align-right"
 				>
 					<AlignRight size={iconSize} />
@@ -422,7 +425,7 @@
 				</button>
 				<button
 					onclick={() => { editor?.chain().focus().setTextAlign('justify').run(); closeDropdowns(); }}
-					class={dropdownItemClass(editor?.isActive({ textAlign: 'justify' }) ?? false)}
+					class={dropdownItemClass(isActive({ textAlign: 'justify' }))}
 					data-testid="format-align-justify"
 				>
 					<AlignJustify size={iconSize} />
@@ -437,7 +440,7 @@
 	<!-- Block-level formatting -->
 	<button
 		onclick={() => editor?.chain().focus().toggleCode().run()}
-		class={btnClass(editor?.isActive('code') ?? false)}
+		class={btnClass(isActive('code'))}
 		title="Inline code"
 		data-testid="format-code"
 	>
@@ -445,7 +448,7 @@
 	</button>
 	<button
 		onclick={() => editor?.chain().focus().toggleBlockquote().run()}
-		class={btnClass(editor?.isActive('blockquote') ?? false)}
+		class={btnClass(isActive('blockquote'))}
 		title="Blockquote"
 		data-testid="format-blockquote"
 	>
@@ -453,7 +456,7 @@
 	</button>
 	<button
 		onclick={() => editor?.chain().focus().toggleCodeBlock().run()}
-		class={btnClass(editor?.isActive('codeBlock') ?? false)}
+		class={btnClass(isActive('codeBlock'))}
 		title="Code block"
 		data-testid="format-code-block"
 	>
