@@ -23,7 +23,8 @@
 		AlignJustify,
 		Minus,
 		ChevronDown,
-		Ellipsis
+		Ellipsis,
+		Table2
 	} from 'lucide-svelte';
 
 	interface Props {
@@ -337,6 +338,14 @@
 				>
 					<CodeXml size={iconSize} />
 					<span>Code block</span>
+				</button>
+				<button
+					onclick={() => { editor?.chain().focus().insertTable({ rows: 3, cols: 3 }).run(); closeDropdowns(); }}
+					class={dropdownItemClass()}
+					data-testid="format-table"
+				>
+					<Table2 size={iconSize} />
+					<span>Table</span>
 				</button>
 				<button
 					onclick={() => { editor?.chain().focus().setHorizontalRule().run(); closeDropdowns(); }}

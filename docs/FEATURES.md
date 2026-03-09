@@ -26,6 +26,7 @@
 - Code blocks (triple backtick)
 - Inline code (single backtick)
 - Links — insert, edit, and remove with URL input
+- Tables (insert 3×3 via toolbar)
 - Dividers (horizontal rules)
 - Text alignment (left, center, right, justify)
 - Line breaks
