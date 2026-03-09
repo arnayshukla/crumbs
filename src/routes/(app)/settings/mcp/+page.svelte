@@ -122,7 +122,7 @@ ${mcpJsonConfig}`);
 		<h2 class="text-lg font-semibold text-[var(--text)]">API Keys</h2>
 	</div>
 	<p class="mb-4 text-xs text-[var(--text-muted)]">
-		API keys allow external tools (like Claude Code) to access your notes via the MCP protocol.
+		API keys allow external tools to access your notes via the MCP protocol and the REST API.
 	</p>
 
 	<!-- Create Key Form -->
@@ -227,6 +227,16 @@ ${mcpJsonConfig}`);
 			{/each}
 		</div>
 	{/if}
+</section>
+
+<!-- REST API Example -->
+<section class="mb-6 rounded-sm border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-6 shadow-[var(--card-shadow)]">
+	<h2 class="mb-4 text-lg font-semibold text-[var(--text)]">REST API</h2>
+	<p class="mb-3 text-xs text-[var(--text-muted)]">
+		Use your API key to authenticate requests to any <code class="rounded-sm bg-[var(--bg-base)] px-1 py-0.5">/api/*</code> endpoint:
+	</p>
+	<pre class="overflow-x-auto rounded-sm bg-[var(--bg-base)] p-3 text-xs text-[var(--text)]">curl -H "Authorization: Bearer {activeApiKey}" \
+  {baseUrl}/api/notes</pre>
 </section>
 
 <!-- MCP Config Help -->

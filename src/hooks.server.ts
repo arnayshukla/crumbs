@@ -22,36 +22,31 @@ export const handle: Handle = async ({ event, resolve }) => {
 		return resolve(event);
 	}
 
-	// MCP endpoint: authenticate via Bearer token (API key)
-	if (pathname.startsWith('/api/mcp')) {
+	// API routes: authenticate via Bearer token if present
+	if (pathname.startsWith('/api/')) {
 		const authHeader = event.request.headers.get('authorization');
 		const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
 
-		if (!token) {
-			return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-				status: 401,
-				headers: { 'Content-Type': 'application/json' }
-			});
-		}
+		if (token) {
+			const { valid, userId } = validateApiKey(token);
+			if (!valid || !userId) {
+				return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+					status: 401,
+					headers: { 'Content-Type': 'application/json' }
+				});
+			}
 
-		const { valid, userId } = validateApiKey(token);
-		if (!valid || !userId) {
-			return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-				status: 401,
-				headers: { 'Content-Type': 'application/json' }
-			});
-		}
+			const user = getUserForApiKey(userId);
+			if (!user) {
+				return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+					status: 401,
+					headers: { 'Content-Type': 'application/json' }
+				});
+			}
 
-		const user = getUserForApiKey(userId);
-		if (!user) {
-			return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-				status: 401,
-				headers: { 'Content-Type': 'application/json' }
-			});
+			event.locals.user = user;
+			return resolve(event);
 		}
-
-		event.locals.user = user;
-		return resolve(event);
 	}
 
 	// Check if setup is complete

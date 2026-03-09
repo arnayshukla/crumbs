@@ -98,6 +98,10 @@ tests/
   unit/                # Vitest unit tests
   e2e/                 # Playwright e2e tests (Gherkin-style)
     helpers/fixtures.ts  # Shared authenticatedPage fixture
+website/               # Static landing page (crumbs.bretzel.app)
+  index.html           # Landing page with feature cards, screenshots, deploy section
+  styles.css           # Landing page styles (retro parchment theme)
+  assets/              # Favicon, screenshots
 ```
 
 ## Commands

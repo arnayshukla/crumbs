@@ -32,7 +32,7 @@
 						class="flex items-center gap-2 rounded-sm px-3 py-2 text-sm whitespace-nowrap transition-colors {pathname === '/settings/mcp' ? 'bg-[var(--primary)]/15 text-[var(--primary)] font-medium' : 'text-[var(--text)] hover:bg-[var(--bg-base)]'}"
 					>
 						<Cpu size={16} />
-						MCP Server
+						API
 					</a>
 				</li>
 				{#if data.user?.role === 'admin'}
