@@ -1,9 +1,19 @@
 <script lang="ts">
-	import zxcvbn from 'zxcvbn';
+	import type { ZXCVBNResult } from 'zxcvbn';
 
 	let { password = '' }: { password: string } = $props();
 
-	const result = $derived(password.length > 0 ? zxcvbn(password) : null);
+	let result = $state<ZXCVBNResult | null>(null);
+
+	$effect(() => {
+		if (password.length > 0) {
+			import('zxcvbn').then((mod) => {
+				result = mod.default(password);
+			});
+		} else {
+			result = null;
+		}
+	});
 
 	const labels = ['Very weak', 'Weak', 'Fair', 'Strong', 'Very strong'];
 	const colors = [
