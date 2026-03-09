@@ -24,7 +24,10 @@
 		Minus,
 		ChevronDown,
 		Ellipsis,
-		Table2
+		Table2,
+		BetweenHorizontalEnd,
+		BetweenVerticalEnd,
+		RemoveFormatting
 	} from 'lucide-svelte';
 
 	interface Props {
@@ -282,6 +285,75 @@
 		{/if}
 	</div>
 
+	<!-- Table dropdown -->
+	<div class="relative" data-dropdown="table">
+		<button
+			onclick={() => toggleDropdown('table')}
+			class={dropdownBtnClass(editor?.isActive('table') ?? false)}
+			title="Table"
+			data-testid="format-table"
+		>
+			<Table2 size={iconSize} />
+			<ChevronDown size={chevronSize} />
+		</button>
+		{#if openDropdown === 'table'}
+			<div class="absolute left-0 bottom-full z-50 mb-1 min-w-[190px] rounded-sm border border-[var(--border)] bg-[var(--bg-surface)] py-1">
+				<button
+					onclick={() => { editor?.chain().focus().insertTable({ rows: 3, cols: 3 }).run(); closeDropdowns(); }}
+					class={dropdownItemClass()}
+					data-testid="format-table-insert"
+				>
+					<Table2 size={iconSize} />
+					<span>Insert table</span>
+				</button>
+				{#if editor?.isActive('table')}
+					<div class="my-1 h-px bg-[var(--border-subtle)]"></div>
+					<button
+						onclick={() => { editor?.chain().focus().addRowAfter().run(); closeDropdowns(); }}
+						class={dropdownItemClass()}
+						data-testid="format-table-add-row"
+					>
+						<BetweenHorizontalEnd size={iconSize} />
+						<span>Add row</span>
+					</button>
+					<button
+						onclick={() => { editor?.chain().focus().addColumnAfter().run(); closeDropdowns(); }}
+						class={dropdownItemClass()}
+						data-testid="format-table-add-col"
+					>
+						<BetweenVerticalEnd size={iconSize} />
+						<span>Add column</span>
+					</button>
+					<div class="my-1 h-px bg-[var(--border-subtle)]"></div>
+					<button
+						onclick={() => { editor?.chain().focus().deleteRow().run(); closeDropdowns(); }}
+						class={dropdownItemClass()}
+						data-testid="format-table-delete-row"
+					>
+						<Minus size={iconSize} />
+						<span>Delete row</span>
+					</button>
+					<button
+						onclick={() => { editor?.chain().focus().deleteColumn().run(); closeDropdowns(); }}
+						class={dropdownItemClass()}
+						data-testid="format-table-delete-col"
+					>
+						<Minus size={iconSize} />
+						<span>Delete column</span>
+					</button>
+					<button
+						onclick={() => { editor?.chain().focus().deleteTable().run(); closeDropdowns(); }}
+						class={`${dropdownItemClass()} text-[var(--destructive)]`}
+						data-testid="format-table-delete"
+					>
+						<RemoveFormatting size={iconSize} />
+						<span>Delete table</span>
+					</button>
+				{/if}
+			</div>
+		{/if}
+	</div>
+
 	<div class="mx-1 h-4 w-px shrink-0 bg-[var(--border-subtle)]"></div>
 
 	<!-- More dropdown -->
@@ -338,14 +410,6 @@
 				>
 					<CodeXml size={iconSize} />
 					<span>Code block</span>
-				</button>
-				<button
-					onclick={() => { editor?.chain().focus().insertTable({ rows: 3, cols: 3 }).run(); closeDropdowns(); }}
-					class={dropdownItemClass()}
-					data-testid="format-table"
-				>
-					<Table2 size={iconSize} />
-					<span>Table</span>
 				</button>
 				<button
 					onclick={() => { editor?.chain().focus().setHorizontalRule().run(); closeDropdowns(); }}
