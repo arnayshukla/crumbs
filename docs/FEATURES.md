@@ -25,7 +25,6 @@
 - Ordered lists (`1. item`)
 - Code blocks (triple backtick)
 - Inline code (single backtick)
-- Tables
 - Links — insert, edit, and remove with URL input
 - Dividers (horizontal rules)
 - Text alignment (left, center, right, justify)
