@@ -214,6 +214,13 @@
 			bind:value={title}
 			class="w-full bg-transparent px-4 pt-4 text-lg font-semibold text-[var(--text)] outline-none placeholder:text-[var(--text-muted)]"
 			data-testid="note-title-input"
+			onkeydown={(e) => {
+				if (e.key === 'Enter') {
+					e.preventDefault();
+					if (textareaEl) textareaEl.focus();
+					else if (tiptapEditor) tiptapEditor.commands.focus('start');
+				}
+			}}
 		/>
 
 		<!-- Content -->
