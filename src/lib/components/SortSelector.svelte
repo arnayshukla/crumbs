@@ -11,7 +11,7 @@
 	];
 </script>
 
-<div class="inline-flex rounded-sm border border-[var(--border-subtle)]" data-testid="sort-selector">
+<div class="inline-flex self-end rounded-sm border border-[var(--border-subtle)]" data-testid="sort-selector">
 	{#each modes as mode}
 		<button
 			onclick={() => sortMode.set(mode.value)}
