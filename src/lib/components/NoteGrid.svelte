@@ -48,7 +48,7 @@
 			onfinalize={handleFinalize}
 		>
 			{#each localItems as note (note.id)}
-				<div class="h-full" animate:flip={{ duration: flipDurationMs }}>
+				<div class="h-full outline-none" animate:flip={{ duration: flipDurationMs }}>
 					<NoteCard {note} {onEdit} fullHeight />
 				</div>
 			{/each}
