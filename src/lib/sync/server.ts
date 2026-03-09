@@ -81,7 +81,7 @@ export async function processSyncPush(changes: SyncQueueItem[], userId: number):
 		const note = db.select().from(notes).where(and(eq(notes.id, noteId), eq(notes.userId, userId))).get();
 		if (note) {
 			const content = `${note.title} ${note.content}`;
-			syncNoteTags(noteId, extractTags(content));
+			syncNoteTags(noteId, extractTags(content), userId);
 		}
 	}
 }

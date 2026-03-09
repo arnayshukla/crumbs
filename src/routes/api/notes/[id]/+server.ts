@@ -68,7 +68,7 @@ export const PATCH: RequestHandler = async ({ params, request, ...event }) => {
 	if (body.title !== undefined || body.content !== undefined) {
 		const content = `${updated!.title} ${updated!.content}`;
 		const extractedTags = extractTags(content);
-		syncNoteTags(params.id, extractedTags);
+		syncNoteTags(params.id, extractedTags, userId);
 	}
 
 	const tagMap = fetchTagsForNotes([params.id]);

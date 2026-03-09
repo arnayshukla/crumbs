@@ -29,8 +29,7 @@ export const notes = sqliteTable(
 		id: text('id').primaryKey(),
 		userId: integer('user_id')
 			.references(() => users.id)
-			.notNull()
-			.default(0),
+			.notNull(),
 		title: text('title').default('').notNull(),
 		content: text('content').default('').notNull(),
 		color: text('color').default('default').notNull(),
@@ -57,8 +56,7 @@ export const tags = sqliteTable(
 		id: integer('id').primaryKey({ autoIncrement: true }),
 		userId: integer('user_id')
 			.references(() => users.id)
-			.notNull()
-			.default(0),
+			.notNull(),
 		name: text('name').notNull()
 	},
 	(table) => [uniqueIndex('tags_name_user_unique').on(table.name, table.userId)]
@@ -84,8 +82,7 @@ export const attachments = sqliteTable('attachments', {
 	id: text('id').primaryKey(),
 	userId: integer('user_id')
 		.references(() => users.id)
-		.notNull()
-		.default(0),
+		.notNull(),
 	noteId: text('note_id')
 		.references(() => notes.id, { onDelete: 'cascade' })
 		.notNull(),
@@ -104,8 +101,7 @@ export const syncLog = sqliteTable(
 		id: integer('id').primaryKey({ autoIncrement: true }),
 		userId: integer('user_id')
 			.references(() => users.id)
-			.notNull()
-			.default(0),
+			.notNull(),
 		noteId: text('note_id')
 			.references(() => notes.id)
 			.notNull(),

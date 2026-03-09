@@ -25,7 +25,7 @@ export const GET: RequestHandler = async ({ params, url, ...event }) => {
 	const attachmentId = url.searchParams.get('attachmentId');
 
 	if (attachmentId) {
-		const attachment = await getAttachment(attachmentId);
+		const attachment = await getAttachment(attachmentId, params.id);
 		if (!attachment) throw error(404, 'Attachment not found');
 
 		const wantThumb = url.searchParams.get('thumb') === '1';
@@ -81,7 +81,7 @@ export const PATCH: RequestHandler = async ({ params, url, request, ...event }) 
 	const body = await request.json();
 	if (typeof body.featured !== 'boolean') throw error(400, 'featured (boolean) required');
 
-	const updated = await updateAttachment(attachmentId, { featured: body.featured });
+	const updated = await updateAttachment(attachmentId, params.id, { featured: body.featured });
 	if (!updated) throw error(404, 'Attachment not found');
 
 	return json(updated);
@@ -94,6 +94,6 @@ export const DELETE: RequestHandler = async ({ params, url, ...event }) => {
 	const attachmentId = url.searchParams.get('attachmentId');
 	if (!attachmentId) throw error(400, 'attachmentId required');
 
-	await deleteAttachment(attachmentId);
+	await deleteAttachment(attachmentId, params.id);
 	return json({ success: true });
 };

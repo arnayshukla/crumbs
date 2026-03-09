@@ -4,7 +4,7 @@ import { join } from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import { db } from './db/index.js';
 import { attachments } from './db/schema.js';
-import { eq, inArray } from 'drizzle-orm';
+import { eq, and, inArray } from 'drizzle-orm';
 import type { Attachment } from '$lib/types/index.js';
 
 const DATA_DIR = process.env.DATA_DIR || './data';
@@ -80,25 +80,29 @@ export function fetchAttachmentsForNotes(noteIds: string[]): Map<string, Attachm
 	return map;
 }
 
-export async function getAttachment(id: string) {
-	return db.select().from(attachments).where(eq(attachments.id, id)).get();
+export async function getAttachment(id: string, noteId: string) {
+	return db
+		.select()
+		.from(attachments)
+		.where(and(eq(attachments.id, id), eq(attachments.noteId, noteId)))
+		.get();
 }
 
 export async function getAttachmentsByNote(noteId: string) {
 	return db.select().from(attachments).where(eq(attachments.noteId, noteId));
 }
 
-export async function updateAttachment(id: string, data: { featured: boolean }) {
+export async function updateAttachment(id: string, noteId: string, data: { featured: boolean }) {
 	const [updated] = await db
 		.update(attachments)
 		.set({ featured: data.featured })
-		.where(eq(attachments.id, id))
+		.where(and(eq(attachments.id, id), eq(attachments.noteId, noteId)))
 		.returning();
 	return updated ?? null;
 }
 
-export async function deleteAttachment(id: string) {
-	const attachment = await getAttachment(id);
+export async function deleteAttachment(id: string, noteId: string) {
+	const attachment = await getAttachment(id, noteId);
 	if (attachment) {
 		try {
 			await unlink(attachment.path);
@@ -112,6 +116,6 @@ export async function deleteAttachment(id: string) {
 				// Thumbnail may already be deleted
 			}
 		}
-		await db.delete(attachments).where(eq(attachments.id, id));
+		await db.delete(attachments).where(and(eq(attachments.id, id), eq(attachments.noteId, noteId)));
 	}
 }

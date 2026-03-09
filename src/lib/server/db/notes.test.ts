@@ -9,7 +9,7 @@ import type * as schema from './schema.js';
 let db: BetterSQLite3Database<typeof schema>;
 
 beforeEach(() => {
-	const testDb = createTestDb();
+	const testDb = createTestDb({ seedUser: true });
 	db = testDb.db;
 });
 
@@ -20,6 +20,7 @@ describe('Notes CRUD', () => {
 
 		await db.insert(notes).values({
 			id,
+			userId: 1,
 			title: 'Test Note',
 			content: 'Hello world',
 			createdAt: now,
@@ -45,6 +46,7 @@ describe('Notes CRUD', () => {
 
 		await db.insert(notes).values({
 			id,
+			userId: 1,
 			title: 'Colored Note',
 			content: '',
 			color: 'coral',
@@ -62,16 +64,17 @@ describe('Notes CRUD', () => {
 	it('should read all active notes (not archived, not trashed)', async () => {
 		const now = new Date();
 		await db.insert(notes).values([
-			{ id: 'n1', title: 'Active', content: '', createdAt: now, updatedAt: now },
+			{ id: 'n1', userId: 1, title: 'Active', content: '', createdAt: now, updatedAt: now },
 			{
 				id: 'n2',
+				userId: 1,
 				title: 'Archived',
 				content: '',
 				archived: true,
 				createdAt: now,
 				updatedAt: now
 			},
-			{ id: 'n3', title: 'Trashed', content: '', trashed: true, createdAt: now, updatedAt: now }
+			{ id: 'n3', userId: 1, title: 'Trashed', content: '', trashed: true, createdAt: now, updatedAt: now }
 		]);
 
 		const active = await db
@@ -89,6 +92,7 @@ describe('Notes CRUD', () => {
 
 		await db.insert(notes).values({
 			id,
+			userId: 1,
 			title: 'Original',
 			content: '',
 			createdAt: now,
@@ -113,6 +117,7 @@ describe('Notes CRUD', () => {
 
 		await db.insert(notes).values({
 			id,
+			userId: 1,
 			title: 'To Trash',
 			content: '',
 			createdAt: now,
@@ -132,6 +137,7 @@ describe('Notes CRUD', () => {
 
 		await db.insert(notes).values({
 			id,
+			userId: 1,
 			title: 'To Delete',
 			content: '',
 			createdAt: now,
@@ -149,6 +155,7 @@ describe('Notes CRUD', () => {
 
 		await db.insert(notes).values({
 			id,
+			userId: 1,
 			title: 'To Archive',
 			content: '',
 			createdAt: now,
@@ -170,6 +177,7 @@ describe('Notes CRUD', () => {
 
 		await db.insert(notes).values({
 			id,
+			userId: 1,
 			title: 'Pin Me',
 			content: '',
 			createdAt: now,
@@ -193,6 +201,7 @@ describe('Notes with Tags', () => {
 
 		await db.insert(notes).values({
 			id: noteId,
+			userId: 1,
 			title: 'Tagged Note',
 			content: '',
 			createdAt: now,
@@ -200,8 +209,8 @@ describe('Notes with Tags', () => {
 		});
 
 		// Create tags
-		const [tag1] = await db.insert(tags).values({ name: 'work' }).returning();
-		const [tag2] = await db.insert(tags).values({ name: 'important' }).returning();
+		const [tag1] = await db.insert(tags).values({ userId: 1, name: 'work' }).returning();
+		const [tag2] = await db.insert(tags).values({ userId: 1, name: 'important' }).returning();
 
 		// Associate
 		await db.insert(noteTags).values([
@@ -226,13 +235,14 @@ describe('Notes with Tags', () => {
 
 		await db.insert(notes).values({
 			id: noteId,
+			userId: 1,
 			title: '',
 			content: '',
 			createdAt: now,
 			updatedAt: now
 		});
 
-		const [tag] = await db.insert(tags).values({ name: 'temp' }).returning();
+		const [tag] = await db.insert(tags).values({ userId: 1, name: 'temp' }).returning();
 		await db.insert(noteTags).values({ noteId, tagId: tag.id });
 
 		// Delete note_tags first (FK cascade is disabled in test DB), then note
@@ -258,6 +268,7 @@ describe('Note ordering', () => {
 		await db.insert(notes).values([
 			{
 				id: 'unpinned',
+				userId: 1,
 				title: 'Unpinned',
 				content: '',
 				pinned: false,
@@ -266,6 +277,7 @@ describe('Note ordering', () => {
 			},
 			{
 				id: 'pinned',
+				userId: 1,
 				title: 'Pinned',
 				content: '',
 				pinned: true,

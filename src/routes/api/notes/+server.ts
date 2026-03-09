@@ -73,7 +73,7 @@ export const POST: RequestHandler = async ({ request, ...event }) => {
 	db.transaction((tx) => {
 		tx.insert(notes).values(newNote).run();
 	});
-	syncNoteTags(id, extractedTags);
+	syncNoteTags(id, extractedTags, userId);
 
 	return json({ ...newNote, tags: extractedTags }, { status: 201 });
 };

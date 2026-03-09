@@ -8,18 +8,18 @@ import type * as schema from './schema.js';
 let db: BetterSQLite3Database<typeof schema>;
 
 beforeEach(async () => {
-	const testDb = createTestDb();
+	const testDb = createTestDb({ seedUser: true });
 	db = testDb.db;
 
 	const now = new Date();
 	await db.insert(notes).values([
-		{ id: 'n1', title: 'Shopping List', content: 'Buy milk and eggs', createdAt: now, updatedAt: now },
-		{ id: 'n2', title: 'Work Notes', content: 'Meeting at 3pm #work', createdAt: now, updatedAt: now },
-		{ id: 'n3', title: 'Recipe', content: 'Pasta with tomato sauce', createdAt: now, updatedAt: now },
-		{ id: 'n4', title: 'Trashed', content: 'Should not appear', trashed: true, createdAt: now, updatedAt: now }
+		{ id: 'n1', userId: 1, title: 'Shopping List', content: 'Buy milk and eggs', createdAt: now, updatedAt: now },
+		{ id: 'n2', userId: 1, title: 'Work Notes', content: 'Meeting at 3pm #work', createdAt: now, updatedAt: now },
+		{ id: 'n3', userId: 1, title: 'Recipe', content: 'Pasta with tomato sauce', createdAt: now, updatedAt: now },
+		{ id: 'n4', userId: 1, title: 'Trashed', content: 'Should not appear', trashed: true, createdAt: now, updatedAt: now }
 	]);
 
-	const [workTag] = await db.insert(tags).values({ name: 'work' }).returning();
+	const [workTag] = await db.insert(tags).values({ userId: 1, name: 'work' }).returning();
 	await db.insert(noteTags).values({ noteId: 'n2', tagId: workTag.id });
 });
 
