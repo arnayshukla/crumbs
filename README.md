@@ -21,7 +21,7 @@ docker compose up -d
 
 Open http://localhost:3000 and create your admin account on first visit.
 
-#### With OAuth (optional)
+#### With SSO (optional)
 
 ```yaml
 # docker-compose.yml
@@ -34,13 +34,17 @@ services:
       - crumbs-data:/data
     environment:
       - ORIGIN=https://notes.example.com
-      - AUTH_GOOGLE_ID=your-google-client-id
-      - AUTH_GOOGLE_SECRET=your-google-client-secret
+      - AUTH_OIDC_ISSUER=https://authentik.example.com/application/o/crumbs/
+      - AUTH_OIDC_CLIENT_ID=your-client-id
+      - AUTH_OIDC_CLIENT_SECRET=your-client-secret
+      - AUTH_OIDC_DISPLAY_NAME=Authentik
     restart: unless-stopped
 
 volumes:
   crumbs-data:
 ```
+
+Google and GitHub OAuth are also supported. See [docs/AUTH.md](docs/AUTH.md) for all providers and setup guides.
 
 ### Manual (Node.js)
 
@@ -99,6 +103,7 @@ See [docs/FEATURES.md](docs/FEATURES.md) for detailed feature documentation.
 |----------|-------------|
 | [Features](docs/FEATURES.md) | Detailed feature list and behavior |
 | [Architecture](docs/ARCHITECTURE.md) | Local-first sync design, tech rationale, DB schema |
+| [Auth](docs/AUTH.md) | Password auth, OAuth/SSO setup (Authentik, Keycloak, etc.) |
 | [Deployment](docs/DEPLOYMENT.md) | Docker, Node.js, reverse proxy, backups, env vars |
 | [API](docs/API.md) | REST API reference (auto-generated) |
 | [Contributing](CONTRIBUTING.md) | How to contribute |
