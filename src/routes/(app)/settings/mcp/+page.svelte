@@ -126,7 +126,7 @@ ${mcpJsonConfig}`);
 	</p>
 
 	<!-- Create Key Form -->
-	<form onsubmit={createKey} class="mb-6 flex gap-2">
+	<form onsubmit={createKey} class="mb-6 flex flex-col gap-2 sm:flex-row">
 		<input
 			type="text"
 			bind:value={newKeyName}
@@ -182,7 +182,7 @@ ${mcpJsonConfig}`);
 	{:else}
 		<div class="space-y-2" data-testid="api-keys-list">
 			{#each keys as key (key.id)}
-				<div class="flex items-center justify-between rounded-sm border border-[var(--border-subtle)] bg-[var(--bg-base)] px-4 py-3" data-testid="api-key-item">
+				<div class="flex flex-col gap-2 rounded-sm border border-[var(--border-subtle)] bg-[var(--bg-base)] px-4 py-3 sm:flex-row sm:items-center sm:justify-between" data-testid="api-key-item">
 					<div class="min-w-0 flex-1">
 						<div class="flex items-center gap-2">
 							<span class="text-sm font-medium text-[var(--text)]" data-testid="api-key-name">{key.name}</span>
@@ -195,7 +195,7 @@ ${mcpJsonConfig}`);
 							{/if}
 						</div>
 					</div>
-					<div class="ml-4">
+					<div class="sm:ml-4">
 						{#if deleteConfirmId === key.id}
 							<div class="flex items-center gap-1">
 								<button

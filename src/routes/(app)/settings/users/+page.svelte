@@ -167,17 +167,17 @@
 
 		<div class="space-y-3">
 			{#each users as user (user.id)}
-				<div class="flex items-center justify-between rounded-sm border border-[var(--border-subtle)] p-4">
-					<div>
-						<p class="font-medium text-[var(--text)]">
+				<div class="flex flex-col gap-2 rounded-sm border border-[var(--border-subtle)] p-4 sm:flex-row sm:items-center sm:justify-between">
+					<div class="min-w-0">
+						<p class="truncate font-medium text-[var(--text)]">
 							{user.displayName || user.email}
 							{#if user.role === 'admin'}
 								<span class="ml-2 rounded-sm bg-[var(--primary)]/15 px-2 py-0.5 text-xs text-[var(--primary)]">admin</span>
 							{/if}
 						</p>
-						<p class="text-sm text-[var(--text-muted)]">{user.email}</p>
+						<p class="truncate text-sm text-[var(--text-muted)]">{user.email}</p>
 					</div>
-					<div class="flex items-center gap-2">
+					<div class="flex flex-wrap items-center gap-2">
 						<button
 							onclick={() => toggleRole(user)}
 							class="rounded-sm px-3 py-1 text-xs text-[var(--text-muted)] hover:bg-[var(--border-subtle)]/50"
