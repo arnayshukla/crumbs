@@ -68,6 +68,22 @@
 		}
 	}
 
+	async function revokeSessions(user: User) {
+		try {
+			const res = await fetch(`/api/admin/users/${user.id}`, {
+				method: 'PATCH',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ revokeSessions: true })
+			});
+			if (res.ok) {
+				createMsg = `All sessions revoked for ${user.displayName || user.email}`;
+				createError = false;
+			}
+		} catch {
+			// ignore
+		}
+	}
+
 	async function toggleRole(user: User) {
 		const newRoleValue = user.role === 'admin' ? 'user' : 'admin';
 		try {
@@ -156,6 +172,13 @@
 							{user.role === 'admin' ? 'Make user' : 'Make admin'}
 						</button>
 						{#if user.id !== data.user?.id}
+							<button
+								onclick={() => revokeSessions(user)}
+								class="rounded-sm px-3 py-1 text-xs text-[var(--text-muted)] hover:bg-[var(--border-subtle)]/50"
+								title="Force logout"
+							>
+								Revoke
+							</button>
 							<button
 								onclick={() => deleteUser(user.id)}
 								class="rounded-sm px-3 py-1 text-xs text-[var(--destructive)] hover:bg-[var(--error-bg)]"

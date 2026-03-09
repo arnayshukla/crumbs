@@ -1,7 +1,7 @@
 import { json, error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types.js';
 import { requireAdmin } from '$lib/server/api-utils.js';
-import { getUser, deleteUser, updateUserRole, resetPassword } from '$lib/server/auth.js';
+import { getUser, deleteUser, updateUserRole, resetPassword, revokeAllSessions } from '$lib/server/auth.js';
 
 export const PATCH: RequestHandler = async ({ params, request, ...event }) => {
 	const admin = requireAdmin(event);
@@ -24,6 +24,10 @@ export const PATCH: RequestHandler = async ({ params, request, ...event }) => {
 			throw error(400, 'Password must be at least 8 characters');
 		}
 		await resetPassword(userId, body.newPassword);
+	}
+
+	if (body.revokeSessions) {
+		revokeAllSessions(userId);
 	}
 
 	const updated = getUser(userId);
