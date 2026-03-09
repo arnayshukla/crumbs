@@ -86,20 +86,12 @@
 - Clear search to restore original view
 - Case-insensitive matching
 
-### Authentication
-- Multi-user support with role-based access (admin / user)
-- First-run setup: create admin account (min 8 chars password)
-- Argon2 password hashing (industry standard)
-- Session-based auth with 30-day expiry
-- Active session management (view, revoke individual or all other sessions)
-- All routes protected except /login and /setup
-- Account deletion with password confirmation
-
-### OAuth / SSO
-- Optional social login via Google, GitHub, or generic OIDC
-- OAuth users created automatically on first sign-in
-- Invite-only mode when combined with admin controls
-- Configure via environment variables (`AUTH_GOOGLE_ID`, `AUTH_GITHUB_ID`, `AUTH_OIDC_ISSUER`, etc.)
+### Authentication & OAuth / SSO
+- Multi-user with role-based access (admin / user)
+- Password auth (Argon2) + optional OAuth/SSO (Google, GitHub, any OIDC provider)
+- Session-based auth with active session management
+- Invite-only OAuth model with PKCE-secured flows
+- See [AUTH.md](AUTH.md) for full details and provider setup guides
 
 ### User Management (admin)
 - Admin dashboard to create, list, and delete users

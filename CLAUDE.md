@@ -215,5 +215,6 @@ Keep docs in `docs/` up to date when making changes. If a feature, API endpoint,
 |-----|--------|
 | `docs/FEATURES.md` | User-facing feature list |
 | `docs/ARCHITECTURE.md` | System design, data flow, schema, tech stack |
+| `docs/AUTH.md` | Authentication setup, OAuth/SSO provider guides (Authentik, Keycloak, etc.) |
 | `docs/DEPLOYMENT.md` | Docker, env vars, reverse proxy, backups |
 | `docs/openapi.yaml` | API spec (run `pnpm docs:api` to regenerate `docs/API.md`) |

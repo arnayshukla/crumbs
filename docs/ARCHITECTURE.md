@@ -83,9 +83,8 @@ For a single-user app with multiple devices:
 - New v4 uses Vite plugin (faster builds)
 
 ### Argon2
-- Current best practice for password hashing
-- Memory-hard (resists GPU attacks)
-- Winner of the Password Hashing Competition
+- Memory-hard password hashing (resists GPU attacks)
+- See [AUTH.md](AUTH.md) for authentication details
 
 ## Database Schema
 
