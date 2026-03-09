@@ -1,5 +1,6 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
+import type { NoteFilter } from '$lib/types/index.js';
 import {
 	listNotes,
 	getNote,
@@ -43,8 +44,8 @@ export function createMcpServer(userId: number): McpServer {
 				.describe('Filter notes by status'),
 			tag: z.string().optional().describe('Filter by tag name')
 		},
-		async ({ filter = 'all', tag }) => {
-			let result = listNotes(userId, filter);
+		async ({ filter = 'all', tag }: { filter?: string; tag?: string }) => {
+			let result = listNotes(userId, filter as NoteFilter);
 
 			if (tag) {
 				result = result.filter((n) =>
@@ -62,7 +63,7 @@ export function createMcpServer(userId: number): McpServer {
 		'get_note',
 		'Get a single note by ID with its tags and attachments',
 		{ id: z.string().describe('Note ID') },
-		async ({ id }) => {
+		async ({ id }: { id: string }) => {
 			const note = getNote(userId, id);
 			if (!note) {
 				return {
@@ -86,7 +87,7 @@ export function createMcpServer(userId: number): McpServer {
 			color: z.enum(NOTE_COLORS).optional().describe('Note color'),
 			checklistMode: z.boolean().optional().describe('Enable checklist mode')
 		},
-		async ({ title, content, color, checklistMode }) => {
+		async ({ title, content, color, checklistMode }: { title?: string; content?: string; color?: string; checklistMode?: boolean }) => {
 			const note = createNote(userId, { title, content, color, checklistMode });
 			return {
 				content: [{ type: 'text' as const, text: JSON.stringify(note, null, 2) }]
@@ -105,7 +106,7 @@ export function createMcpServer(userId: number): McpServer {
 			pinned: z.boolean().optional().describe('Pin/unpin'),
 			checklistMode: z.boolean().optional().describe('Enable/disable checklist mode')
 		},
-		async ({ id, ...updates }) => {
+		async ({ id, ...updates }: { id: string; title?: string; content?: string; color?: string; pinned?: boolean; checklistMode?: boolean }) => {
 			const result = updateNote(userId, id, updates);
 			if (!result) {
 				return {
@@ -124,7 +125,7 @@ export function createMcpServer(userId: number): McpServer {
 		'trash_note',
 		'Move a note to trash',
 		{ id: z.string().describe('Note ID') },
-		async ({ id }) => {
+		async ({ id }: { id: string }) => {
 			const result = updateNote(userId, id, { trashed: true });
 			if (!result) {
 				return {
@@ -142,7 +143,7 @@ export function createMcpServer(userId: number): McpServer {
 		'restore_note',
 		'Restore a note from trash',
 		{ id: z.string().describe('Note ID') },
-		async ({ id }) => {
+		async ({ id }: { id: string }) => {
 			const result = updateNote(userId, id, { trashed: false });
 			if (!result) {
 				return {
@@ -160,7 +161,7 @@ export function createMcpServer(userId: number): McpServer {
 		'archive_note',
 		'Archive a note',
 		{ id: z.string().describe('Note ID') },
-		async ({ id }) => {
+		async ({ id }: { id: string }) => {
 			const result = updateNote(userId, id, { archived: true });
 			if (!result) {
 				return {
@@ -178,7 +179,7 @@ export function createMcpServer(userId: number): McpServer {
 		'unarchive_note',
 		'Unarchive a note',
 		{ id: z.string().describe('Note ID') },
-		async ({ id }) => {
+		async ({ id }: { id: string }) => {
 			const result = updateNote(userId, id, { archived: false });
 			if (!result) {
 				return {
@@ -196,7 +197,7 @@ export function createMcpServer(userId: number): McpServer {
 		'delete_note',
 		'Permanently delete a note',
 		{ id: z.string().describe('Note ID') },
-		async ({ id }) => {
+		async ({ id }: { id: string }) => {
 			const existing = getNote(userId, id);
 			if (!existing) {
 				return {
@@ -221,7 +222,7 @@ export function createMcpServer(userId: number): McpServer {
 		'search_notes',
 		'Search notes by title, content, or tag name',
 		{ query: z.string().describe('Search query') },
-		async ({ query }) => {
+		async ({ query }: { query: string }) => {
 			const results = searchNotes(userId, query);
 			return {
 				content: [{ type: 'text' as const, text: JSON.stringify(results, null, 2) }]
@@ -243,7 +244,7 @@ export function createMcpServer(userId: number): McpServer {
 			id: z.string().describe('Note ID'),
 			pinned: z.boolean().describe('Whether to pin (true) or unpin (false)')
 		},
-		async ({ id, pinned }) => {
+		async ({ id, pinned }: { id: string; pinned: boolean }) => {
 			const result = updateNote(userId, id, { pinned });
 			if (!result) {
 				return {
@@ -275,7 +276,7 @@ export function createMcpServer(userId: number): McpServer {
 				)
 				.describe('Array of note IDs with their new sort orders')
 		},
-		async ({ orders }) => {
+		async ({ orders }: { orders: { id: string; sortOrder: number }[] }) => {
 			reorderNotes(userId, orders);
 			return {
 				content: [{ type: 'text' as const, text: `Reordered ${orders.length} notes` }]
@@ -290,7 +291,7 @@ export function createMcpServer(userId: number): McpServer {
 			noteId: z.string().describe('Note ID to attach the image to'),
 			imageUrl: z.string().url().describe('URL of the image to fetch')
 		},
-		async ({ noteId, imageUrl }) => {
+		async ({ noteId, imageUrl }: { noteId: string; imageUrl: string }) => {
 			const existing = getNote(userId, noteId);
 			if (!existing) {
 				return {

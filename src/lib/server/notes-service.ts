@@ -93,7 +93,7 @@ export function createNote(userId: number, input: CreateNoteInput) {
 	db.transaction((tx) => {
 		tx.insert(notes).values(newNote).run();
 	});
-	syncNoteTags(id, extractedTags);
+	syncNoteTags(id, extractedTags, userId);
 
 	return { ...newNote, tags: extractedTags };
 }
@@ -149,7 +149,7 @@ export function updateNote(userId: number, id: string, input: UpdateNoteInput) {
 	if (input.title !== undefined || input.content !== undefined) {
 		const content = `${updated!.title} ${updated!.content}`;
 		const extractedTags = extractTags(content);
-		syncNoteTags(id, extractedTags);
+		syncNoteTags(id, extractedTags, userId);
 	}
 
 	const tagMap = fetchTagsForNotes([id]);

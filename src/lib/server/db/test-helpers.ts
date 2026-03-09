@@ -6,7 +6,7 @@ import * as schema from './schema.js';
  * Create an in-memory SQLite database for testing.
  * Each test gets a fresh database.
  */
-export function createTestDb() {
+export function createTestDb(options?: { seedUser?: boolean }) {
 	const sqlite = new Database(':memory:');
 	sqlite.pragma('journal_mode = WAL');
 	sqlite.pragma('foreign_keys = OFF');
@@ -110,5 +110,16 @@ export function createTestDb() {
 	`);
 
 	const db = drizzle(sqlite, { schema });
+
+	if (options?.seedUser) {
+		db.insert(schema.users).values({
+			email: 'test@test.com',
+			displayName: 'Test User',
+			role: 'admin',
+			authProvider: 'password',
+			createdAt: new Date()
+		}).run();
+	}
+
 	return { db, sqlite };
 }

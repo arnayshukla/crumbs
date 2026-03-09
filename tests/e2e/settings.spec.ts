@@ -62,7 +62,7 @@ test.describe('Settings — API Key Management', () => {
 
 		// Then the MCP settings page is shown
 		await expect(page).toHaveURL('/settings/mcp');
-		await expect(page.getByText('API Keys')).toBeVisible();
+		await expect(page.getByRole('heading', { name: 'API Keys' })).toBeVisible();
 
 		// When the user clicks back to Profile
 		await page.getByRole('link', { name: 'Profile' }).click();
