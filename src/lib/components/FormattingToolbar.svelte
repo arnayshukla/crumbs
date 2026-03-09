@@ -354,7 +354,86 @@
 		{/if}
 	</div>
 
+	<!-- Alignment dropdown -->
+	<div class="relative" data-dropdown="align">
+		<button
+			onclick={() => toggleDropdown('align')}
+			class={dropdownBtnClass(editor?.isActive({ textAlign: 'center' }) || editor?.isActive({ textAlign: 'right' }) || editor?.isActive({ textAlign: 'justify' }) ? true : false)}
+			title="Text alignment"
+			data-testid="format-align"
+		>
+			{#if editor?.isActive({ textAlign: 'center' })}
+				<AlignCenter size={iconSize} />
+			{:else if editor?.isActive({ textAlign: 'right' })}
+				<AlignRight size={iconSize} />
+			{:else if editor?.isActive({ textAlign: 'justify' })}
+				<AlignJustify size={iconSize} />
+			{:else}
+				<AlignLeft size={iconSize} />
+			{/if}
+			<ChevronDown size={chevronSize} />
+		</button>
+		{#if openDropdown === 'align'}
+			<div class="absolute right-0 bottom-full z-50 mb-1 min-w-[160px] rounded-sm border border-[var(--border)] bg-[var(--bg-surface)] py-1">
+				<button
+					onclick={() => { editor?.chain().focus().setTextAlign('left').run(); closeDropdowns(); }}
+					class={dropdownItemClass(editor?.isActive({ textAlign: 'left' }) ?? false)}
+					data-testid="format-align-left"
+				>
+					<AlignLeft size={iconSize} />
+					<span>Left</span>
+				</button>
+				<button
+					onclick={() => { editor?.chain().focus().setTextAlign('center').run(); closeDropdowns(); }}
+					class={dropdownItemClass(editor?.isActive({ textAlign: 'center' }) ?? false)}
+					data-testid="format-align-center"
+				>
+					<AlignCenter size={iconSize} />
+					<span>Center</span>
+				</button>
+				<button
+					onclick={() => { editor?.chain().focus().setTextAlign('right').run(); closeDropdowns(); }}
+					class={dropdownItemClass(editor?.isActive({ textAlign: 'right' }) ?? false)}
+					data-testid="format-align-right"
+				>
+					<AlignRight size={iconSize} />
+					<span>Right</span>
+				</button>
+				<button
+					onclick={() => { editor?.chain().focus().setTextAlign('justify').run(); closeDropdowns(); }}
+					class={dropdownItemClass(editor?.isActive({ textAlign: 'justify' }) ?? false)}
+					data-testid="format-align-justify"
+				>
+					<AlignJustify size={iconSize} />
+					<span>Justify</span>
+				</button>
+			</div>
+		{/if}
+	</div>
+
 	<div class="mx-1 h-4 w-px shrink-0 bg-[var(--border-subtle)]"></div>
+
+	<!-- Undo/Redo — desktop only (still in More on mobile) -->
+	<button
+		onclick={() => editor?.chain().focus().undo().run()}
+		disabled={!canUndo()}
+		class="{btnClass(false, !canUndo())} hidden md:block"
+		title="Undo"
+		data-testid="format-undo"
+	>
+		<Undo2 size={iconSize} />
+	</button>
+	<button
+		onclick={() => editor?.chain().focus().redo().run()}
+		disabled={!canRedo()}
+		class="{btnClass(false, !canRedo())} hidden md:block"
+		title="Redo"
+		data-testid="format-redo"
+	>
+		<Redo2 size={iconSize} />
+	</button>
+
+	<div class="mx-1 hidden h-4 w-px shrink-0 bg-[var(--border-subtle)] md:block"></div>
 
 	<!-- More dropdown -->
 	<div class="relative" data-dropdown="more">
@@ -368,11 +447,12 @@
 		</button>
 		{#if openDropdown === 'more'}
 			<div class="absolute right-0 bottom-full z-50 mb-1 min-w-[170px] rounded-sm border border-[var(--border)] bg-[var(--bg-surface)] py-1">
+				<!-- Undo/Redo — mobile only (top-level on desktop) -->
 				<button
 					onclick={() => { editor?.chain().focus().undo().run(); closeDropdowns(); }}
 					disabled={!canUndo()}
-					class={dropdownItemClass()}
-					data-testid="format-undo"
+					class="{dropdownItemClass()} md:hidden"
+					data-testid="format-undo-mobile"
 				>
 					<Undo2 size={iconSize} />
 					<span>Undo</span>
@@ -380,13 +460,13 @@
 				<button
 					onclick={() => { editor?.chain().focus().redo().run(); closeDropdowns(); }}
 					disabled={!canRedo()}
-					class={dropdownItemClass()}
-					data-testid="format-redo"
+					class="{dropdownItemClass()} md:hidden"
+					data-testid="format-redo-mobile"
 				>
 					<Redo2 size={iconSize} />
 					<span>Redo</span>
 				</button>
-				<div class="my-1 h-px bg-[var(--border-subtle)]"></div>
+				<div class="my-1 h-px bg-[var(--border-subtle)] md:hidden"></div>
 				<button
 					onclick={() => { editor?.chain().focus().toggleCode().run(); closeDropdowns(); }}
 					class={dropdownItemClass(editor?.isActive('code') ?? false)}
@@ -418,39 +498,6 @@
 				>
 					<Minus size={iconSize} />
 					<span>Divider</span>
-				</button>
-				<div class="my-1 h-px bg-[var(--border-subtle)]"></div>
-				<button
-					onclick={() => { editor?.chain().focus().setTextAlign('left').run(); closeDropdowns(); }}
-					class={dropdownItemClass(editor?.isActive({ textAlign: 'left' }) ?? false)}
-					data-testid="format-align-left"
-				>
-					<AlignLeft size={iconSize} />
-					<span>Align left</span>
-				</button>
-				<button
-					onclick={() => { editor?.chain().focus().setTextAlign('center').run(); closeDropdowns(); }}
-					class={dropdownItemClass(editor?.isActive({ textAlign: 'center' }) ?? false)}
-					data-testid="format-align-center"
-				>
-					<AlignCenter size={iconSize} />
-					<span>Align center</span>
-				</button>
-				<button
-					onclick={() => { editor?.chain().focus().setTextAlign('right').run(); closeDropdowns(); }}
-					class={dropdownItemClass(editor?.isActive({ textAlign: 'right' }) ?? false)}
-					data-testid="format-align-right"
-				>
-					<AlignRight size={iconSize} />
-					<span>Align right</span>
-				</button>
-				<button
-					onclick={() => { editor?.chain().focus().setTextAlign('justify').run(); closeDropdowns(); }}
-					class={dropdownItemClass(editor?.isActive({ textAlign: 'justify' }) ?? false)}
-					data-testid="format-align-justify"
-				>
-					<AlignJustify size={iconSize} />
-					<span>Justify</span>
 				</button>
 			</div>
 		{/if}

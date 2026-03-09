@@ -201,7 +201,7 @@
 >
 	<!-- svelte-ignore a11y_no_static_element_interactions -->
 	<div
-		class="mx-4 flex w-full max-w-xl flex-col rounded-sm border border-[var(--border)] shadow-[var(--card-shadow)] animate-[pop-in_150ms_ease-out]"
+		class="mx-4 flex w-full max-w-xl md:max-w-2xl flex-col rounded-sm border border-[var(--border)] shadow-[var(--card-shadow)] animate-[pop-in_150ms_ease-out]"
 		style={bgStyle}
 		onclick={(e) => e.stopPropagation()}
 		onkeydown={(e) => { e.stopPropagation(); handleKeydown(e); }}
