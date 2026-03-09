@@ -55,7 +55,7 @@
 </script>
 
 {#if filter === 'all' && !tag}
-	<div class="mx-auto mb-6 max-w-xl">
+	<div class="mx-auto mb-6 hidden max-w-xl md:block">
 		<button
 			onclick={() => (showNewNote = true)}
 			class="flex w-full items-center gap-3 rounded-sm border border-dashed border-[var(--border-subtle)] bg-[var(--bg-surface)] px-4 py-3 text-left text-sm text-[var(--text-muted)] transition-colors hover:border-[var(--primary)] hover:text-[var(--primary)]"
@@ -65,6 +65,14 @@
 			Add a crumb...
 		</button>
 	</div>
+	<button
+		onclick={() => (showNewNote = true)}
+		class="fixed bottom-6 right-6 z-40 flex h-12 w-12 items-center justify-center rounded-sm border border-[var(--border)] bg-[var(--primary)] text-white shadow-[var(--card-shadow)] transition-colors hover:bg-[var(--primary-hover)] md:hidden"
+		aria-label="Add a crumb"
+		data-testid="new-note-fab"
+	>
+		<Plus class="h-5 w-5" />
+	</button>
 {/if}
 
 {#if filter === 'all'}
