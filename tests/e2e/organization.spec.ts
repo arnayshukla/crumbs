@@ -70,7 +70,7 @@ test.describe('Organization Features', () => {
 });
 
 test.describe('Note Sorting', () => {
-	test('Scenario: Notes can be sorted by last updated', async ({ authenticatedPage: page }) => {
+	test('Scenario: Most recently updated note appears first', async ({ authenticatedPage: page }) => {
 		// Given two notes exist with different update times
 		await page.getByTestId('new-note-btn').click();
 		await page.getByTestId('note-title-input').fill('Sort-First');
@@ -82,50 +82,11 @@ test.describe('Note Sorting', () => {
 		await page.getByTestId('close-editor-btn').click();
 		await expect(noteCard(page, 'Sort-Second')).toBeVisible();
 
-		// When the user selects "Updated" sort mode
-		await page.getByTestId('sort-updated').click();
-
 		// Then Sort-Second (most recently updated) appears before Sort-First
 		const sortFirst = noteCard(page, 'Sort-First');
 		const sortSecond = noteCard(page, 'Sort-Second');
 		const firstBox = await sortSecond.boundingBox();
 		const secondBox = await sortFirst.boundingBox();
 		expect(firstBox!.y).toBeLessThanOrEqual(secondBox!.y);
-	});
-
-	test('Scenario: Notes can be sorted by creation date', async ({ authenticatedPage: page }) => {
-		// Given two notes exist
-		await page.getByTestId('new-note-btn').click();
-		await page.getByTestId('note-title-input').fill('Created-Older');
-		await page.getByTestId('close-editor-btn').click();
-		await expect(noteCard(page, 'Created-Older')).toBeVisible();
-
-		await page.getByTestId('new-note-btn').click();
-		await page.getByTestId('note-title-input').fill('Created-Newer');
-		await page.getByTestId('close-editor-btn').click();
-		await expect(noteCard(page, 'Created-Newer')).toBeVisible();
-
-		// When the user selects "Created" sort mode
-		await page.getByTestId('sort-created').click();
-
-		// Then Created-Newer appears before Created-Older
-		const newer = noteCard(page, 'Created-Newer');
-		const older = noteCard(page, 'Created-Older');
-		const newerBox = await newer.boundingBox();
-		const olderBox = await older.boundingBox();
-		expect(newerBox!.y).toBeLessThanOrEqual(olderBox!.y);
-	});
-
-	test('Scenario: Sort preference persists across page reload', async ({ authenticatedPage: page }) => {
-		// Given the user selects "Created" sort mode
-		await page.getByTestId('sort-created').click();
-
-		// When the page is reloaded
-		await page.reload();
-		await page.waitForLoadState('networkidle');
-
-		// Then the "Created" sort mode is still active
-		const createdBtn = page.getByTestId('sort-created');
-		await expect(createdBtn).toHaveClass(/bg-\[var\(--primary\)\]/);
 	});
 });
