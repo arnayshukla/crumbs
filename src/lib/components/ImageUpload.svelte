@@ -15,9 +15,10 @@
 		onUpload: (attachment: Attachment) => void;
 		onRemove: (attachmentId: string) => void;
 		onToggleFeatured?: (attachmentId: string, featured: boolean) => void;
+		showDropZone?: boolean;
 	}
 
-	let { noteId, attachments = [], onUpload, onRemove, onToggleFeatured }: Props = $props();
+	let { noteId, attachments = [], onUpload, onRemove, onToggleFeatured, showDropZone = true }: Props = $props();
 
 	let uploading = $state(false);
 	let optimizing = $state(false);
@@ -133,7 +134,7 @@
 					{:else if onToggleFeatured}
 						<button
 							onclick={() => onToggleFeatured(attachment.id, !attachment.featured)}
-							class="absolute bottom-0.5 right-0.5 rounded-full bg-black/50 p-0.5 {attachment.featured ? 'block' : 'hidden group-hover:block'}"
+							class="absolute bottom-0.5 right-0.5 rounded-full bg-black/50 p-0.5 transition-opacity {attachment.featured ? 'opacity-100' : 'max-md:opacity-100 md:opacity-0 md:group-hover:opacity-100'}"
 							aria-label={attachment.featured ? 'Unfeature image' : 'Feature image'}
 							data-testid="toggle-featured"
 						>
@@ -142,7 +143,7 @@
 					{/if}
 					<button
 						onclick={() => onRemove(attachment.id)}
-						class="absolute -right-1 -top-1 hidden rounded-full bg-[var(--destructive)] p-0.5 text-white group-hover:block"
+						class="absolute -right-1 -top-1 rounded-full bg-[var(--destructive)] p-0.5 text-white transition-opacity max-md:opacity-100 md:opacity-0 md:group-hover:opacity-100"
 						aria-label="Remove attachment"
 						data-testid="remove-attachment"
 					>
@@ -154,33 +155,56 @@
 	{/if}
 
 	<!-- Upload area -->
-	<div
-		class="rounded-sm border-2 border-dashed p-4 text-center transition-colors {dragOver ? 'border-[var(--primary)] bg-[var(--primary)]/5' : 'border-[var(--border-subtle)]'}"
-		ondrop={handleDrop}
-		ondragover={handleDragOver}
-		ondragleave={() => (dragOver = false)}
-		role="button"
-		tabindex="0"
-		data-testid="upload-dropzone"
-	>
-		{#if optimizing}
-			<p class="text-sm text-[var(--text-muted)]">Optimizing...</p>
-		{:else if uploading}
-			<p class="text-sm text-[var(--text-muted)]">Uploading...</p>
-		{:else}
-			<label class="cursor-pointer">
-				<span class="text-sm text-[var(--text-muted)]">Drop images here or <span class="text-[var(--primary)] underline">browse</span></span>
-				<input
-					type="file"
-					accept="image/*"
-					multiple
-					class="hidden"
-					onchange={(e) => handleFiles((e.target as HTMLInputElement).files)}
-					data-testid="file-input"
-				/>
-			</label>
-		{/if}
-	</div>
+	{#if showDropZone}
+		<!-- Drop zone for desktop, browse-only label for mobile -->
+		<div
+			class="hidden rounded-sm border-2 border-dashed p-4 text-center transition-colors md:block {dragOver ? 'border-[var(--primary)] bg-[var(--primary)]/5' : 'border-[var(--border-subtle)]'}"
+			ondrop={handleDrop}
+			ondragover={handleDragOver}
+			ondragleave={() => (dragOver = false)}
+			role="button"
+			tabindex="0"
+			data-testid="upload-dropzone"
+		>
+			{#if optimizing}
+				<p class="text-sm text-[var(--text-muted)]">Optimizing...</p>
+			{:else if uploading}
+				<p class="text-sm text-[var(--text-muted)]">Uploading...</p>
+			{:else}
+				<label class="cursor-pointer">
+					<span class="text-sm text-[var(--text-muted)]">Drop images here or <span class="text-[var(--primary)] underline">browse</span></span>
+					<input
+						type="file"
+						accept="image/*"
+						multiple
+						class="hidden"
+						onchange={(e) => handleFiles((e.target as HTMLInputElement).files)}
+						data-testid="file-input"
+					/>
+				</label>
+			{/if}
+		</div>
+		<!-- Mobile: compact browse button -->
+		<div class="md:hidden">
+			{#if optimizing}
+				<p class="text-sm text-[var(--text-muted)]">Optimizing...</p>
+			{:else if uploading}
+				<p class="text-sm text-[var(--text-muted)]">Uploading...</p>
+			{:else}
+				<label class="inline-flex cursor-pointer items-center gap-1.5 rounded-sm border border-[var(--border-subtle)] px-3 py-1.5 text-sm text-[var(--text-muted)] hover:border-[var(--primary)]">
+					<span>Add images</span>
+					<input
+						type="file"
+						accept="image/*"
+						multiple
+						class="hidden"
+						onchange={(e) => handleFiles((e.target as HTMLInputElement).files)}
+						data-testid="file-input-mobile"
+					/>
+				</label>
+			{/if}
+		</div>
+	{/if}
 </div>
 
 {#if lightboxSrc}
