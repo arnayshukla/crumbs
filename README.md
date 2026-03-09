@@ -11,7 +11,7 @@
 
 A self-hostable, offline-first note-taking app inspired by Google Keep. Part of the [Bretzel](https://bretzel.app) app universe.
 
-## Quick Start
+## Install
 
 ### Docker (Recommended)
 
@@ -19,7 +19,37 @@ A self-hostable, offline-first note-taking app inspired by Google Keep. Part of 
 docker compose up -d
 ```
 
-Open http://localhost:3000 and set your password on first visit.
+Open http://localhost:3000 and create your admin account on first visit.
+
+#### With OAuth (optional)
+
+```yaml
+# docker-compose.yml
+services:
+  crumbs:
+    image: ghcr.io/bretzel-app/crumbs:latest
+    ports:
+      - "3000:3000"
+    volumes:
+      - crumbs-data:/data
+    environment:
+      - ORIGIN=https://notes.example.com
+      - AUTH_GOOGLE_ID=your-google-client-id
+      - AUTH_GOOGLE_SECRET=your-google-client-secret
+    restart: unless-stopped
+
+volumes:
+  crumbs-data:
+```
+
+### Manual (Node.js)
+
+```bash
+git clone <repo-url> crumbs && cd crumbs
+pnpm install
+pnpm build
+DATABASE_URL=./data/crumbs.db ORIGIN=http://localhost:3000 node build
+```
 
 ### Development
 
@@ -43,7 +73,7 @@ pnpm build         # Production build
 - Full-text search across titles, content, and tags
 - PWA — installable, works offline via IndexedDB + LWW CRDT sync
 - MCP server — let AI assistants (Claude Code, etc.) manage your notes
-- Single-user password auth (Argon2) + API keys for MCP access
+- Multi-user auth (Argon2) with optional OAuth/SSO (Google, GitHub, OIDC)
 - Docker deployment with a single command
 
 See [docs/FEATURES.md](docs/FEATURES.md) for detailed feature documentation.

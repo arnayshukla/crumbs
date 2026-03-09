@@ -86,12 +86,26 @@
 - Clear search to restore original view
 - Case-insensitive matching
 
-### Single-User Auth
-- First-run setup: create password (min 8 chars)
+### Authentication
+- Multi-user support with role-based access (admin / user)
+- First-run setup: create admin account (min 8 chars password)
 - Argon2 password hashing (industry standard)
 - Session-based auth with 30-day expiry
+- Active session management (view, revoke individual or all other sessions)
 - All routes protected except /login and /setup
-- Logout clears session
+- Account deletion with password confirmation
+
+### OAuth / SSO
+- Optional social login via Google, GitHub, or generic OIDC
+- OAuth users created automatically on first sign-in
+- Invite-only mode when combined with admin controls
+- Configure via environment variables (`AUTH_GOOGLE_ID`, `AUTH_GITHUB_ID`, `AUTH_OIDC_ISSUER`, etc.)
+
+### User Management (admin)
+- Admin dashboard to create, list, and delete users
+- Assign roles (admin / user)
+- Reset passwords for any user
+- Revoke all sessions (force logout) for any user
 
 ### PWA / Offline-First
 - Installable as standalone app

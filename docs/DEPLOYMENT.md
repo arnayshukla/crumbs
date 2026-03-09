@@ -100,6 +100,8 @@ node build
 
 ## Environment Variables
 
+### Core
+
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `DATABASE_URL` | `./data/crumbs.db` | SQLite database path |
@@ -107,6 +109,49 @@ node build
 | `ORIGIN` | `http://localhost:3000` | Server origin (required for CSRF) |
 | `PORT` | `3000` | HTTP port |
 | `NODE_ENV` | `development` | Set to `production` for deployment |
+
+### OAuth Providers (optional)
+
+Enable social login by setting the client ID and secret for any provider. Users who sign in via OAuth are created automatically (invite-only when combined with admin approval).
+
+| Variable | Description |
+|----------|-------------|
+| `AUTH_GOOGLE_ID` | Google OAuth client ID |
+| `AUTH_GOOGLE_SECRET` | Google OAuth client secret |
+| `AUTH_GITHUB_ID` | GitHub OAuth client ID |
+| `AUTH_GITHUB_SECRET` | GitHub OAuth client secret |
+| `AUTH_OIDC_ISSUER` | Generic OIDC issuer URL (e.g. `https://accounts.example.com`) |
+| `AUTH_OIDC_ID` | OIDC client ID |
+| `AUTH_OIDC_SECRET` | OIDC client secret |
+| `AUTH_OIDC_NAME` | Display name for the OIDC button (default: "SSO") |
+
+**Callback URLs** — register these in your provider's dashboard:
+
+| Provider | Callback URL |
+|----------|-------------|
+| Google | `https://your-domain/api/auth/callback/google` |
+| GitHub | `https://your-domain/api/auth/callback/github` |
+| OIDC | `https://your-domain/api/auth/callback/oidc` |
+
+#### Docker example with Google OAuth
+
+```yaml
+services:
+  crumbs:
+    image: ghcr.io/bretzel-app/crumbs:latest
+    ports:
+      - "3000:3000"
+    volumes:
+      - crumbs-data:/data
+    environment:
+      - ORIGIN=https://notes.example.com
+      - AUTH_GOOGLE_ID=123456789.apps.googleusercontent.com
+      - AUTH_GOOGLE_SECRET=GOCSPX-xxxxxxxxxxxxx
+    restart: unless-stopped
+
+volumes:
+  crumbs-data:
+```
 
 ## Health Check
 
