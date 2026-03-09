@@ -15,7 +15,7 @@
 </script>
 
 {#if $allTags.length > 0}
-	<div class="flex flex-wrap gap-2" data-testid="tag-filter">
+	<div class="flex gap-2 overflow-x-auto max-md:flex-nowrap md:flex-wrap" data-testid="tag-filter">
 		{#each $allTags as tag}
 			<TagChip {tag} active={isTagActive(tag, $page.url.pathname)} onclick={() => toggleTag(tag)} />
 		{/each}
