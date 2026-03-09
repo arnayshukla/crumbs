@@ -1,15 +1,18 @@
-import { db } from '$lib/server/db/index.js';
+import { db as defaultDb } from '$lib/server/db/index.js';
 import { notes, noteCollaborators, noteUserState, syncLog } from '$lib/server/db/schema.js';
-import { eq, gt, and, or } from 'drizzle-orm';
+import { eq, gt, and, or, sql } from 'drizzle-orm';
 import { extractTags } from '$lib/utils/tags.js';
 import { syncNoteTags } from '$lib/server/tags.js';
 import { canAccessNote } from '$lib/server/api-utils.js';
 import type { SyncQueueItem } from './idb.js';
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AnyDb = import('drizzle-orm/better-sqlite3').BetterSQLite3Database<any>;
 
 /**
  * Process incoming sync changes from client.
  */
-export async function processSyncPush(changes: SyncQueueItem[], userId: number): Promise<void> {
+export async function processSyncPush(changes: SyncQueueItem[], userId: number, injectedDb?: AnyDb): Promise<void> {
+	const db = injectedDb ?? defaultDb;
 	const noteIdsToSyncTags: string[] = [];
 
 	db.transaction((tx) => {
@@ -145,8 +148,11 @@ export async function processSyncPush(changes: SyncQueueItem[], userId: number):
 /**
  * Get all notes updated since a given timestamp for a specific user.
  * Includes both owned and shared notes.
+ * For shared notes, per-user state (pinned, archived, sortOrder) is overlaid
+ * from noteUserState so collaborators get their own view.
  */
-export async function getChangesSince(sinceTimestamp: number, userId: number) {
+export async function getChangesSince(sinceTimestamp: number, userId: number, injectedDb?: AnyDb) {
+	const db = injectedDb ?? defaultDb;
 	const since = new Date(sinceTimestamp);
 
 	// Owned notes
@@ -156,7 +162,7 @@ export async function getChangesSince(sinceTimestamp: number, userId: number) {
 		.where(and(eq(notes.userId, userId), gt(notes.updatedAt, since)))
 		.all();
 
-	// Shared notes (via collaborator relationship)
+	// Shared notes (via collaborator relationship) with per-user state overlay
 	const sharedNotes = db
 		.select({
 			id: notes.id,
@@ -164,21 +170,26 @@ export async function getChangesSince(sinceTimestamp: number, userId: number) {
 			title: notes.title,
 			content: notes.content,
 			color: notes.color,
-			pinned: notes.pinned,
-			archived: notes.archived,
+			pinned: sql<boolean>`COALESCE(${noteUserState.pinned}, 0)`.as('user_pinned'),
+			archived: sql<boolean>`COALESCE(${noteUserState.archived}, 0)`.as('user_archived'),
 			trashed: notes.trashed,
 			trashedAt: notes.trashedAt,
 			checklistMode: notes.checklistMode,
-			sortOrder: notes.sortOrder,
+			sortOrder: sql<number>`COALESCE(${noteUserState.sortOrder}, 0)`.as('user_sort_order'),
 			createdAt: notes.createdAt,
 			updatedAt: notes.updatedAt,
 			version: notes.version
 		})
 		.from(noteCollaborators)
 		.innerJoin(notes, eq(noteCollaborators.noteId, notes.id))
+		.leftJoin(
+			noteUserState,
+			and(eq(noteUserState.noteId, notes.id), eq(noteUserState.userId, userId))
+		)
 		.where(
 			and(
 				eq(noteCollaborators.userId, userId),
+				eq(notes.trashed, false),
 				gt(notes.updatedAt, since)
 			)
 		)

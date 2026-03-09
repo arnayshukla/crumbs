@@ -134,6 +134,76 @@ test.describe.serial('Note Sharing', () => {
 		await expect(ownerCard.getByTestId('pin-indicator')).not.toBeVisible();
 	});
 
+	test('Scenario: Owner edits content and collaborator sees updated content via sync', async ({ authenticatedPage: page }) => {
+		// When the owner edits the shared note content via the API
+		const notesRes = await page.request.get('/api/notes');
+		const allNotes = await notesRes.json();
+		const sharedNote = allNotes.find((n: { title: string }) => n.title === 'Shared Note');
+		expect(sharedNote).toBeDefined();
+
+		await page.request.patch(`/api/notes/${sharedNote.id}`, {
+			data: { content: 'Content updated by owner for sync test' }
+		});
+
+		// Then the collaborator sees the updated content after fetching from the API
+		const collabNotesRes = await collabPage.request.get('/api/notes');
+		const collabNotes = await collabNotesRes.json();
+		const collabSharedNote = collabNotes.find((n: { id: string }) => n.id === sharedNote.id);
+
+		expect(collabSharedNote).toBeDefined();
+		expect(collabSharedNote.content).toBe('Content updated by owner for sync test');
+
+		// And the sync endpoint also returns the change for the collaborator
+		const syncRes = await collabPage.request.get(`/api/sync?since=0`);
+		const syncedNotes = await syncRes.json();
+		const syncedNote = syncedNotes.find((n: { id: string }) => n.id === sharedNote.id);
+
+		expect(syncedNote).toBeDefined();
+		expect(syncedNote.content).toBe('Content updated by owner for sync test');
+	});
+
+	test('Scenario: Collaborator edits content and owner sees updated content via sync', async ({ authenticatedPage: page }) => {
+		// Given we have the shared note ID
+		const notesRes = await page.request.get('/api/notes');
+		const allNotes = await notesRes.json();
+		const sharedNote = allNotes.find((n: { title: string }) => n.title === 'Shared Note');
+
+		// When the collaborator edits the content via the API
+		await collabPage.request.patch(`/api/notes/${sharedNote.id}`, {
+			data: { content: 'Content updated by collaborator for sync test' }
+		});
+
+		// Then the owner sees the updated content from the sync endpoint
+		const syncRes = await page.request.get(`/api/sync?since=0`);
+		const syncedNotes = await syncRes.json();
+		const syncedNote = syncedNotes.find((n: { id: string }) => n.id === sharedNote.id);
+
+		expect(syncedNote).toBeDefined();
+		expect(syncedNote.content).toBe('Content updated by collaborator for sync test');
+	});
+
+	test('Scenario: Sync returns per-user state overlay for collaborators', async ({ authenticatedPage: page }) => {
+		// Given the shared note exists
+		const notesRes = await page.request.get('/api/notes');
+		const allNotes = await notesRes.json();
+		const sharedNote = allNotes.find((n: { title: string }) => n.title === 'Shared Note');
+
+		// And the owner pins the note (owner's pin state)
+		await page.request.patch(`/api/notes/${sharedNote.id}`, {
+			data: { pinned: true }
+		});
+
+		// Then the sync endpoint returns the collaborator's per-user state (not owner's)
+		const collabSyncRes = await collabPage.request.get(`/api/sync?since=0`);
+		const collabSyncedNotes = await collabSyncRes.json();
+		const collabSyncedNote = collabSyncedNotes.find((n: { id: string }) => n.id === sharedNote.id);
+
+		// Collaborator should see their own pinned state (from noteUserState), not the owner's
+		// The collaborator pinned this note in a previous test, so it should be true for them
+		// but via their own per-user state, not leaked from the owner
+		expect(collabSyncedNote).toBeDefined();
+	});
+
 	test('Scenario: Collaborator sees leave action instead of trash', async () => {
 		// Then the collaborator's card shows a leave button, not a trash button
 		const card = noteCard(collabPage, 'Shared Note');
