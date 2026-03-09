@@ -47,7 +47,7 @@
 
 	{#if showPopover}
 		<div
-			class="absolute left-0 bottom-full z-20 mb-1 min-w-[160px] rounded-sm border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-2 shadow-[var(--card-shadow)] animate-[fade-in_150ms_ease-out]"
+			class="absolute right-0 bottom-full z-20 mb-1 min-w-[160px] rounded-sm border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-2 shadow-[var(--card-shadow)] animate-[fade-in_150ms_ease-out]"
 			data-testid="collaborator-popover"
 		>
 			<p class="mb-1 text-xs font-semibold text-[var(--text-muted)]">Shared with</p>
