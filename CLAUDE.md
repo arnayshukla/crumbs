@@ -55,6 +55,7 @@ Note colors for cards are defined in `src/lib/utils/colors.ts`.
 - **Background texture**: A subtle 4px pixel grid overlay at 3% opacity (defined in `body::before`).
 - **Checkboxes**: Use `accent-color: var(--primary)` globally — gold checkboxes match the theme.
 - **Icons**: Lucide icons throughout. Keep at 16-20px size.
+- **Hover actions**: Never use `hidden group-hover:block` for action buttons — they're invisible on mobile (no hover). Use the opacity pattern instead: `max-md:opacity-100 md:opacity-0 transition-opacity md:group-hover:opacity-100`. This keeps actions always visible on touch devices and hover-revealed on desktop.
 
 ### Layout groups
 
