@@ -194,10 +194,10 @@ export function revokeAllSessions(userId: number, exceptToken?: string): void {
 export async function createUser(
 	email: string,
 	displayName: string,
-	password: string,
+	password: string | null,
 	role: 'admin' | 'user' = 'user'
 ): Promise<User> {
-	const hash = await argon2.hash(password);
+	const hash = password ? await argon2.hash(password) : null;
 	const result = db
 		.insert(users)
 		.values({
@@ -205,7 +205,7 @@ export async function createUser(
 			displayName,
 			role,
 			passwordHash: hash,
-			authProvider: 'password',
+			authProvider: password ? 'password' : 'none',
 			createdAt: new Date()
 		})
 		.returning()

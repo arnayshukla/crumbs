@@ -11,17 +11,23 @@
 	let newDisplayName = $state('');
 	let newPassword = $state('');
 	let newRole = $state<'admin' | 'user'>('user');
+	let oauthOnly = $state(false);
 	let createMsg = $state('');
 	let createError = $state(false);
 
 	async function createUser() {
 		createMsg = '';
-		if (!newEmail || !newPassword) {
-			createMsg = 'Email and password are required';
+		if (!newEmail) {
+			createMsg = 'Email is required';
 			createError = true;
 			return;
 		}
-		if (newPassword.length < 8) {
+		if (!oauthOnly && !newPassword) {
+			createMsg = 'Password is required (or enable OAuth-only)';
+			createError = true;
+			return;
+		}
+		if (!oauthOnly && newPassword.length < 8) {
 			createMsg = 'Password must be at least 8 characters';
 			createError = true;
 			return;
@@ -33,7 +39,7 @@
 				body: JSON.stringify({
 					email: newEmail,
 					displayName: newDisplayName || newEmail.split('@')[0],
-					password: newPassword,
+					password: oauthOnly ? undefined : newPassword,
 					role: newRole
 				})
 			});
@@ -44,6 +50,7 @@
 				newDisplayName = '';
 				newPassword = '';
 				newRole = 'user';
+				oauthOnly = false;
 				createMsg = 'User created';
 				createError = false;
 			} else {
@@ -125,13 +132,19 @@
 				placeholder="Display name (optional)"
 				class="w-full rounded-sm border border-[var(--border-subtle)] bg-[var(--bg-base)] px-4 py-2 text-sm text-[var(--text)] outline-none placeholder:text-[var(--text-muted)] focus:border-[var(--primary)]"
 			/>
-			<input
-				type="password"
-				bind:value={newPassword}
-				placeholder="Password (min 8 characters)"
-				class="w-full rounded-sm border border-[var(--border-subtle)] bg-[var(--bg-base)] px-4 py-2 text-sm text-[var(--text)] outline-none placeholder:text-[var(--text-muted)] focus:border-[var(--primary)]"
-			/>
-			<PasswordStrengthMeter password={newPassword} />
+			<label class="flex items-center gap-2 text-sm text-[var(--text)]">
+				<input type="checkbox" bind:checked={oauthOnly} />
+				OAuth-only (no password)
+			</label>
+			{#if !oauthOnly}
+				<input
+					type="password"
+					bind:value={newPassword}
+					placeholder="Password (min 8 characters)"
+					class="w-full rounded-sm border border-[var(--border-subtle)] bg-[var(--bg-base)] px-4 py-2 text-sm text-[var(--text)] outline-none placeholder:text-[var(--text-muted)] focus:border-[var(--primary)]"
+				/>
+				<PasswordStrengthMeter password={newPassword} />
+			{/if}
 			<select
 				bind:value={newRole}
 				class="w-full rounded-sm border border-[var(--border-subtle)] bg-[var(--bg-base)] px-4 py-2 text-sm text-[var(--text)] outline-none focus:border-[var(--primary)]"

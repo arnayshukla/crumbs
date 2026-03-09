@@ -12,14 +12,14 @@ export const POST: RequestHandler = async ({ request, ...event }) => {
 	requireAdmin(event);
 	const { email, displayName, password, role } = await request.json();
 
-	if (!email || !password) {
-		throw error(400, 'Email and password are required');
+	if (!email) {
+		throw error(400, 'Email is required');
 	}
 
-	if (password.length < 8) {
+	if (password && password.length < 8) {
 		throw error(400, 'Password must be at least 8 characters');
 	}
 
-	const user = await createUser(email, displayName || email.split('@')[0], password, role || 'user');
+	const user = await createUser(email, displayName || email.split('@')[0], password || null, role || 'user');
 	return json(user, { status: 201 });
 };
