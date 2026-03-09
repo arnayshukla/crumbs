@@ -201,6 +201,29 @@ try {
 	// Column already exists
 }
 
+// Migration: make password_hash nullable (for OAuth-only users)
+const pwCol = (
+	sqlite.prepare("PRAGMA table_info('users')").all() as { name: string; notnull: number }[]
+).find((col) => col.name === 'password_hash');
+if (pwCol && pwCol.notnull) {
+	sqlite.exec(`
+		CREATE TABLE __new_users (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			email TEXT NOT NULL DEFAULT '',
+			display_name TEXT NOT NULL DEFAULT '',
+			role TEXT NOT NULL DEFAULT 'user',
+			password_hash TEXT,
+			auth_provider TEXT NOT NULL DEFAULT 'password',
+			provider_id TEXT,
+			created_at INTEGER NOT NULL
+		);
+		INSERT INTO __new_users(id, email, display_name, role, password_hash, auth_provider, provider_id, created_at)
+			SELECT id, email, display_name, role, password_hash, auth_provider, provider_id, created_at FROM users;
+		DROP TABLE users;
+		ALTER TABLE __new_users RENAME TO users;
+	`);
+}
+
 // Re-enable foreign keys
 sqlite.pragma('foreign_keys = ON');
 
