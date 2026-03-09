@@ -57,16 +57,18 @@
 	});
 </script>
 
+<!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
 <div
 	bind:this={element}
-	class="tiptap-wrapper prose prose-sm min-h-[300px] max-w-none px-4 py-2 text-[var(--text)]"
+	class="tiptap-wrapper prose prose-sm flex min-h-[300px] max-w-none flex-col px-4 py-2 text-[var(--text)]"
 	data-testid="tiptap-editor"
+	onclick={() => editor?.commands.focus()}
 ></div>
 
 <style>
 	.tiptap-wrapper :global(.tiptap) {
 		outline: none;
-		min-height: 80px;
+		flex: 1;
 	}
 
 	.tiptap-wrapper :global(.tiptap p.is-editor-empty:first-child::before) {
