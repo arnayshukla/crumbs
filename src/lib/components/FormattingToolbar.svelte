@@ -23,7 +23,6 @@
 		AlignJustify,
 		Minus,
 		ChevronDown,
-		Ellipsis,
 		Table2,
 		BetweenHorizontalEnd,
 		BetweenVerticalEnd,
@@ -114,14 +113,14 @@
 <svelte:document onpointerdown={handlePointerDown} onkeydown={handleKeydown} />
 
 <div
-	class="flex items-center gap-0.5 border-b border-[var(--border-subtle)] px-2 py-1"
+	class="flex flex-wrap items-center gap-0.5 border-b border-[var(--border-subtle)] px-2 py-1"
 	data-testid="formatting-toolbar"
 >
-	<!-- Undo/Redo — desktop only, at the start -->
+	<!-- Undo/Redo -->
 	<button
 		onclick={() => editor?.chain().focus().undo().run()}
 		disabled={!canUndo()}
-		class="{btnClass(false, !canUndo())} hidden md:block"
+		class={btnClass(false, !canUndo())}
 		title="Undo"
 		data-testid="format-undo"
 	>
@@ -130,14 +129,14 @@
 	<button
 		onclick={() => editor?.chain().focus().redo().run()}
 		disabled={!canRedo()}
-		class="{btnClass(false, !canRedo())} hidden md:block"
+		class={btnClass(false, !canRedo())}
 		title="Redo"
 		data-testid="format-redo"
 	>
 		<Redo2 size={iconSize} />
 	</button>
 
-	<div class="mx-1 hidden h-4 w-px shrink-0 bg-[var(--border-subtle)] md:block"></div>
+	<div class="mx-1 h-4 w-px shrink-0 bg-[var(--border-subtle)]"></div>
 
 	<!-- Inline -->
 	<button
@@ -435,10 +434,10 @@
 
 	<div class="mx-1 h-4 w-px shrink-0 bg-[var(--border-subtle)]"></div>
 
-	<!-- Desktop top-level buttons (hidden on mobile, in More dropdown instead) -->
+	<!-- Block-level formatting -->
 	<button
 		onclick={() => editor?.chain().focus().toggleCode().run()}
-		class="{btnClass(editor?.isActive('code') ?? false)} hidden md:block"
+		class={btnClass(editor?.isActive('code') ?? false)}
 		title="Inline code"
 		data-testid="format-code"
 	>
@@ -446,7 +445,7 @@
 	</button>
 	<button
 		onclick={() => editor?.chain().focus().toggleBlockquote().run()}
-		class="{btnClass(editor?.isActive('blockquote') ?? false)} hidden md:block"
+		class={btnClass(editor?.isActive('blockquote') ?? false)}
 		title="Blockquote"
 		data-testid="format-blockquote"
 	>
@@ -454,7 +453,7 @@
 	</button>
 	<button
 		onclick={() => editor?.chain().focus().toggleCodeBlock().run()}
-		class="{btnClass(editor?.isActive('codeBlock') ?? false)} hidden md:block"
+		class={btnClass(editor?.isActive('codeBlock') ?? false)}
 		title="Code block"
 		data-testid="format-code-block"
 	>
@@ -462,71 +461,10 @@
 	</button>
 	<button
 		onclick={() => editor?.chain().focus().setHorizontalRule().run()}
-		class="{btnClass()} hidden md:block"
+		class={btnClass()}
 		title="Divider"
 		data-testid="format-hr"
 	>
 		<Minus size={iconSize} />
 	</button>
-
-	<!-- More dropdown (mobile only — all items are top-level on desktop) -->
-	<div class="relative md:hidden" data-dropdown="more">
-		<button
-			onclick={() => toggleDropdown('more')}
-			class={dropdownBtnClass(false)}
-			title="More options"
-			data-testid="format-more"
-		>
-			<Ellipsis size={iconSize} />
-		</button>
-		{#if openDropdown === 'more'}
-			<div class="absolute right-0 bottom-full z-50 mb-1 min-w-[170px] rounded-sm border border-[var(--border)] bg-[var(--bg-surface)] py-1">
-				<button
-					onclick={() => { editor?.chain().focus().undo().run(); closeDropdowns(); }}
-					disabled={!canUndo()}
-					class={dropdownItemClass()}
-				>
-					<Undo2 size={iconSize} />
-					<span>Undo</span>
-				</button>
-				<button
-					onclick={() => { editor?.chain().focus().redo().run(); closeDropdowns(); }}
-					disabled={!canRedo()}
-					class={dropdownItemClass()}
-				>
-					<Redo2 size={iconSize} />
-					<span>Redo</span>
-				</button>
-				<div class="my-1 h-px bg-[var(--border-subtle)]"></div>
-				<button
-					onclick={() => { editor?.chain().focus().toggleCode().run(); closeDropdowns(); }}
-					class={dropdownItemClass(editor?.isActive('code') ?? false)}
-				>
-					<Code size={iconSize} />
-					<span>Inline code</span>
-				</button>
-				<button
-					onclick={() => { editor?.chain().focus().toggleBlockquote().run(); closeDropdowns(); }}
-					class={dropdownItemClass(editor?.isActive('blockquote') ?? false)}
-				>
-					<TextQuote size={iconSize} />
-					<span>Blockquote</span>
-				</button>
-				<button
-					onclick={() => { editor?.chain().focus().toggleCodeBlock().run(); closeDropdowns(); }}
-					class={dropdownItemClass(editor?.isActive('codeBlock') ?? false)}
-				>
-					<CodeXml size={iconSize} />
-					<span>Code block</span>
-				</button>
-				<button
-					onclick={() => { editor?.chain().focus().setHorizontalRule().run(); closeDropdowns(); }}
-					class={dropdownItemClass()}
-				>
-					<Minus size={iconSize} />
-					<span>Divider</span>
-				</button>
-			</div>
-		{/if}
-	</div>
 </div>
