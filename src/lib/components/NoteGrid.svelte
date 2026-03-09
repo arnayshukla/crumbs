@@ -53,7 +53,7 @@
 					<div
 						use:dragHandle
 						aria-label="drag handle for {note.title || 'note'}"
-						class="absolute top-2 right-2 z-10 cursor-grab rounded-sm p-1 text-[var(--text-muted)] opacity-60 hover:opacity-100 hover:bg-[var(--border-subtle)]/50 transition-opacity duration-150"
+						class="absolute top-2 left-2 z-10 cursor-grab rounded-sm p-1 text-[var(--text-muted)] opacity-60 hover:opacity-100 hover:bg-[var(--border-subtle)]/50 transition-opacity duration-150"
 						data-testid="note-drag-handle"
 					>
 						<GripVertical class="h-4 w-4" />
