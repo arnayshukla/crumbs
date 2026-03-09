@@ -11,7 +11,7 @@
 {#if onclick}
 	<button
 		{onclick}
-		class="rounded-sm px-2 py-0.5 text-xs font-medium transition-colors {active
+		class="whitespace-nowrap rounded-sm px-2 py-0.5 text-xs font-medium transition-colors {active
 			? 'bg-[var(--primary)] text-white'
 			: 'border border-[var(--border-subtle)] bg-[var(--bg-surface)] text-[var(--text-muted)] hover:border-[var(--primary)]'}"
 		data-testid="tag-chip"
