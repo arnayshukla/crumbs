@@ -92,8 +92,7 @@
 			class="mb-3 w-full rounded-sm border border-[var(--border-subtle)] bg-[var(--bg-base)] px-4 py-3 text-sm text-[var(--text)] outline-none placeholder:text-[var(--text-muted)] focus:border-[var(--primary)]"
 			data-testid="password-input"
 			required
-			minlength="8"
-		/>
+			/>
 
 		<input
 			type="password"
@@ -102,8 +101,7 @@
 			class="mb-4 w-full rounded-sm border border-[var(--border-subtle)] bg-[var(--bg-base)] px-4 py-3 text-sm text-[var(--text)] outline-none placeholder:text-[var(--text-muted)] focus:border-[var(--primary)]"
 			data-testid="confirm-password-input"
 			required
-			minlength="8"
-		/>
+			/>
 
 		<button
 			type="submit"
