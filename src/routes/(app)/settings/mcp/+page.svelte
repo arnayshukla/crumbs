@@ -26,7 +26,7 @@
 	let mcpJsonConfig = $derived(`{
   "mcpServers": {
     "crumbs": {
-      "type": "streamable-http",
+      "type": "http",
       "url": "${baseUrl}/api/mcp",
       "headers": {
         "Authorization": "Bearer ${activeApiKey}"
@@ -37,12 +37,12 @@
 
 	let llmInstallPrompt = $derived(`Install the Crumbs MCP server with the following configuration:
 
-- Type: Streamable HTTP
+- Type: HTTP (Streamable HTTP)
 - URL: ${baseUrl}/api/mcp
 - Authentication: Bearer token in the Authorization header
 - API Key: ${activeApiKey}
 
-Add this to your MCP client settings (e.g. Claude Code's .claude/settings.json or Claude Desktop's config):
+Add this to your MCP client settings (e.g. Claude Code's .claude/settings.json):
 
 ${mcpJsonConfig}`);
 
@@ -233,7 +233,7 @@ ${mcpJsonConfig}`);
 <section class="rounded-sm border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-6 shadow-[var(--card-shadow)]">
 	<h2 class="mb-4 text-lg font-semibold text-[var(--text)]">Client Configuration</h2>
 	<p class="mb-3 text-xs text-[var(--text-muted)]">
-		Add this to your MCP client config (e.g. Claude Code settings):
+		Add this to your <code class="rounded-sm bg-[var(--bg-base)] px-1 py-0.5">.claude/settings.json</code> (Claude Code):
 	</p>
 	<div class="relative">
 		<pre class="overflow-x-auto rounded-sm bg-[var(--bg-base)] p-3 pr-10 text-xs text-[var(--text)]">{mcpJsonConfig}</pre>
