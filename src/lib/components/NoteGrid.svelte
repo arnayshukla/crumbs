@@ -43,7 +43,7 @@
 		<div
 			class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
 			data-testid="note-grid"
-			use:dndzone={{ items: localItems, flipDurationMs, type: dndType, dropTargetStyle: {} }}
+			use:dndzone={{ items: localItems, flipDurationMs, type: dndType, dropTargetStyle: {}, delayTouchStart: 400 }}
 			onconsider={handleConsider}
 			onfinalize={handleFinalize}
 		>
