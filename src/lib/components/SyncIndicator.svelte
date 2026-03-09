@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
-	import { getSyncStatus, onSyncStatusChange, type SyncStatus } from '$lib/sync/client.js';
+	import { getSyncStatus, onSyncStatusChange, sync, type SyncStatus } from '$lib/sync/client.js';
 	import CloudCheck from 'lucide-svelte/icons/cloud-check';
 	import CloudSync from 'lucide-svelte/icons/cloud-sync';
 	import CloudOff from 'lucide-svelte/icons/cloud-off';
@@ -44,7 +44,12 @@
 	});
 </script>
 
-<div class="flex items-center" title="Sync status: {status}" data-testid="sync-indicator">
+<button
+	class="flex cursor-pointer items-center rounded-sm p-1 transition-colors hover:bg-[var(--border-subtle)]/50"
+	title="Sync status: {status} — click to sync"
+	onclick={() => sync()}
+	data-testid="sync-indicator"
+>
 	{#if displayStatus === 'synced'}
 		<CloudCheck class="h-5 w-5 text-[var(--primary)]" />
 	{:else if displayStatus === 'syncing'}
@@ -54,4 +59,4 @@
 	{:else}
 		<CloudAlert class="h-5 w-5 text-[var(--destructive)]" />
 	{/if}
-</div>
+</button>
