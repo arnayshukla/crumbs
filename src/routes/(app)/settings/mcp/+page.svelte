@@ -241,7 +241,7 @@ ${mcpJsonConfig}`);
 
 <!-- MCP Config Help -->
 <section class="rounded-sm border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-6 shadow-[var(--card-shadow)]">
-	<h2 class="mb-4 text-lg font-semibold text-[var(--text)]">Client Configuration</h2>
+	<h2 class="mb-4 text-lg font-semibold text-[var(--text)]">MCP Client Configuration</h2>
 	<p class="mb-3 text-xs text-[var(--text-muted)]">
 		Add this to your <code class="rounded-sm bg-[var(--bg-base)] px-1 py-0.5">.claude/settings.json</code> (Claude Code):
 	</p>
