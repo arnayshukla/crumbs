@@ -2,7 +2,6 @@
 	import { NOTE_COLORS } from '$lib/utils/colors.js';
 	import { renderMarkdown } from '$lib/utils/markdown.js';
 	import { togglePin, trashNote, archiveNote, unarchiveNote, restoreNote, deleteNote, updateNote, leaveNote, currentFilter } from '$lib/stores/notes.js';
-	import TagChip from './TagChip.svelte';
 	import ImageLightbox from './ImageLightbox.svelte';
 	import CollaboratorPopover from './CollaboratorPopover.svelte';
 	import type { Note } from '$lib/types/index.js';
@@ -159,14 +158,6 @@
 	{:else if note.content}
 		<div class="prose prose-sm line-clamp-6 max-w-none text-sm text-[var(--text-muted)]" data-testid="note-content-preview">
 			{@html renderedContent}
-		</div>
-	{/if}
-
-	{#if note.tags && note.tags.length > 0}
-		<div class="mt-2 flex flex-wrap gap-1">
-			{#each note.tags as tag}
-				<TagChip {tag} />
-			{/each}
 		</div>
 	{/if}
 
