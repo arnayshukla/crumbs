@@ -1,7 +1,6 @@
 <script lang="ts">
 	import NoteCard from './NoteCard.svelte';
-	import GripHorizontal from 'lucide-svelte/icons/grip-horizontal';
-	import { dragHandleZone, dragHandle, type DndEvent } from 'svelte-dnd-action';
+	import { dndzone, type DndEvent } from 'svelte-dnd-action';
 	import { flip } from 'svelte/animate';
 	import type { Note } from '$lib/types/index.js';
 
@@ -44,20 +43,12 @@
 		<div
 			class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
 			data-testid="note-grid"
-			use:dragHandleZone={{ items: localItems, flipDurationMs, type: dndType, dropTargetStyle: {} }}
+			use:dndzone={{ items: localItems, flipDurationMs, type: dndType, dropTargetStyle: {} }}
 			onconsider={handleConsider}
 			onfinalize={handleFinalize}
 		>
 			{#each localItems as note (note.id)}
-				<div class="relative h-full" animate:flip={{ duration: flipDurationMs }}>
-					<div
-						use:dragHandle
-						aria-label="drag handle for {note.title || 'note'}"
-						class="absolute top-0 left-1/2 z-10 flex -translate-x-1/2 cursor-grab items-center justify-center px-6 py-0.5 text-[var(--text-muted)] opacity-40 transition-opacity duration-150 hover:opacity-70 active:cursor-grabbing outline-none"
-						data-testid="note-drag-handle"
-					>
-						<GripHorizontal class="h-3.5 w-3.5" />
-					</div>
+				<div class="h-full" animate:flip={{ duration: flipDurationMs }}>
 					<NoteCard {note} {onEdit} fullHeight />
 				</div>
 			{/each}
