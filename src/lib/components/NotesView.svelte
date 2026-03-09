@@ -2,9 +2,7 @@
 	import NoteGrid from '$lib/components/NoteGrid.svelte';
 	import NoteEditor from '$lib/components/NoteEditor.svelte';
 	import TagFilter from '$lib/components/TagFilter.svelte';
-	import SortSelector from '$lib/components/SortSelector.svelte';
 	import { pinnedNotes, unpinnedNotes, selectedTag, currentFilter, notes, notesLoaded, loadNotes, updateSortOrders } from '$lib/stores/notes.js';
-	import { sortMode } from '$lib/stores/sort.js';
 	import { onMount } from 'svelte';
 	import type { Note, NoteFilter } from '$lib/types/index.js';
 	import Plus from 'lucide-svelte/icons/plus';
@@ -76,16 +74,9 @@
 	</button>
 {/if}
 
-{#if filter === 'all'}
-	<div class="mb-4 flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-		<TagFilter />
-		<SortSelector />
-	</div>
-{:else}
-	<div class="mb-4">
-		<TagFilter />
-	</div>
-{/if}
+<div class="mb-4">
+	<TagFilter />
+</div>
 
 {#if filter === 'archived'}
 	<h2 class="mb-4 text-lg font-medium text-[var(--text-muted)]">Archive</h2>
@@ -97,7 +88,7 @@
 
 {#if $pinnedNotes.length > 0}
 	<div class="mb-6">
-		<NoteGrid notes={$pinnedNotes} label="Pinned" onEdit={openEditor} draggable={$sortMode === 'custom'} dndType="pinned-notes" onReorder={handleReorder} />
+		<NoteGrid notes={$pinnedNotes} label="Pinned" onEdit={openEditor} draggable dndType="pinned-notes" onReorder={handleReorder} />
 	</div>
 {/if}
 
@@ -105,7 +96,7 @@
 	notes={$unpinnedNotes}
 	label={$pinnedNotes.length > 0 ? 'Others' : ''}
 	onEdit={openEditor}
-	draggable={$sortMode === 'custom'}
+	draggable
 	dndType="unpinned-notes"
 	onReorder={handleReorder}
 />

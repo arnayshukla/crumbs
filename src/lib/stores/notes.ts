@@ -3,7 +3,6 @@ import type { Note, NoteFilter, NoteCreate, NoteUpdate } from '$lib/types/index.
 import { addToSyncQueue, putNote, deleteNoteFromIdb, getAllNotes, clearNotes as clearIdbNotes } from '$lib/sync/idb.js';
 import { showToast } from '$lib/stores/toast.js';
 import { extractTags } from '$lib/utils/tags.js';
-import { sortMode, type SortMode } from '$lib/stores/sort.js';
 
 export const notes = writable<Note[]>([]);
 export const currentFilter = writable<NoteFilter>('all');
@@ -28,25 +27,20 @@ export const filteredNotes = derived(
 	}
 );
 
-function sortNotes(list: Note[], mode: SortMode): Note[] {
+function sortNotes(list: Note[]): Note[] {
 	return [...list].sort((a, b) => {
-		if (mode === 'created') {
-			return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-		}
-		if (mode === 'custom') {
-			return a.sortOrder - b.sortOrder;
-		}
-		// default: updated
+		const orderDiff = a.sortOrder - b.sortOrder;
+		if (orderDiff !== 0) return orderDiff;
 		return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
 	});
 }
 
-export const pinnedNotes = derived([filteredNotes, sortMode], ([$notes, $sortMode]) =>
-	sortNotes($notes.filter((n) => n.pinned), $sortMode)
+export const pinnedNotes = derived(filteredNotes, ($notes) =>
+	sortNotes($notes.filter((n) => n.pinned))
 );
 
-export const unpinnedNotes = derived([filteredNotes, sortMode], ([$notes, $sortMode]) =>
-	sortNotes($notes.filter((n) => !n.pinned), $sortMode)
+export const unpinnedNotes = derived(filteredNotes, ($notes) =>
+	sortNotes($notes.filter((n) => !n.pinned))
 );
 
 export const allTags = derived(notes, ($notes) => {
