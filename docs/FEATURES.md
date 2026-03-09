@@ -59,7 +59,7 @@
 - Tags inside code blocks and URLs are ignored
 
 ### Color-Coded Notes
-12 colors matching Google Keep's palette:
+12 note colors:
 - Default, Coral, Peach, Sand, Mint, Sage
 - Fog, Storm, Dusk, Blossom, Clay, Chalk
 - Colors adapt to note theme

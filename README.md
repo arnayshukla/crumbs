@@ -9,7 +9,7 @@
 
 # Crumbs by Bretzel
 
-A self-hostable, offline-first note-taking app inspired by Google Keep. Part of the [Bretzel](https://bretzel.app) app universe.
+A self-hostable, offline-first note-taking app that respects your privacy. Part of the [Bretzel](https://bretzel.app) app universe.
 
 ## Install
 
