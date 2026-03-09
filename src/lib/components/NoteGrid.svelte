@@ -1,6 +1,6 @@
 <script lang="ts">
 	import NoteCard from './NoteCard.svelte';
-	import GripVertical from 'lucide-svelte/icons/grip-vertical';
+	import GripHorizontal from 'lucide-svelte/icons/grip-horizontal';
 	import { dragHandleZone, dragHandle, type DndEvent } from 'svelte-dnd-action';
 	import { flip } from 'svelte/animate';
 	import type { Note } from '$lib/types/index.js';
@@ -53,10 +53,10 @@
 					<div
 						use:dragHandle
 						aria-label="drag handle for {note.title || 'note'}"
-						class="absolute top-2 left-2 z-10 cursor-grab rounded-sm p-1 text-[var(--text-muted)] opacity-60 hover:opacity-100 hover:bg-[var(--border-subtle)]/50 transition-opacity duration-150"
+						class="absolute top-0 left-1/2 z-10 flex -translate-x-1/2 cursor-grab items-center justify-center px-6 py-0.5 text-[var(--text-muted)] opacity-40 transition-opacity duration-150 hover:opacity-70 active:cursor-grabbing outline-none"
 						data-testid="note-drag-handle"
 					>
-						<GripVertical class="h-4 w-4" />
+						<GripHorizontal class="h-3.5 w-3.5" />
 					</div>
 					<NoteCard {note} {onEdit} fullHeight />
 				</div>
