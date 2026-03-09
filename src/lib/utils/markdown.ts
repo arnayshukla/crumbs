@@ -24,6 +24,17 @@ md.core.ruler.after('inline', 'task-lists', (state) => {
 			const token = new state.Token('html_inline', '', 0);
 			token.content = checkbox;
 			tokens[i].children!.unshift(token);
+
+			// Add task-list class to parent <ul> (once)
+			for (let j = i - 1; j >= 0; j--) {
+				if (tokens[j].type === 'bullet_list_open') {
+					const cls = tokens[j].attrGet('class') ?? '';
+					if (!cls.includes('task-list')) {
+						tokens[j].attrJoin('class', 'task-list');
+					}
+					break;
+				}
+			}
 		}
 	}
 });

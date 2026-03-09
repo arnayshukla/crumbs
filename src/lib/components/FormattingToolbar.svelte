@@ -6,6 +6,7 @@
 		Heading,
 		List,
 		ListOrdered,
+		ListChecks,
 		TextQuote,
 		CodeXml,
 		Bold,
@@ -222,7 +223,7 @@
 	<div class="relative" data-dropdown="list">
 		<button
 			onclick={() => toggleDropdown('list')}
-			class={dropdownBtnClass(isActive('bulletList') || isActive('orderedList'))}
+			class={dropdownBtnClass(isActive('bulletList') || isActive('orderedList') || isActive('taskList'))}
 			title="Lists"
 			data-testid="format-list"
 		>
@@ -246,6 +247,14 @@
 				>
 					<ListOrdered size={iconSize} />
 					<span>Ordered list</span>
+				</button>
+				<button
+					onclick={() => { editor?.chain().focus().toggleTaskList().run(); closeDropdowns(); }}
+					class={dropdownItemClass(isActive('taskList'))}
+					data-testid="format-task-list"
+				>
+					<ListChecks size={iconSize} />
+					<span>Task list</span>
 				</button>
 			</div>
 		{/if}
