@@ -3,7 +3,7 @@
 </script>
 
 <svelte:head>
-	<title>Crumbs</title>
+	<title>Archive - Crumbs</title>
 </svelte:head>
 
-<NotesView filter="all" />
+<NotesView filter="archived" />

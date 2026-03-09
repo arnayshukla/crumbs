@@ -3,7 +3,7 @@
 </script>
 
 <svelte:head>
-	<title>Crumbs</title>
+	<title>Trash - Crumbs</title>
 </svelte:head>
 
-<NotesView filter="all" />
+<NotesView filter="trashed" />

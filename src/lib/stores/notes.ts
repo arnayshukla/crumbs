@@ -51,9 +51,7 @@ export const unpinnedNotes = derived([filteredNotes, sortMode], ([$notes, $sortM
 
 export const allTags = derived(notes, ($notes) => {
 	const tagSet = new Set<string>();
-	$notes
-		.filter((n) => !n.archived && !n.trashed)
-		.forEach((n) => n.tags?.forEach((t) => tagSet.add(t)));
+	$notes.forEach((n) => n.tags?.forEach((t) => tagSet.add(t)));
 	return [...tagSet].sort();
 });
 

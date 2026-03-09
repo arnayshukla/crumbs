@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { currentFilter, loadNotes, allTags, selectedTag } from '$lib/stores/notes.js';
+	import { page } from '$app/stores';
+	import { allTags } from '$lib/stores/notes.js';
 	import { StickyNote, Archive, Trash2, Tag, Settings } from 'lucide-svelte';
-	import type { NoteFilter } from '$lib/types/index.js';
 
 	interface Props {
 		open: boolean;
@@ -17,17 +17,11 @@
 		}
 	}
 
-	function setFilter(filter: NoteFilter) {
-		selectedTag.set(null);
-		loadNotes(filter);
-		closeMobile();
-	}
-
-	function selectTag(tag: string | null) {
-		selectedTag.set(tag);
-		loadNotes('all');
-		closeMobile();
-	}
+	const navItems = [
+		{ href: '/', label: 'Crumbs', icon: StickyNote, match: (p: string) => p === '/' },
+		{ href: '/archive', label: 'Archive', icon: Archive, match: (p: string) => p === '/archive' },
+		{ href: '/trash', label: 'Trash', icon: Trash2, match: (p: string) => p === '/trash' }
+	];
 </script>
 
 {#if open}
@@ -44,33 +38,18 @@
 >
 	<nav class="p-2">
 		<ul class="space-y-1">
-			<li>
-				<button
-					onclick={() => setFilter('all')}
-					class="flex w-full items-center gap-3 rounded-sm px-6 py-3 text-left text-sm transition-colors {$currentFilter === 'all' && !$selectedTag ? 'bg-[var(--primary)]/15 text-[var(--primary)]' : 'text-[var(--text)] hover:bg-[var(--bg-base)]'}"
-				>
-					<StickyNote size={20} />
-					Crumbs
-				</button>
-			</li>
-			<li>
-				<button
-					onclick={() => setFilter('archived')}
-					class="flex w-full items-center gap-3 rounded-sm px-6 py-3 text-left text-sm transition-colors {$currentFilter === 'archived' ? 'bg-[var(--primary)]/15 text-[var(--primary)]' : 'text-[var(--text)] hover:bg-[var(--bg-base)]'}"
-				>
-					<Archive size={20} />
-					Archive
-				</button>
-			</li>
-			<li>
-				<button
-					onclick={() => setFilter('trashed')}
-					class="flex w-full items-center gap-3 rounded-sm px-6 py-3 text-left text-sm transition-colors {$currentFilter === 'trashed' ? 'bg-[var(--primary)]/15 text-[var(--primary)]' : 'text-[var(--text)] hover:bg-[var(--bg-base)]'}"
-				>
-					<Trash2 size={20} />
-					Trash
-				</button>
-			</li>
+			{#each navItems as item}
+				<li>
+					<a
+						href={item.href}
+						onclick={closeMobile}
+						class="flex w-full items-center gap-3 rounded-sm px-6 py-3 text-left text-sm transition-colors {item.match($page.url.pathname) ? 'bg-[var(--primary)]/15 text-[var(--primary)]' : 'text-[var(--text)] hover:bg-[var(--bg-base)]'}"
+					>
+						<item.icon size={20} />
+						{item.label}
+					</a>
+				</li>
+			{/each}
 		</ul>
 
 		{#if $allTags.length > 0}
@@ -79,13 +58,14 @@
 				<ul class="mt-2 space-y-1">
 					{#each $allTags as tag}
 						<li>
-							<button
-								onclick={() => selectTag($selectedTag === tag ? null : tag)}
-								class="flex w-full items-center gap-3 rounded-sm px-6 py-2 text-left text-sm transition-colors {$selectedTag === tag ? 'bg-[var(--primary)]/15 text-[var(--primary)]' : 'text-[var(--text)] hover:bg-[var(--bg-base)]'}"
+							<a
+								href="/tag/{tag}"
+								onclick={closeMobile}
+								class="flex w-full items-center gap-3 rounded-sm px-6 py-2 text-left text-sm transition-colors {$page.url.pathname === `/tag/${tag}` ? 'bg-[var(--primary)]/15 text-[var(--primary)]' : 'text-[var(--text)] hover:bg-[var(--bg-base)]'}"
 							>
 								<Tag size={16} />
 								#{tag}
-							</button>
+							</a>
 						</li>
 					{/each}
 				</ul>
