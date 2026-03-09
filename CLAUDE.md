@@ -2,7 +2,7 @@
 
 ## Project overview
 
-Crumbs by Bretzel — self-hostable note-taking app. Single-user, offline-first PWA with CRDT-based sync.
+Crumbs by Bretzel — self-hostable note-taking app. Multi-user with password auth + OAuth/SSO, offline-first PWA with CRDT-based sync.
 
 ## Tech stack
 
@@ -10,7 +10,7 @@ Crumbs by Bretzel — self-hostable note-taking app. Single-user, offline-first 
 - **Adapter**: `@sveltejs/adapter-node` (builds to `build/`, runs via `node build`)
 - **Styling**: Tailwind CSS v4 (via `@tailwindcss/vite`)
 - **Database**: SQLite via better-sqlite3 + Drizzle ORM (WAL mode, schema at `src/lib/server/db/schema.ts`)
-- **Auth**: Single-user password auth with Argon2 hashing, session cookies (30-day expiry)
+- **Auth**: Multi-user with password auth (Argon2) + OAuth (Google, GitHub, OIDC), role-based (admin/user), session cookies (30-day expiry)
 - **PWA**: `@vite-pwa/sveltekit` for service worker and offline caching
 - **Package manager**: pnpm
 
@@ -75,7 +75,12 @@ src/
     (app)/             # Layout group: main app (header, sidebar, footer)
       +layout.svelte   # App shell with Header, Sidebar, Toast
       +page.svelte     # Main notes view
-    api/auth/          # Login, logout, setup endpoints
+      archive/         # Archived notes view
+      trash/           # Trashed notes view
+      tag/[name]/      # Notes filtered by tag
+      settings/        # Settings with tabbed layout (profile, MCP, users)
+    api/auth/          # Login, logout, setup, OAuth endpoints
+    api/admin/users/   # Admin user management (CRUD, role, sessions)
     api/notes/         # CRUD + attachments
     api/search/        # Full-text search
     api/sync/          # Offline sync
@@ -129,6 +134,7 @@ A `Makefile` wraps all common tasks for tool-agnostic usage. Run `make help` to 
 
 - **Conventional commits**: Use `feat:`, `fix:`, `chore:`, `docs:`, `refactor:`, `test:` prefixes
 - **Commit regularly**: Bundle related changes into logical commits after each step or feature slice — don't accumulate a large diff
+- **Main branch**: `main` — use as base for all PRs and feature branches
 - **Feature branches**: Use `feat/<name>` branches with worktrees for isolation
 - **Rebase before PR**: Always `git rebase origin/main` (not merge) before pushing or creating a PR to keep a clean linear history and avoid merge conflicts in the PR
 
