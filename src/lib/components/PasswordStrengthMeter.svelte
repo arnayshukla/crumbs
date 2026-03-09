@@ -7,11 +7,11 @@
 
 	const labels = ['Very weak', 'Weak', 'Fair', 'Strong', 'Very strong'];
 	const colors = [
-		'bg-red-500',
-		'bg-orange-500',
-		'bg-yellow-500',
-		'bg-lime-500',
-		'bg-green-500'
+		'bg-[var(--destructive)]',
+		'bg-[var(--destructive)]',
+		'bg-[var(--primary)]',
+		'bg-[var(--success-text)]',
+		'bg-[var(--success-text)]'
 	];
 </script>
 
@@ -20,13 +20,13 @@
 		<div class="flex gap-1">
 			{#each { length: 4 } as _, i}
 				<div
-					class="h-1 flex-1 rounded-full transition-colors {i <= result.score
+					class="h-1 flex-1 rounded-sm transition-colors {i <= result.score
 						? colors[result.score]
-						: 'bg-gray-200 dark:bg-gray-600'}"
+						: 'bg-[var(--border-subtle)]'}"
 				></div>
 			{/each}
 		</div>
-		<p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+		<p class="mt-1 text-xs text-[var(--text-muted)]">
 			{labels[result.score]}
 			{#if result.feedback.warning}
 				— {result.feedback.warning}

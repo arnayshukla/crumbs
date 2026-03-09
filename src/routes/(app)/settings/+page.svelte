@@ -141,44 +141,44 @@
 </script>
 
 <svelte:head>
-	<title>Settings - KeepNotes</title>
+	<title>Settings - Crumbs</title>
 </svelte:head>
 
-<div class="mx-auto max-w-2xl py-8">
-	<h1 class="mb-8 text-2xl font-bold text-gray-800 dark:text-gray-100">Settings</h1>
+<div class="mx-auto max-w-2xl px-4 py-8">
+	<h1 class="mb-8 text-2xl font-bold text-[var(--text)]">Settings</h1>
 
 	<!-- Profile -->
-	<section class="mb-8 rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
-		<h2 class="mb-4 text-lg font-semibold text-gray-800 dark:text-gray-100">Profile</h2>
+	<section class="mb-6 rounded-sm border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-6 shadow-[var(--card-shadow)]">
+		<h2 class="mb-4 text-lg font-semibold text-[var(--text)]">Profile</h2>
 
 		{#if profileMsg}
-			<div class="mb-4 rounded p-3 text-sm {profileError ? 'bg-red-50 text-red-600 dark:bg-red-900/30 dark:text-red-400' : 'bg-green-50 text-green-600 dark:bg-green-900/30 dark:text-green-400'}">
+			<div class="mb-4 rounded-sm border p-3 text-sm {profileError ? 'border-[var(--error-border)] bg-[var(--error-bg)] text-[var(--error-text)]' : 'border-[var(--success-bg)] bg-[var(--success-bg)] text-[var(--success-text)]'}">
 				{profileMsg}
 			</div>
 		{/if}
 
 		<div class="space-y-4">
 			<div>
-				<label for="display-name" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Display Name</label>
+				<label for="display-name" class="mb-1 block text-sm font-medium text-[var(--text)]">Display Name</label>
 				<input
 					id="display-name"
 					type="text"
 					bind:value={displayName}
-					class="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm outline-none focus:border-amber-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+					class="w-full rounded-sm border border-[var(--border-subtle)] bg-[var(--bg-base)] px-4 py-2 text-sm text-[var(--text)] outline-none focus:border-[var(--primary)]"
 				/>
 			</div>
 			<div>
-				<label for="email" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Email</label>
+				<label for="email" class="mb-1 block text-sm font-medium text-[var(--text)]">Email</label>
 				<input
 					id="email"
 					type="email"
 					bind:value={email}
-					class="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm outline-none focus:border-amber-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+					class="w-full rounded-sm border border-[var(--border-subtle)] bg-[var(--bg-base)] px-4 py-2 text-sm text-[var(--text)] outline-none focus:border-[var(--primary)]"
 				/>
 			</div>
 			<button
 				onclick={saveProfile}
-				class="rounded-lg bg-amber-500 px-4 py-2 text-sm font-medium text-white hover:bg-amber-600"
+				class="rounded-sm bg-[var(--primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[var(--primary-hover)]"
 			>
 				Save profile
 			</button>
@@ -186,11 +186,11 @@
 	</section>
 
 	<!-- Change Password -->
-	<section class="mb-8 rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
-		<h2 class="mb-4 text-lg font-semibold text-gray-800 dark:text-gray-100">Change Password</h2>
+	<section class="mb-6 rounded-sm border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-6 shadow-[var(--card-shadow)]">
+		<h2 class="mb-4 text-lg font-semibold text-[var(--text)]">Change Password</h2>
 
 		{#if passwordMsg}
-			<div class="mb-4 rounded p-3 text-sm {passwordError ? 'bg-red-50 text-red-600 dark:bg-red-900/30 dark:text-red-400' : 'bg-green-50 text-green-600 dark:bg-green-900/30 dark:text-green-400'}">
+			<div class="mb-4 rounded-sm border p-3 text-sm {passwordError ? 'border-[var(--error-border)] bg-[var(--error-bg)] text-[var(--error-text)]' : 'border-[var(--success-bg)] bg-[var(--success-bg)] text-[var(--success-text)]'}">
 				{passwordMsg}
 			</div>
 		{/if}
@@ -200,24 +200,24 @@
 				type="password"
 				bind:value={currentPassword}
 				placeholder="Current password"
-				class="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm outline-none focus:border-amber-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+				class="w-full rounded-sm border border-[var(--border-subtle)] bg-[var(--bg-base)] px-4 py-2 text-sm text-[var(--text)] outline-none placeholder:text-[var(--text-muted)] focus:border-[var(--primary)]"
 			/>
 			<input
 				type="password"
 				bind:value={newPassword}
 				placeholder="New password (min 8 characters)"
-				class="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm outline-none focus:border-amber-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+				class="w-full rounded-sm border border-[var(--border-subtle)] bg-[var(--bg-base)] px-4 py-2 text-sm text-[var(--text)] outline-none placeholder:text-[var(--text-muted)] focus:border-[var(--primary)]"
 			/>
 			<PasswordStrengthMeter password={newPassword} />
 			<input
 				type="password"
 				bind:value={confirmNewPassword}
 				placeholder="Confirm new password"
-				class="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm outline-none focus:border-amber-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+				class="w-full rounded-sm border border-[var(--border-subtle)] bg-[var(--bg-base)] px-4 py-2 text-sm text-[var(--text)] outline-none placeholder:text-[var(--text-muted)] focus:border-[var(--primary)]"
 			/>
 			<button
 				onclick={changePassword}
-				class="rounded-lg bg-amber-500 px-4 py-2 text-sm font-medium text-white hover:bg-amber-600"
+				class="rounded-sm bg-[var(--primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[var(--primary-hover)]"
 			>
 				Change password
 			</button>
@@ -225,13 +225,13 @@
 	</section>
 
 	<!-- Active Sessions -->
-	<section class="mb-8 rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
+	<section class="mb-6 rounded-sm border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-6 shadow-[var(--card-shadow)]">
 		<div class="mb-4 flex items-center justify-between">
-			<h2 class="text-lg font-semibold text-gray-800 dark:text-gray-100">Active Sessions</h2>
+			<h2 class="text-lg font-semibold text-[var(--text)]">Active Sessions</h2>
 			{#if activeSessions.length > 1}
 				<button
 					onclick={revokeAllOtherSessions}
-					class="text-xs text-red-600 hover:text-red-700 dark:text-red-400"
+					class="text-xs text-[var(--destructive)] hover:underline"
 				>
 					Log out everywhere else
 				</button>
@@ -239,28 +239,28 @@
 		</div>
 
 		{#if !sessionsLoaded}
-			<p class="text-sm text-gray-500">Loading sessions...</p>
+			<p class="text-sm text-[var(--text-muted)]">Loading sessions...</p>
 		{:else if activeSessions.length === 0}
-			<p class="text-sm text-gray-500">No active sessions</p>
+			<p class="text-sm text-[var(--text-muted)]">No active sessions</p>
 		{:else}
 			<div class="space-y-3">
 				{#each activeSessions as session (session.id)}
-					<div class="flex items-center justify-between rounded-lg border border-gray-100 p-3 dark:border-gray-700">
+					<div class="flex items-center justify-between rounded-sm border border-[var(--border-subtle)] p-3">
 						<div>
-							<p class="text-sm font-medium text-gray-800 dark:text-gray-100">
+							<p class="text-sm font-medium text-[var(--text)]">
 								{formatAgent(session.userAgent)}
 								{#if session.isCurrent}
-									<span class="ml-2 rounded bg-green-100 px-2 py-0.5 text-xs text-green-800 dark:bg-green-900/30 dark:text-green-200">current</span>
+									<span class="ml-2 rounded-sm bg-[var(--success-bg)] px-2 py-0.5 text-xs text-[var(--success-text)]">current</span>
 								{/if}
 							</p>
-							<p class="text-xs text-gray-500 dark:text-gray-400">
+							<p class="text-xs text-[var(--text-muted)]">
 								{session.ip || 'Unknown IP'} · Last active {formatDate(session.lastUsedAt)}
 							</p>
 						</div>
 						{#if !session.isCurrent}
 							<button
 								onclick={() => revokeSession(session.id)}
-								class="rounded px-3 py-1 text-xs text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
+								class="rounded-sm px-3 py-1 text-xs text-[var(--destructive)] hover:bg-[var(--error-bg)]"
 							>
 								Revoke
 							</button>
@@ -273,11 +273,11 @@
 
 	<!-- Admin: User Management Link -->
 	{#if data.user?.role === 'admin'}
-		<section class="rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
-			<h2 class="mb-4 text-lg font-semibold text-gray-800 dark:text-gray-100">Administration</h2>
+		<section class="rounded-sm border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-6 shadow-[var(--card-shadow)]">
+			<h2 class="mb-4 text-lg font-semibold text-[var(--text)]">Administration</h2>
 			<a
 				href="/settings/users"
-				class="text-sm text-amber-600 hover:text-amber-700 hover:underline dark:text-amber-400"
+				class="text-sm text-[var(--primary)] hover:text-[var(--primary-hover)] hover:underline"
 			>
 				Manage users →
 			</a>
