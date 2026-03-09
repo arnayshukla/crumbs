@@ -73,6 +73,7 @@
 	}
 </script>
 
+<!-- svelte-ignore a11y_no_noninteractive_element_to_interactive_role -->
 <article
 	class="group relative cursor-pointer rounded-sm border border-[var(--border-subtle)] p-4 transition-all hover:border-[var(--primary)] shadow-[var(--card-shadow)] hover:shadow-[var(--card-shadow-hover)] {fullHeight ? 'h-full' : ''}"
 	style={cardStyle}
@@ -88,15 +89,19 @@
 		<div class="-mx-4 -mt-4 mb-3 flex overflow-hidden rounded-t-sm" data-testid="card-thumbnails">
 			{#each featuredAttachments.slice(0, 3) as attachment}
 				<div class="relative min-w-0 flex-1">
-					<!-- svelte-ignore a11y_no_noninteractive_element_interactions a11y_click_events_have_key_events -->
-					<img
-						src="/api/notes/{note.id}/attachments?attachmentId={attachment.id}&thumb=1"
-						alt={attachment.filename}
-						class="h-24 w-full cursor-pointer object-cover"
-						loading="lazy"
+					<button
+						type="button"
+						class="h-24 w-full cursor-pointer p-0 border-0 bg-transparent"
 						onclick={(e) => { e.stopPropagation(); lightboxSrc = `/api/notes/${note.id}/attachments?attachmentId=${attachment.id}`; lightboxAlt = attachment.filename; }}
 						data-testid="card-thumbnail"
-					/>
+					>
+						<img
+							src="/api/notes/{note.id}/attachments?attachmentId={attachment.id}&thumb=1"
+							alt={attachment.filename}
+							class="h-24 w-full object-cover"
+							loading="lazy"
+						/>
+					</button>
 				</div>
 			{/each}
 			{#if featuredAttachments.length > 3}

@@ -33,6 +33,7 @@
 	let checklistMode = $state(note?.checklistMode ?? false);
 	let showColorPicker = $state(false);
 	let showImageUpload = $state(false);
+	// svelte-ignore state_referenced_locally
 	let rawMarkdownMode = $state(note?.checklistMode ?? false);
 	let textareaEl: HTMLTextAreaElement | undefined = $state();
 	let tiptapEditor: Editor | undefined = $state();

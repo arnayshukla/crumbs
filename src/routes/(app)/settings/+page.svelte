@@ -14,7 +14,9 @@
 	let { data } = $props();
 
 	// Profile state
+	// svelte-ignore state_referenced_locally
 	let displayName = $state(data.user?.displayName || '');
+	// svelte-ignore state_referenced_locally
 	let email = $state(data.user?.email || '');
 	let profileMsg = $state('');
 	let profileError = $state(false);

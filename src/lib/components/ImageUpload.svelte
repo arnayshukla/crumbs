@@ -119,14 +119,18 @@
 				{@const isPending = 'pending' in attachment && attachment.pending}
 				{@const imgSrc = isPending ? attachment.path : `/api/notes/${noteId}/attachments?attachmentId=${attachment.id}`}
 				<div class="group relative">
-					<!-- svelte-ignore a11y_no_noninteractive_element_interactions a11y_click_events_have_key_events -->
-					<img
-						src={imgSrc}
-						alt={attachment.filename}
-						class="h-20 w-20 cursor-pointer rounded-sm object-cover {isPending ? 'opacity-70' : ''}"
+					<button
+						type="button"
+						class="h-20 w-20 cursor-pointer rounded-sm p-0 border-0 bg-transparent overflow-hidden"
 						onclick={() => { lightboxSrc = imgSrc; lightboxAlt = attachment.filename; }}
 						data-testid="attachment-thumbnail"
-					/>
+					>
+						<img
+							src={imgSrc}
+							alt={attachment.filename}
+							class="h-20 w-20 object-cover {isPending ? 'opacity-70' : ''}"
+						/>
+					</button>
 					{#if isPending}
 						<div class="absolute bottom-0.5 left-0.5 rounded-sm bg-black/50 p-0.5" title="Pending sync">
 							<RefreshCw class="h-3 w-3 text-white" />

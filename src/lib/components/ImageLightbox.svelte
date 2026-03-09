@@ -9,6 +9,8 @@
 
 	const { src, alt, onClose }: Props = $props();
 
+	let dialogEl: HTMLDivElement | undefined = $state();
+
 	function handleKeydown(e: KeyboardEvent) {
 		if (e.key === 'Escape') {
 			e.stopPropagation();
@@ -21,14 +23,21 @@
 			onClose();
 		}
 	}
+
+	$effect(() => {
+		dialogEl?.focus();
+	});
 </script>
 
-<svelte:window onkeydown={handleKeydown} />
-
-<!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
+	bind:this={dialogEl}
 	class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 animate-[fade-in_150ms_ease-out]"
 	onclick={handleBackgroundClick}
+	onkeydown={handleKeydown}
+	role="dialog"
+	aria-modal="true"
+	aria-label="Image lightbox"
+	tabindex="-1"
 	data-testid="image-lightbox"
 >
 	<button

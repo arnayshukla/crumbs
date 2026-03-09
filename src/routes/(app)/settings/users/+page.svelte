@@ -3,6 +3,7 @@
 	import PasswordStrengthMeter from '$lib/components/PasswordStrengthMeter.svelte';
 
 	let { data } = $props();
+	// svelte-ignore state_referenced_locally
 	let users = $state<User[]>(data.users);
 
 	// Create user form

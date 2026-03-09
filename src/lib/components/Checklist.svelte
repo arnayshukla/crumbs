@@ -19,6 +19,7 @@
 
 	let { content, onChange }: Props = $props();
 
+	// svelte-ignore state_referenced_locally
 	let items = $state<ChecklistItem[]>(parseChecklist(content));
 	let doneExpanded = $state(true);
 	const flipDurationMs = 150;

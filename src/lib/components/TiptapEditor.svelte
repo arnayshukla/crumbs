@@ -57,11 +57,14 @@
 	});
 </script>
 
-<!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
+<!-- svelte-ignore a11y_click_events_have_key_events -->
 <div
 	bind:this={element}
 	class="tiptap-wrapper prose prose-sm flex min-h-[300px] max-w-none flex-col px-4 py-2 text-[var(--text)]"
 	data-testid="tiptap-editor"
+	role="textbox"
+	aria-multiline="true"
+	tabindex="0"
 	onclick={() => editor?.commands.focus()}
 ></div>
 

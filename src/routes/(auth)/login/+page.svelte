@@ -42,6 +42,7 @@
 		}
 	}
 
+	// svelte-ignore state_referenced_locally
 	const providers = data.providers ?? [];
 </script>
 
