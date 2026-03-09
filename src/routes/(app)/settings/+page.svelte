@@ -30,6 +30,12 @@
 	let activeSessions = $state<SessionInfo[]>([]);
 	let sessionsLoaded = $state(false);
 
+	// Delete account state
+	let deletePassword = $state('');
+	let deleteMsg = $state('');
+	let deleteError = $state(false);
+	let showDeleteConfirm = $state(false);
+
 	async function loadSessions() {
 		try {
 			const res = await fetch('/api/auth/sessions');
@@ -78,6 +84,32 @@
 	function formatDate(d: string | null): string {
 		if (!d) return 'Unknown';
 		return new Date(d).toLocaleString();
+	}
+
+	async function deleteAccount() {
+		deleteMsg = '';
+		try {
+			const res = await fetch('/api/auth/account', {
+				method: 'DELETE',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ password: deletePassword })
+			});
+			if (res.ok) {
+				window.location.href = '/login';
+			} else {
+				const d = await res.json();
+				deleteMsg = d.message || 'Failed to delete account';
+				deleteError = true;
+			}
+		} catch {
+			deleteMsg = 'Connection error';
+			deleteError = true;
+		}
+	}
+
+	async function handleLogout() {
+		await fetch('/api/auth/logout', { method: 'POST' });
+		window.location.href = '/login';
 	}
 
 	async function saveProfile() {
@@ -220,7 +252,7 @@
 </section>
 
 <!-- Active Sessions -->
-<section class="rounded-sm border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-6 shadow-[var(--card-shadow)]">
+<section class="mb-6 rounded-sm border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-6 shadow-[var(--card-shadow)]">
 	<div class="mb-4 flex items-center justify-between">
 		<h2 class="text-lg font-semibold text-[var(--text)]">Active Sessions</h2>
 		{#if activeSessions.length > 1}
@@ -262,6 +294,52 @@
 					{/if}
 				</div>
 			{/each}
+		</div>
+	{/if}
+</section>
+
+<!-- Log Out & Delete Account -->
+<section class="rounded-sm border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-6 shadow-[var(--card-shadow)]">
+	<div class="flex items-center justify-between">
+		<button
+			onclick={handleLogout}
+			class="rounded-sm border border-[var(--border-subtle)] px-4 py-2 text-sm font-medium text-[var(--text)] hover:border-[var(--primary)] hover:text-[var(--primary)]"
+			data-testid="logout-btn"
+		>
+			Log out
+		</button>
+		<button
+			onclick={() => (showDeleteConfirm = !showDeleteConfirm)}
+			class="rounded-sm px-4 py-2 text-sm font-medium text-[var(--destructive)] hover:underline"
+		>
+			Delete account
+		</button>
+	</div>
+
+	{#if showDeleteConfirm}
+		<div class="mt-4 rounded-sm border border-[var(--error-border)] bg-[var(--error-bg)] p-4">
+			<p class="mb-3 text-sm text-[var(--error-text)]">
+				This will permanently delete your account and all your notes. This cannot be undone.
+			</p>
+
+			{#if deleteMsg}
+				<div class="mb-3 text-sm text-[var(--error-text)]">{deleteMsg}</div>
+			{/if}
+
+			<div class="flex items-center gap-3">
+				<input
+					type="password"
+					bind:value={deletePassword}
+					placeholder="Enter your password to confirm"
+					class="flex-1 rounded-sm border border-[var(--error-border)] bg-[var(--bg-base)] px-3 py-2 text-sm text-[var(--text)] outline-none placeholder:text-[var(--text-muted)] focus:border-[var(--destructive)]"
+				/>
+				<button
+					onclick={deleteAccount}
+					class="rounded-sm bg-[var(--destructive)] px-4 py-2 text-sm font-medium text-white hover:opacity-90"
+				>
+					Confirm delete
+				</button>
+			</div>
 		</div>
 	{/if}
 </section>
