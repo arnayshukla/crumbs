@@ -15,9 +15,19 @@
 </script>
 
 {#if $allTags.length > 0}
-	<div class="flex gap-2 overflow-x-auto max-md:flex-nowrap md:flex-wrap" data-testid="tag-filter">
+	<!-- svelte-ignore css_unused_selector -->
+	<div class="tag-scroll flex gap-2 overflow-x-auto max-md:flex-nowrap md:flex-wrap" data-testid="tag-filter">
 		{#each $allTags as tag}
 			<TagChip {tag} active={isTagActive(tag, $page.url.pathname)} onclick={() => toggleTag(tag)} />
 		{/each}
 	</div>
 {/if}
+
+<style>
+	.tag-scroll {
+		scrollbar-width: none;
+	}
+	.tag-scroll::-webkit-scrollbar {
+		display: none;
+	}
+</style>
