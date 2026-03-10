@@ -1,7 +1,20 @@
 import { test, expect } from './helpers/fixtures.js';
 import type { Page } from '@playwright/test';
 
-/** Reset all preferences to defaults via API so each test starts clean */
+const DEFAULT_PREFS = {
+	defaultNoteMode: 'richtext',
+	defaultNoteColor: 'default',
+	hideFooter: false,
+	sidebarDefaultState: 'open'
+};
+
+/**
+ * Reset preferences to defaults on both server and client localStorage.
+ *
+ * Server reset ensures GET /api/preferences returns defaults.
+ * localStorage reset ensures initPreferences() picks up correct values
+ * even if the sync request is blocked or returns stale data.
+ */
 async function resetPreferences(page: Page) {
 	await page.request.put('/api/preferences', {
 		data: {
@@ -11,6 +24,31 @@ async function resetPreferences(page: Page) {
 			sidebarDefaultState: 'open'
 		}
 	});
+	await page.evaluate(
+		(prefs) => localStorage.setItem('crumbs-preferences', JSON.stringify(prefs)),
+		DEFAULT_PREFS
+	);
+}
+
+/**
+ * Navigate to a URL with reliable preference state.
+ *
+ * page.goto() triggers a full page reload which re-runs initPreferences():
+ *   1. loadFromLocalStorage() — synchronous, returns correct value
+ *   2. syncPreferencesFromServer() — async, can return stale data from
+ *      parallel test workers that share the same user's server-side prefs
+ *
+ * This helper blocks the one GET /api/preferences sync request so
+ * initPreferences() falls back to localStorage (which is always correct
+ * from either resetPreferences or updatePreference on the settings page).
+ */
+async function gotoWithStablePrefs(page: Page, url: string) {
+	await page.route(
+		'**/api/preferences',
+		(route) => route.abort(),
+		{ times: 1 }
+	);
+	await page.goto(url);
 }
 
 test.describe('Settings — Preferences', () => {
@@ -30,13 +68,13 @@ test.describe('Settings — Preferences', () => {
 		await resetPreferences(page);
 
 		// Given the user sets default note mode to Markdown
-		await page.goto('/settings/preferences');
+		await gotoWithStablePrefs(page, '/settings/preferences');
 		const putResponse = page.waitForResponse((res) => res.url().includes('/api/preferences') && res.request().method() === 'PUT');
 		await page.getByTestId('pref-mode-markdown').click();
 		await putResponse;
 
 		// When the user creates a new note
-		await page.goto('/');
+		await gotoWithStablePrefs(page, '/');
 		await page.getByTestId('new-note-btn').click();
 
 		// Then the note editor opens in markdown mode (textarea visible)
@@ -49,23 +87,23 @@ test.describe('Settings — Preferences', () => {
 		await resetPreferences(page);
 
 		// Given the footer is visible
-		await page.goto('/');
+		await gotoWithStablePrefs(page, '/');
 		await expect(page.getByTestId('app-footer')).toBeVisible();
 
 		// When the user enables the hide footer preference
-		await page.goto('/settings/preferences');
+		await gotoWithStablePrefs(page, '/settings/preferences');
 		await page.getByTestId('pref-hide-footer').check();
 
 		// Then the footer is hidden
-		await page.goto('/');
+		await gotoWithStablePrefs(page, '/');
 		await expect(page.getByTestId('app-footer')).not.toBeVisible();
 
 		// When the user disables the hide footer preference
-		await page.goto('/settings/preferences');
+		await gotoWithStablePrefs(page, '/settings/preferences');
 		await page.getByTestId('pref-hide-footer').uncheck();
 
 		// Then the footer is visible again
-		await page.goto('/');
+		await gotoWithStablePrefs(page, '/');
 		await expect(page.getByTestId('app-footer')).toBeVisible();
 	});
 
@@ -75,12 +113,13 @@ test.describe('Settings — Preferences', () => {
 		await resetPreferences(page);
 
 		// Given the user changes default note mode to Markdown
-		await page.goto('/settings/preferences');
+		await gotoWithStablePrefs(page, '/settings/preferences');
 		const putResponse = page.waitForResponse((res) => res.url().includes('/api/preferences') && res.request().method() === 'PUT');
 		await page.getByTestId('pref-mode-markdown').click();
 		await putResponse;
 
-		// When the page is reloaded
+		// When the page is reloaded (block sync to prevent parallel-test interference)
+		await page.route('**/api/preferences', (route) => route.abort(), { times: 1 });
 		await page.reload();
 
 		// Then the Markdown button is still selected (has primary styling)
@@ -93,9 +132,12 @@ test.describe('Settings — API Key Management', () => {
 	test('Scenario: Created API key appears in the keys list', async ({
 		authenticatedPage: page
 	}) => {
+		// Use a unique name to avoid strict-mode violations from parallel test runs
+		const keyName = `Test Key ${Date.now()}`;
+
 		// When the user navigates to the MCP settings and creates an API key
 		await page.goto('/settings/mcp');
-		await page.getByTestId('api-key-name-input').fill('Settings Test Key');
+		await page.getByTestId('api-key-name-input').fill(keyName);
 		await page.getByTestId('create-api-key-btn').click();
 
 		// Then the key is shown once for copying
@@ -104,20 +146,22 @@ test.describe('Settings — API Key Management', () => {
 		expect(keyValue).toMatch(/^crumbs_/);
 
 		// And it appears in the keys list
-		const keyItem = page.getByTestId('api-key-item').filter({ hasText: 'Settings Test Key' });
+		const keyItem = page.getByTestId('api-key-item').filter({ hasText: keyName });
 		await expect(keyItem).toBeVisible();
 	});
 
 	test('Scenario: Revoked API key disappears from the keys list', async ({
 		authenticatedPage: page
 	}) => {
+		const keyName = `Revoke Key ${Date.now()}`;
+
 		// Given an API key exists
 		await page.goto('/settings/mcp');
-		await page.getByTestId('api-key-name-input').fill('Revoke Me');
+		await page.getByTestId('api-key-name-input').fill(keyName);
 		await page.getByTestId('create-api-key-btn').click();
 		await expect(page.getByTestId('created-key-display')).toBeVisible();
 
-		const keyItem = page.getByTestId('api-key-item').filter({ hasText: 'Revoke Me' });
+		const keyItem = page.getByTestId('api-key-item').filter({ hasText: keyName });
 		await expect(keyItem).toBeVisible();
 
 		// When the user revokes the key
