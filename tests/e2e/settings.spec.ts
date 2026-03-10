@@ -57,10 +57,10 @@ test.describe('Settings — API Key Management', () => {
 		// Given the user is on the settings page
 		await page.goto('/settings');
 
-		// When the user clicks the MCP Server nav link
-		await page.getByRole('link', { name: 'MCP Server' }).click();
+		// When the user clicks the API nav link
+		await page.getByRole('link', { name: 'API' }).click();
 
-		// Then the MCP settings page is shown
+		// Then the API settings page is shown
 		await expect(page).toHaveURL('/settings/mcp');
 		await expect(page.getByRole('heading', { name: 'API Keys' })).toBeVisible();
 
