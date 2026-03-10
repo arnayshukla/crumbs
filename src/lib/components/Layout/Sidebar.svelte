@@ -6,10 +6,9 @@
 	interface Props {
 		open: boolean;
 		onClose?: () => void;
-		appVersion?: string;
 	}
 
-	let { open, onClose, appVersion }: Props = $props();
+	let { open, onClose }: Props = $props();
 
 	function closeMobile() {
 		if (window.matchMedia('(max-width: 1023px)').matches) {
@@ -75,17 +74,12 @@
 	<div class="absolute bottom-0 left-0 w-full border-t border-[var(--border-subtle)]">
 		<a
 			href="/settings"
-			class="flex w-full items-center gap-3 px-6 py-3 text-sm text-[var(--text-muted)] transition-colors hover:text-[var(--primary)]"
+			class="flex w-full items-center gap-3 rounded-sm px-6 py-3 text-left text-sm transition-colors {$page.url.pathname.startsWith('/settings') ? 'bg-[var(--primary)]/15 text-[var(--primary)]' : 'text-[var(--text)] hover:bg-[var(--bg-base)]'}"
 			onclick={closeMobile}
 			data-testid="settings-link"
 		>
-			<Settings size={16} />
+			<Settings size={20} />
 			Settings
 		</a>
-		{#if appVersion}
-			<div class="border-t border-[var(--border-subtle)] px-6 py-2 text-right text-xs text-[var(--text-muted)]">
-				v{appVersion}
-			</div>
-		{/if}
 	</div>
 </aside>

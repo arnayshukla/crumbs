@@ -34,7 +34,7 @@
 
 <div class="flex min-h-screen flex-col bg-[var(--bg-base)] text-[var(--text)]">
 	<Header onMenuToggle={() => (sidebarOpen = !sidebarOpen)} />
-	<Sidebar open={sidebarOpen} onClose={() => (sidebarOpen = false)} appVersion={data.appVersion} />
+	<Sidebar open={sidebarOpen} onClose={() => (sidebarOpen = false)} />
 
 	<main class="flex-1 pt-4 transition-all {sidebarOpen ? 'lg:ml-64' : ''}">
 		<div class="mx-auto max-w-7xl px-4">
