@@ -97,3 +97,6 @@ export type NoteColor =
 export type NoteFilter = 'all' | 'archived' | 'trashed';
 
 export type SyncStatus = 'synced' | 'syncing' | 'offline' | 'error';
+
+export type { UserPreferences } from './preferences.js';
+export { DEFAULT_PREFERENCES, BOOLEAN_PREF_KEYS } from './preferences.js';

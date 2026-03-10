@@ -175,3 +175,17 @@ export const loginAttempts = sqliteTable(
 	},
 	(table) => [index('login_attempts_ip_timestamp_idx').on(table.ip, table.timestamp)]
 );
+
+export const userPreferences = sqliteTable(
+	'user_preferences',
+	{
+		id: integer('id').primaryKey({ autoIncrement: true }),
+		userId: integer('user_id')
+			.references(() => users.id)
+			.notNull(),
+		key: text('key').notNull(),
+		value: text('value').notNull(),
+		updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull()
+	},
+	(table) => [uniqueIndex('user_preferences_user_key_unique').on(table.userId, table.key)]
+);

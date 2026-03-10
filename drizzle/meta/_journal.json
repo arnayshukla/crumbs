@@ -15,6 +15,13 @@
       "when": 1773016788899,
       "tag": "0001_strange_lord_hawal",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1773150888301,
+      "tag": "0002_deep_black_widow",
+      "breakpoints": true
     }
   ]
 }

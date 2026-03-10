@@ -8,6 +8,7 @@
 	import { updateNote, createNote } from '$lib/stores/notes.js';
 	import { notes } from '$lib/stores/notes.js';
 	import { NOTE_COLORS } from '$lib/utils/colors.js';
+	import { getPreferences } from '$lib/stores/preferences.svelte.js';
 	import type { Editor } from '@tiptap/core';
 	import type { Note, NoteColor, Attachment, Collaborator } from '$lib/types/index.js';
 	import Palette from 'lucide-svelte/icons/palette';
@@ -26,19 +27,20 @@
 	}
 
 	const { note, isNew = false, onClose }: Props = $props();
+	const prefs = getPreferences();
 
 	// svelte-ignore state_referenced_locally
 	let title = $state(note?.title ?? '');
 	// svelte-ignore state_referenced_locally
 	let content = $state(note?.content ?? '');
 	// svelte-ignore state_referenced_locally
-	let color = $state<NoteColor>(note?.color ?? 'default');
+	let color = $state<NoteColor>(note?.color ?? prefs.defaultNoteColor);
 	// svelte-ignore state_referenced_locally
 	let checklistMode = $state(note?.checklistMode ?? false);
 	let showColorPicker = $state(false);
 	let showImageUpload = $state(false);
 	// svelte-ignore state_referenced_locally
-	let rawMarkdownMode = $state(note?.checklistMode ?? false);
+	let rawMarkdownMode = $state(note ? (note.checklistMode ?? false) : prefs.defaultNoteMode === 'markdown');
 	let textareaEl: HTMLTextAreaElement | undefined = $state();
 	let tiptapEditor: Editor | undefined = $state();
 	let editorTick = $state(0);

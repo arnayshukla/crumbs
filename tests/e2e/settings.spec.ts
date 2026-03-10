@@ -1,5 +1,73 @@
 import { test, expect } from './helpers/fixtures.js';
 
+test.describe('Settings — Preferences', () => {
+	test('Scenario: Preferences tab is visible in settings nav', async ({
+		authenticatedPage: page
+	}) => {
+		// When the user navigates to settings
+		await page.goto('/settings');
+
+		// Then the Preferences nav link is visible
+		await expect(page.getByTestId('settings-nav-preferences')).toBeVisible();
+	});
+
+	test('Scenario: Default note mode change applies to new notes', async ({
+		authenticatedPage: page
+	}) => {
+		// Given the user sets default note mode to Markdown
+		await page.goto('/settings/preferences');
+		const putResponse = page.waitForResponse((res) => res.url().includes('/api/preferences') && res.request().method() === 'PUT');
+		await page.getByTestId('pref-mode-markdown').click();
+		await putResponse;
+
+		// When the user creates a new note
+		await page.goto('/');
+		await page.getByTestId('new-note-btn').click();
+
+		// Then the note editor opens in markdown mode (textarea visible)
+		await expect(page.getByTestId('note-content-input')).toBeVisible();
+	});
+
+	test('Scenario: Footer toggle hides and shows footer', async ({
+		authenticatedPage: page
+	}) => {
+		// Given the footer is visible
+		await page.goto('/');
+		await expect(page.getByTestId('app-footer')).toBeVisible();
+
+		// When the user enables the hide footer preference
+		await page.goto('/settings/preferences');
+		await page.getByTestId('pref-hide-footer').check();
+
+		// Then the footer is hidden
+		await page.goto('/');
+		await expect(page.getByTestId('app-footer')).not.toBeVisible();
+
+		// When the user disables the hide footer preference
+		await page.goto('/settings/preferences');
+		await page.getByTestId('pref-hide-footer').uncheck();
+
+		// Then the footer is visible again
+		await page.goto('/');
+		await expect(page.getByTestId('app-footer')).toBeVisible();
+	});
+
+	test('Scenario: Preferences persist across page reload', async ({
+		authenticatedPage: page
+	}) => {
+		// Given the user changes default note mode to Markdown
+		await page.goto('/settings/preferences');
+		await page.getByTestId('pref-mode-markdown').click();
+
+		// When the page is reloaded
+		await page.reload();
+
+		// Then the Markdown button is still selected (has primary styling)
+		const mdBtn = page.getByTestId('pref-mode-markdown');
+		await expect(mdBtn).toHaveClass(/font-medium/);
+	});
+});
+
 test.describe('Settings — API Key Management', () => {
 	test('Scenario: Created API key appears in the keys list', async ({
 		authenticatedPage: page

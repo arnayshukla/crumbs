@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import { User, Cpu, ShieldCheck } from 'lucide-svelte';
+	import { User, Cpu, ShieldCheck, SlidersHorizontal } from 'lucide-svelte';
 
 	let { data, children } = $props();
 	let pathname = $derived(page.url.pathname);
@@ -17,6 +17,16 @@
 		<!-- Sidebar nav -->
 		<nav class="w-full shrink-0 md:w-48">
 			<ul class="flex gap-1 overflow-x-auto md:flex-col md:overflow-visible">
+				<li>
+					<a
+						href="/settings/preferences"
+						class="flex items-center gap-2 rounded-sm px-3 py-2 text-sm whitespace-nowrap transition-colors {pathname === '/settings/preferences' ? 'bg-[var(--primary)]/15 text-[var(--primary)] font-medium' : 'text-[var(--text)] hover:bg-[var(--bg-base)]'}"
+						data-testid="settings-nav-preferences"
+					>
+						<SlidersHorizontal size={16} />
+						Preferences
+					</a>
+				</li>
 				<li>
 					<a
 						href="/settings"

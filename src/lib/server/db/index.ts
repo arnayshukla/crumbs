@@ -115,6 +115,14 @@ sqlite.exec(`
 		success INTEGER NOT NULL,
 		timestamp INTEGER NOT NULL
 	);
+
+	CREATE TABLE IF NOT EXISTS user_preferences (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		user_id INTEGER NOT NULL REFERENCES users(id),
+		key TEXT NOT NULL,
+		value TEXT NOT NULL,
+		updated_at INTEGER NOT NULL
+	);
 `);
 
 // Migration: detect old schema (no email column on users) and add columns
@@ -186,6 +194,7 @@ sqlite.exec(`
 	CREATE UNIQUE INDEX IF NOT EXISTS note_collaborators_unique ON note_collaborators(note_id, user_id);
 	CREATE INDEX IF NOT EXISTS note_collaborators_user_id_idx ON note_collaborators(user_id);
 	CREATE UNIQUE INDEX IF NOT EXISTS note_user_state_unique ON note_user_state(note_id, user_id);
+	CREATE UNIQUE INDEX IF NOT EXISTS user_preferences_user_key_unique ON user_preferences(user_id, key);
 
 	CREATE TABLE IF NOT EXISTS api_keys (
 		id TEXT PRIMARY KEY,

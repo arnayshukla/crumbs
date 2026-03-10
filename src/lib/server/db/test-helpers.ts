@@ -127,6 +127,15 @@ export function createTestDb(options?: { seedUser?: boolean }) {
 			created_at INTEGER NOT NULL,
 			last_used_at INTEGER
 		);
+
+		CREATE TABLE user_preferences (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			user_id INTEGER NOT NULL REFERENCES users(id),
+			key TEXT NOT NULL,
+			value TEXT NOT NULL,
+			updated_at INTEGER NOT NULL
+		);
+		CREATE UNIQUE INDEX user_preferences_user_key_unique ON user_preferences(user_id, key);
 	`);
 
 	const db = drizzle(sqlite, { schema });
