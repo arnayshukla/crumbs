@@ -90,4 +90,17 @@ export async function setupAndLogin(page: Page) {
 	await page.waitForLoadState('networkidle');
 }
 
+/** Create a note via the UI and close the editor. Use in Given steps for state setup. */
+export async function createNote(page: Page, title: string, content?: string) {
+	await page.getByTestId('new-note-btn').click();
+	await page.getByTestId('note-title-input').fill(title);
+	if (content) {
+		const editor = page.getByTestId('tiptap-editor').locator('.tiptap');
+		await editor.click();
+		await editor.pressSequentially(content);
+	}
+	await page.getByTestId('close-editor-btn').click();
+	await expect(noteCard(page, title)).toBeVisible();
+}
+
 export { expect, TEST_EMAIL, TEST_PASSWORD, COLLAB_EMAIL, COLLAB_PASSWORD, COLLAB_NAME };

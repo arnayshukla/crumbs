@@ -1,7 +1,23 @@
 import { test, expect, noteCard } from './helpers/fixtures.js';
+import type { Page } from '@playwright/test';
+
+/** Create a checklist note via UI. Leaves the editor closed. */
+async function createChecklistNote(page: Page, title: string, items: string[]) {
+	await page.getByTestId('new-note-btn').click();
+	await page.getByTestId('note-title-input').fill(title);
+	await page.getByTestId('checklist-toggle').click();
+	for (let i = 0; i < items.length; i++) {
+		await page.getByTestId('checklist-input').nth(i).fill(items[i]);
+		if (i < items.length - 1) {
+			await page.getByTestId('checklist-input').nth(i).press('Enter');
+		}
+	}
+	await page.getByTestId('close-editor-btn').click();
+	await expect(noteCard(page, title)).toBeVisible();
+}
 
 test.describe('Checklist', () => {
-	test('Scenario: Checklist UI replaces editor when checklist mode is enabled', async ({ authenticatedPage: page }) => {
+	test('Scenario: Checklist replaces the rich text editor when enabled', async ({ authenticatedPage: page }) => {
 		// Given the user is creating a new note
 		await page.getByTestId('new-note-btn').click();
 
@@ -15,16 +31,9 @@ test.describe('Checklist', () => {
 		await expect(page.getByTestId('tiptap-editor')).not.toBeVisible();
 	});
 
-	test('Scenario: Checklist item can be added and persisted', async ({ authenticatedPage: page }) => {
-		// When the user creates a checklist note with an item "Buy milk"
-		await page.getByTestId('new-note-btn').click();
-		await page.getByTestId('note-title-input').fill('Shopping List');
-		await page.getByTestId('checklist-toggle').click();
-		await page.getByTestId('checklist-input').first().fill('Buy milk');
-		await page.getByTestId('close-editor-btn').click();
-
-		// Then the note appears in the list
-		await expect(page.getByText('Shopping List')).toBeVisible();
+	test('Scenario: Checklist item persists after closing and reopening the note', async ({ authenticatedPage: page }) => {
+		// Given a checklist note with an item "Buy milk" exists
+		await createChecklistNote(page, 'Shopping List', ['Buy milk']);
 
 		// When the user reopens the note
 		await noteCard(page, 'Shopping List').click();
@@ -34,13 +43,9 @@ test.describe('Checklist', () => {
 		await expect(page.getByTestId('checklist-input').first()).toHaveValue('Buy milk');
 	});
 
-	test('Scenario: Checking an item marks it as completed', async ({ authenticatedPage: page }) => {
-		// Given a checklist note with an item "Buy milk"
-		await page.getByTestId('new-note-btn').click();
-		await page.getByTestId('note-title-input').fill('Tasks');
-		await page.getByTestId('checklist-toggle').click();
-		await page.getByTestId('checklist-input').first().fill('Buy milk');
-		await page.getByTestId('close-editor-btn').click();
+	test('Scenario: Checked item moves to the done section', async ({ authenticatedPage: page }) => {
+		// Given a checklist note with an item "Buy milk" exists
+		await createChecklistNote(page, 'Tasks', ['Buy milk']);
 
 		// When the user reopens the note and checks the item
 		await noteCard(page, 'Tasks').click();
@@ -50,13 +55,13 @@ test.describe('Checklist', () => {
 		await expect(page.getByTestId('checklist-toggle-done')).toContainText('1 done');
 		await page.getByTestId('close-editor-btn').click();
 
-		// And reopening the note shows the item in the done section (expanded by default)
+		// And the done state persists after reopening
 		await noteCard(page, 'Tasks').click();
 		await expect(page.getByTestId('checklist-done-checkbox').first()).toBeChecked();
 	});
 
-	test('Scenario: New checklist item is added by pressing Enter', async ({ authenticatedPage: page }) => {
-		// Given the user is editing a checklist note
+	test('Scenario: Enter key adds a new checklist item', async ({ authenticatedPage: page }) => {
+		// Given a checklist with one item
 		await page.getByTestId('new-note-btn').click();
 		await page.getByTestId('checklist-toggle').click();
 		await page.getByTestId('checklist-input').first().fill('First item');
@@ -68,46 +73,45 @@ test.describe('Checklist', () => {
 		await expect(page.getByTestId('checklist-input')).toHaveCount(2);
 	});
 
-	test('Scenario: Empty checklist item is removed by pressing Backspace', async ({ authenticatedPage: page }) => {
-		// Given a checklist note with two items
+	test('Scenario: Backspace on empty item removes it from the list', async ({ authenticatedPage: page }) => {
+		// Given a checklist with two items where the second is empty
 		await page.getByTestId('new-note-btn').click();
 		await page.getByTestId('checklist-toggle').click();
 		await page.getByTestId('checklist-input').first().fill('First item');
 		await page.getByTestId('checklist-input').first().press('Enter');
 		await expect(page.getByTestId('checklist-input')).toHaveCount(2);
 
-		// When the user presses Backspace on the empty second item
+		// When the user presses Backspace on the empty item
 		await page.getByTestId('checklist-input').nth(1).press('Backspace');
 
 		// Then only the first item remains
 		await expect(page.getByTestId('checklist-input')).toHaveCount(1);
 	});
 
-	test('Scenario: Completed checklist items are separated and can be expanded', async ({ authenticatedPage: page }) => {
-		// Given a checklist note with a completed item and an uncompleted item
+	test('Scenario: Completed items are separated into a done section', async ({ authenticatedPage: page }) => {
+		// Given a checklist note with two items
 		await page.getByTestId('new-note-btn').click();
 		await page.getByTestId('note-title-input').fill('Hide Done Test');
 		await page.getByTestId('checklist-toggle').click();
 		await page.getByTestId('checklist-input').first().fill('Done task');
 		await page.getByTestId('checklist-input').first().press('Enter');
 		await page.getByTestId('checklist-input').nth(1).fill('Pending task');
+
+		// When the user completes the first item
 		await page.getByTestId('checklist-checkbox').first().click();
 
-		// Then the completed item is separated from the active list
+		// Then only the pending item remains in the active list
 		await expect(page.getByTestId('checklist-input')).toHaveCount(1);
 		await expect(page.getByTestId('checklist-input').first()).toHaveValue('Pending task');
 
-		// And the "done" toggle shows the count
-		await expect(page.getByTestId('checklist-toggle-done')).toBeVisible();
+		// And the done section shows the completed item
 		await expect(page.getByTestId('checklist-toggle-done')).toContainText('1 done');
-
-		// Then the completed items are shown in the done section (expanded by default)
 		await expect(page.getByTestId('checklist-done-section')).toBeVisible();
 		await expect(page.getByTestId('checklist-done-section')).toContainText('Done task');
 	});
 
-	test('Scenario: Switching back from checklist mode restores the text area', async ({ authenticatedPage: page }) => {
-		// Given the user has checklist mode enabled
+	test('Scenario: Disabling checklist mode restores the rich text editor', async ({ authenticatedPage: page }) => {
+		// Given checklist mode is enabled on a new note
 		await page.getByTestId('new-note-btn').click();
 		await page.getByTestId('checklist-toggle').click();
 		await expect(page.getByTestId('checklist')).toBeVisible();

@@ -1,7 +1,7 @@
-import { test, expect, noteCard } from './helpers/fixtures.js';
+import { test, expect, noteCard, createNote } from './helpers/fixtures.js';
 
 test.describe('Offline Support', () => {
-	test('Scenario: Sync status is visible to the user', async ({ authenticatedPage: page }) => {
+	test('Scenario: Sync status indicator is visible on the main page', async ({ authenticatedPage: page }) => {
 		// Given the user is authenticated
 		// Then the sync status indicator is displayed
 		await expect(page.getByTestId('sync-indicator')).toBeVisible();
@@ -9,9 +9,7 @@ test.describe('Offline Support', () => {
 
 	test('Scenario: Created note is immediately visible in the notes list', async ({ authenticatedPage: page }) => {
 		// When the user creates a note titled "Offline Test Note"
-		await page.getByTestId('new-note-btn').click();
-		await page.getByTestId('note-title-input').fill('Offline Test Note');
-		await page.getByTestId('close-editor-btn').click();
+		await createNote(page, 'Offline Test Note');
 
 		// Then the note appears in the list
 		await expect(page.getByText('Offline Test Note')).toBeVisible();
@@ -19,10 +17,7 @@ test.describe('Offline Support', () => {
 
 	test('Scenario: Edited note persists in the UI when offline', async ({ authenticatedPage: page }) => {
 		// Given a note titled "Offline Edit" exists
-		await page.getByTestId('new-note-btn').click();
-		await page.getByTestId('note-title-input').fill('Offline Edit');
-		await page.getByTestId('close-editor-btn').click();
-		await expect(page.getByText('Offline Edit')).toBeVisible();
+		await createNote(page, 'Offline Edit');
 
 		// When the network is unavailable
 		await page.context().setOffline(true);
@@ -33,10 +28,10 @@ test.describe('Offline Support', () => {
 		await page.getByTestId('note-title-input').fill('Offline Edited');
 		await page.getByTestId('close-editor-btn').click();
 
-		// Then the note "Offline Edited" appears in the list
+		// Then the updated note appears in the list
 		await expect(page.getByText('Offline Edited')).toBeVisible();
 
-		// And a "Saved offline" toast is shown
+		// And an offline save confirmation is shown
 		await expect(page.getByText('Saved offline')).toBeVisible();
 	});
 
@@ -49,27 +44,25 @@ test.describe('Offline Support', () => {
 		await page.getByTestId('note-title-input').fill('Offline New');
 		await page.getByTestId('close-editor-btn').click();
 
-		// Then the note "Offline New" appears in the list
+		// Then the note appears in the list
 		await expect(page.getByText('Offline New')).toBeVisible();
 
-		// And a "Saved offline" toast is shown
+		// And an offline save confirmation is shown
 		await expect(page.getByText('Saved offline')).toBeVisible();
 	});
 
 	test('Scenario: Offline note survives a page reload after reconnecting', async ({ authenticatedPage: page }) => {
-		// When the network is unavailable
+		// Given the network is unavailable
 		await page.context().setOffline(true);
 
-		// And the user creates a note titled "Survive Reload"
+		// And a note titled "Survive Reload" is created offline
 		await page.getByTestId('new-note-btn').click();
 		await page.getByTestId('note-title-input').fill('Survive Reload');
 		await page.getByTestId('close-editor-btn').click();
 		await expect(page.getByText('Survive Reload')).toBeVisible();
 
-		// When the network is restored (triggers 'online' event + navigator.onLine = true)
+		// When the network is restored and sync completes
 		await page.context().setOffline(false);
-
-		// And the sync completes
 		await page.waitForResponse('**/api/sync');
 
 		// And the user reloads the page
@@ -81,27 +74,19 @@ test.describe('Offline Support', () => {
 
 	test('Scenario: Notes load from local cache when the API is unavailable', async ({ authenticatedPage: page }) => {
 		// Given a note titled "Cached Note" exists
-		await page.getByTestId('new-note-btn').click();
-		await page.getByTestId('note-title-input').fill('Cached Note');
-		await page.getByTestId('close-editor-btn').click();
-		await expect(page.getByText('Cached Note')).toBeVisible();
+		await createNote(page, 'Cached Note');
 
-		// When the API is unavailable (simulating service worker serving cached shell)
+		// When the API becomes unavailable and the page is reloaded
 		await page.route('**/api/**', (route) => route.abort());
-
-		// And the user reloads the page
 		await page.reload();
 
-		// Then the note is still visible (loaded from IDB cache)
+		// Then the note is still visible from the local cache
 		await expect(page.getByText('Cached Note')).toBeVisible();
 	});
 
 	test('Scenario: Trashed note disappears from the list when offline', async ({ authenticatedPage: page }) => {
 		// Given a note titled "Offline Trash" exists
-		await page.getByTestId('new-note-btn').click();
-		await page.getByTestId('note-title-input').fill('Offline Trash');
-		await page.getByTestId('close-editor-btn').click();
-		await expect(page.getByText('Offline Trash')).toBeVisible();
+		await createNote(page, 'Offline Trash');
 
 		// When the network is unavailable
 		await page.context().setOffline(true);
@@ -114,7 +99,7 @@ test.describe('Offline Support', () => {
 		// Then the note is no longer visible
 		await expect(page.getByText('Offline Trash')).not.toBeVisible();
 
-		// And a "Saved offline" toast is shown
+		// And an offline save confirmation is shown
 		await expect(page.getByText('Saved offline')).toBeVisible();
 	});
 });

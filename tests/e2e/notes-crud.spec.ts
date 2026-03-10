@@ -1,14 +1,9 @@
-import { test, expect, noteCard } from './helpers/fixtures.js';
+import { test, expect, noteCard, createNote } from './helpers/fixtures.js';
 
 test.describe('Notes CRUD', () => {
 	test('Scenario: New note appears in the notes list after creation', async ({ authenticatedPage: page }) => {
 		// When the user creates a note titled "My First Note" with content "Hello world!"
-		await page.getByTestId('new-note-btn').click();
-		await page.getByTestId('note-title-input').fill('My First Note');
-		const editor = page.getByTestId('tiptap-editor').locator('.tiptap');
-		await editor.click();
-		await editor.pressSequentially('Hello world!');
-		await page.getByTestId('close-editor-btn').click();
+		await createNote(page, 'My First Note', 'Hello world!');
 
 		// Then the note is visible in the notes list
 		await expect(noteCard(page, 'My First Note')).toBeVisible();
@@ -16,12 +11,7 @@ test.describe('Notes CRUD', () => {
 
 	test('Scenario: Edited note title is reflected in the notes list', async ({ authenticatedPage: page }) => {
 		// Given a note titled "Original Title" exists
-		await page.getByTestId('new-note-btn').click();
-		await page.getByTestId('note-title-input').fill('Original Title');
-		const editor = page.getByTestId('tiptap-editor').locator('.tiptap');
-		await editor.click();
-		await editor.pressSequentially('Original content');
-		await page.getByTestId('close-editor-btn').click();
+		await createNote(page, 'Original Title', 'Original content');
 
 		// When the user changes the title to "Updated Title"
 		await noteCard(page, 'Original Title').click();
@@ -35,9 +25,7 @@ test.describe('Notes CRUD', () => {
 
 	test('Scenario: Trashed note disappears from the main view', async ({ authenticatedPage: page }) => {
 		// Given a note titled "Delete Me" exists
-		await page.getByTestId('new-note-btn').click();
-		await page.getByTestId('note-title-input').fill('Delete Me');
-		await page.getByTestId('close-editor-btn').click();
+		await createNote(page, 'Delete Me');
 
 		// When the user trashes the note
 		const card = noteCard(page, 'Delete Me');

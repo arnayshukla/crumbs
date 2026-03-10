@@ -72,7 +72,7 @@ test.describe('Image Attachments', () => {
 		await page.getByTestId('file-input').setInputFiles(TEST_IMAGE_PATH);
 		await expect(page.getByTestId('attachment-thumbnail')).toBeVisible();
 
-		// When the user features the image by clicking the star
+		// When the user features the image
 		await page.getByTestId('attachment-thumbnail').hover();
 		await page.getByTestId('toggle-featured').click();
 
@@ -91,8 +91,6 @@ test.describe('Image Attachments', () => {
 		await page.getByTestId('image-toggle').click();
 		await page.getByTestId('file-input').setInputFiles(TEST_IMAGE_PATH);
 		await expect(page.getByTestId('attachment-thumbnail')).toBeVisible();
-
-		// Feature the image
 		await page.getByTestId('attachment-thumbnail').hover();
 		await page.getByTestId('toggle-featured').click();
 		await page.getByTestId('close-editor-btn').click();
@@ -155,7 +153,7 @@ test.describe('Image Attachments', () => {
 	});
 
 	test('Scenario: Image toggle on new note auto-saves and opens upload panel', async ({ authenticatedPage: page }) => {
-		// When the user opens a new note and clicks the image toggle
+		// When the user opens a new note and enables the image panel
 		await page.getByTestId('new-note-btn').click();
 		await page.getByTestId('note-title-input').fill('Auto-Save Test');
 		await page.getByTestId('image-toggle').click();
@@ -163,10 +161,8 @@ test.describe('Image Attachments', () => {
 		// Then the upload panel is visible (note was auto-saved)
 		await expect(page.getByTestId('image-upload')).toBeVisible();
 
-		// Cleanup
+		// And the note persists in the list after closing
 		await page.getByTestId('close-editor-btn').click();
-
-		// And the note exists in the list
 		await expect(noteCard(page, 'Auto-Save Test')).toBeVisible();
 	});
 });

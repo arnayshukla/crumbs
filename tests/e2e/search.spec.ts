@@ -1,15 +1,10 @@
-import { test, expect, noteCard } from './helpers/fixtures.js';
+import { test, expect, createNote } from './helpers/fixtures.js';
 
 test.describe('Search', () => {
 	test('Scenario: Searching by title returns the matching note', async ({ authenticatedPage: page }) => {
 		// Given a note titled "Grocery Errands" and a note titled "Work Meeting" exist
-		await page.getByTestId('new-note-btn').click();
-		await page.getByTestId('note-title-input').fill('Grocery Errands');
-		await page.getByTestId('close-editor-btn').click();
-
-		await page.getByTestId('new-note-btn').click();
-		await page.getByTestId('note-title-input').fill('Work Meeting');
-		await page.getByTestId('close-editor-btn').click();
+		await createNote(page, 'Grocery Errands');
+		await createNote(page, 'Work Meeting');
 
 		// When the user searches for "Grocery"
 		await page.getByTestId('search-input').fill('Grocery');
@@ -20,12 +15,7 @@ test.describe('Search', () => {
 
 	test('Scenario: Searching by content returns the matching note', async ({ authenticatedPage: page }) => {
 		// Given a note titled "Recipe" with content "Pasta with tomato sauce" exists
-		await page.getByTestId('new-note-btn').click();
-		await page.getByTestId('note-title-input').fill('Recipe');
-		const editor = page.getByTestId('tiptap-editor').locator('.tiptap');
-		await editor.click();
-		await editor.pressSequentially('Pasta with tomato sauce');
-		await page.getByTestId('close-editor-btn').click();
+		await createNote(page, 'Recipe', 'Pasta with tomato sauce');
 
 		// When the user searches for "tomato"
 		await page.getByTestId('search-input').fill('tomato');

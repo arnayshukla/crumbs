@@ -128,33 +128,34 @@ test.describe('Settings — API Key Management', () => {
 		await expect(keyItem).not.toBeVisible();
 	});
 
-	test('Scenario: Settings page is accessible from sidebar', async ({
+	test('Scenario: Sidebar settings link opens the preferences page', async ({
 		authenticatedPage: page
 	}) => {
-		// Given the user is on the main page
-		// When the user clicks the Settings link in the sidebar
+		// When the user navigates to settings from the sidebar
 		await page.getByTestId('settings-link').click();
 
-		// Then the settings page redirects to preferences
+		// Then the preferences page is displayed
 		await expect(page).toHaveURL('/settings/preferences');
 		await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible();
 	});
 
-	test('Scenario: Settings subpages are navigable', async ({
+	test('Scenario: Settings tabs navigate between subpages', async ({
 		authenticatedPage: page
 	}) => {
 		// Given the user is on the settings page
 		await page.goto('/settings');
 
-		// When the user clicks the API nav link
+		// When the user selects the API tab
 		await page.getByRole('link', { name: 'API' }).click();
 
-		// Then the API settings page is shown
+		// Then the API settings are displayed
 		await expect(page).toHaveURL('/settings/mcp');
 		await expect(page.getByRole('heading', { name: 'API Keys' })).toBeVisible();
 
-		// When the user clicks back to Profile
+		// When the user selects the Profile tab
 		await page.getByRole('link', { name: 'Profile' }).click();
+
+		// Then the profile settings are displayed
 		await expect(page).toHaveURL('/settings/profile');
 	});
 });

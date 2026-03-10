@@ -70,10 +70,10 @@ test.describe.serial('Authentication', () => {
 });
 
 test.describe('Multi-user', () => {
-	test('admin can create a new user via API', async ({ authenticatedPage: page }) => {
-		// authenticatedPage fixture already handles setup/login
+	test('Scenario: Admin-created user is registered successfully', async ({ authenticatedPage: page }) => {
+		// Given the admin is authenticated
 
-		// Create a new user via admin API
+		// When the admin creates a new user
 		const response = await page.request.post('/api/admin/users', {
 			data: {
 				email: 'user2@test.com',
@@ -83,6 +83,7 @@ test.describe('Multi-user', () => {
 			}
 		});
 
+		// Then the user is created successfully
 		expect(response.status()).toBe(201);
 	});
 });
