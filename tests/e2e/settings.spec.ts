@@ -1,4 +1,17 @@
 import { test, expect } from './helpers/fixtures.js';
+import type { Page } from '@playwright/test';
+
+/** Reset all preferences to defaults via API so each test starts clean */
+async function resetPreferences(page: Page) {
+	await page.request.put('/api/preferences', {
+		data: {
+			defaultNoteMode: 'richtext',
+			defaultNoteColor: 'default',
+			hideFooter: 'false',
+			sidebarDefaultState: 'open'
+		}
+	});
+}
 
 test.describe('Settings — Preferences', () => {
 	test('Scenario: Preferences tab is visible in settings nav', async ({
@@ -14,6 +27,8 @@ test.describe('Settings — Preferences', () => {
 	test('Scenario: Default note mode change applies to new notes', async ({
 		authenticatedPage: page
 	}) => {
+		await resetPreferences(page);
+
 		// Given the user sets default note mode to Markdown
 		await page.goto('/settings/preferences');
 		const putResponse = page.waitForResponse((res) => res.url().includes('/api/preferences') && res.request().method() === 'PUT');
@@ -26,18 +41,13 @@ test.describe('Settings — Preferences', () => {
 
 		// Then the note editor opens in markdown mode (textarea visible)
 		await expect(page.getByTestId('note-content-input')).toBeVisible();
-
-		// Cleanup: reset to richtext so parallel tests aren't affected
-		await page.getByTestId('close-editor-btn').click();
-		await page.goto('/settings/preferences');
-		const resetResponse = page.waitForResponse((res) => res.url().includes('/api/preferences') && res.request().method() === 'PUT');
-		await page.getByTestId('pref-mode-richtext').click();
-		await resetResponse;
 	});
 
 	test('Scenario: Footer toggle hides and shows footer', async ({
 		authenticatedPage: page
 	}) => {
+		await resetPreferences(page);
+
 		// Given the footer is visible
 		await page.goto('/');
 		await expect(page.getByTestId('app-footer')).toBeVisible();
@@ -62,9 +72,13 @@ test.describe('Settings — Preferences', () => {
 	test('Scenario: Preferences persist across page reload', async ({
 		authenticatedPage: page
 	}) => {
+		await resetPreferences(page);
+
 		// Given the user changes default note mode to Markdown
 		await page.goto('/settings/preferences');
+		const putResponse = page.waitForResponse((res) => res.url().includes('/api/preferences') && res.request().method() === 'PUT');
 		await page.getByTestId('pref-mode-markdown').click();
+		await putResponse;
 
 		// When the page is reloaded
 		await page.reload();
@@ -72,11 +86,6 @@ test.describe('Settings — Preferences', () => {
 		// Then the Markdown button is still selected (has primary styling)
 		const mdBtn = page.getByTestId('pref-mode-markdown');
 		await expect(mdBtn).toHaveClass(/font-medium/);
-
-		// Cleanup: reset to richtext so parallel tests aren't affected
-		const resetResponse = page.waitForResponse((res) => res.url().includes('/api/preferences') && res.request().method() === 'PUT');
-		await page.getByTestId('pref-mode-richtext').click();
-		await resetResponse;
 	});
 });
 
