@@ -26,6 +26,13 @@ test.describe('Settings — Preferences', () => {
 
 		// Then the note editor opens in markdown mode (textarea visible)
 		await expect(page.getByTestId('note-content-input')).toBeVisible();
+
+		// Cleanup: reset to richtext so parallel tests aren't affected
+		await page.getByTestId('close-editor-btn').click();
+		await page.goto('/settings/preferences');
+		const resetResponse = page.waitForResponse((res) => res.url().includes('/api/preferences') && res.request().method() === 'PUT');
+		await page.getByTestId('pref-mode-richtext').click();
+		await resetResponse;
 	});
 
 	test('Scenario: Footer toggle hides and shows footer', async ({
@@ -65,6 +72,11 @@ test.describe('Settings — Preferences', () => {
 		// Then the Markdown button is still selected (has primary styling)
 		const mdBtn = page.getByTestId('pref-mode-markdown');
 		await expect(mdBtn).toHaveClass(/font-medium/);
+
+		// Cleanup: reset to richtext so parallel tests aren't affected
+		const resetResponse = page.waitForResponse((res) => res.url().includes('/api/preferences') && res.request().method() === 'PUT');
+		await page.getByTestId('pref-mode-richtext').click();
+		await resetResponse;
 	});
 });
 

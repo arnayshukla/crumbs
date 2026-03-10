@@ -35,13 +35,12 @@ test.describe('Note Sharing', () => {
 		authenticatedPage: page,
 		collabPage
 	}) => {
-		// When the owner creates a note titled "Share Test"
-		await page.getByTestId('new-note-btn').click();
-		await page.getByTestId('note-title-input').fill('Share Test');
-		const editor = page.getByTestId('tiptap-editor').locator('.tiptap');
-		await editor.click();
-		await editor.pressSequentially('Shared content');
-		await page.getByTestId('close-editor-btn').click();
+		// Given a note titled "Share Test" exists
+		await page.request.post('/api/notes', {
+			data: { title: 'Share Test', content: 'Shared content' }
+		});
+		await page.reload();
+		await page.waitForLoadState('networkidle');
 		await expect(noteCard(page, 'Share Test')).toBeVisible();
 
 		// And the owner opens the share dialog and adds the collaborator
