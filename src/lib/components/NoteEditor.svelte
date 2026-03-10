@@ -134,6 +134,21 @@
 		bgStyle = `background-color: ${colors.bg}`;
 	});
 
+	// Track whether mousedown started on the overlay (not inside the editor).
+	// Prevents closing when the user selects text inside the editor and
+	// releases the mouse outside — the click event fires on the overlay,
+	// but we only want to close if the press also started there.
+	let mousedownOnOverlay = false;
+
+	function handleOverlayMousedown(e: MouseEvent) {
+		mousedownOnOverlay = e.target === e.currentTarget;
+	}
+
+	function handleOverlayClick() {
+		if (mousedownOnOverlay) saveAndClose();
+		mousedownOnOverlay = false;
+	}
+
 	async function saveAndClose() {
 		if (!title.trim() && !content.trim()) {
 			onClose();
@@ -195,7 +210,8 @@
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
 	class="fixed inset-0 z-40 flex items-start justify-center overflow-y-auto bg-black/50 pt-20 pb-10 animate-[fade-in_150ms_ease-out]"
-	onclick={saveAndClose}
+	onmousedown={handleOverlayMousedown}
+	onclick={handleOverlayClick}
 	onkeydown={handleKeydown}
 	data-testid="note-editor-overlay"
 >
