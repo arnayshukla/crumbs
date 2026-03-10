@@ -114,8 +114,8 @@ test.describe('Settings — API Key Management', () => {
 		// When the user clicks the Settings link in the sidebar
 		await page.getByTestId('settings-link').click();
 
-		// Then the settings page is shown
-		await expect(page).toHaveURL('/settings');
+		// Then the settings page redirects to preferences
+		await expect(page).toHaveURL('/settings/preferences');
 		await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible();
 	});
 
@@ -134,6 +134,6 @@ test.describe('Settings — API Key Management', () => {
 
 		// When the user clicks back to Profile
 		await page.getByRole('link', { name: 'Profile' }).click();
-		await expect(page).toHaveURL('/settings');
+		await expect(page).toHaveURL('/settings/profile');
 	});
 });
