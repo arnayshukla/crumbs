@@ -91,7 +91,22 @@
 - Share dialog accessible from editor toolbar
 - Collaborators can leave shared notes
 - Shared notes appear mixed in main list alongside owned notes
-- Email notifications when a note is shared with you (requires SMTP config, opt-out in preferences)
+- Email notifications (requires SMTP config, opt-out in preferences):
+  - Share notifications when a note is shared with you
+  - Welcome email when admin creates your account
+  - Password reset notification
+  - Account deletion confirmation
+  - Email address change notification
+  - Role change notification (admin/user)
+  - Removed from shared note notification
+  - Shared note permanently deleted notification
+  - Account locked alert (after failed login attempts)
+
+### Note Version History
+- Browse previous versions of any note
+- Versions are automatically saved when content changes
+- Restore any previous version with one click
+- Version snapshots are only created when content actually changes (not on metadata-only updates)
 
 ### Full-Text Search
 - Search across note titles, content, and tags

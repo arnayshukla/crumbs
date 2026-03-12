@@ -46,6 +46,21 @@ volumes:
 
 Google and GitHub OAuth are also supported. See [docs/AUTH.md](docs/AUTH.md) for all providers and setup guides.
 
+#### With Email Notifications (optional)
+
+Add SMTP settings to enable email notifications (share alerts, welcome emails, security alerts):
+
+```yaml
+environment:
+  - SMTP_HOST=smtp.example.com
+  - SMTP_PORT=587
+  - SMTP_USER=your-username
+  - SMTP_PASS=your-password
+  - SMTP_FROM=Crumbs <noreply@example.com>
+```
+
+Auto-enabled when `SMTP_HOST` is set. Users can opt out in Settings > Preferences. See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md#email-notifications-optional) for details.
+
 ### Manual (Node.js)
 
 ```bash
@@ -75,6 +90,9 @@ pnpm build         # Production build
 - Rich notes with Markdown, checklists, image attachments, and 12 color themes
 - Organize with #tags, pinning, archive, and trash
 - Full-text search across titles, content, and tags
+- Note version history — browse and restore previous versions
+- Share notes with other users on the same instance
+- Email notifications for shares, security alerts, and account events (optional SMTP)
 - PWA — installable, works offline via IndexedDB + LWW CRDT sync
 - MCP server — let AI assistants (Claude Code, etc.) manage your notes
 - Multi-user auth (Argon2) with optional OAuth/SSO (Google, GitHub, OIDC)

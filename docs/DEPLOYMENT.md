@@ -116,7 +116,7 @@ Google, GitHub, and generic OIDC (Authentik, Keycloak, Okta, etc.) are supported
 
 ### Email Notifications (optional)
 
-Email notifications are sent when a note is shared with a user. Auto-enabled when `SMTP_HOST` is set.
+Email notifications are auto-enabled when `SMTP_HOST` is set. See [FEATURES.md](FEATURES.md#note-sharing--collaboration) for the full list of notification types.
 
 | Variable | Default | Description |
 |----------|---------|-------------|
