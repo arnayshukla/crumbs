@@ -52,7 +52,9 @@ export default defineConfig({
 						}
 					},
 					{
-						urlPattern: /\/api\/notes\/.*\/attachments\?attachmentId=/,
+						urlPattern: ({ request, url }) =>
+							request.method === 'GET' &&
+							/\/api\/notes\/.*\/attachments\?attachmentId=/.test(url.href),
 						handler: 'CacheFirst',
 						options: {
 							cacheName: 'attachment-cache',
@@ -60,7 +62,8 @@ export default defineConfig({
 						}
 					},
 					{
-						urlPattern: /^https?:\/\/.*\/api\//,
+						urlPattern: ({ request, url }) =>
+							request.method === 'GET' && /\/api\//.test(url.pathname),
 						handler: 'NetworkFirst',
 						options: {
 							cacheName: 'api-cache',
