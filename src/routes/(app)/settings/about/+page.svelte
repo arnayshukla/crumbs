@@ -35,8 +35,8 @@
 				href="https://bretzel.app"
 				target="_blank"
 				rel="noopener noreferrer"
-				class="text-[var(--primary)] underline hover:text-[var(--primary-hover)]">Bretzel</a
-			> family of apps.
+				class="text-[var(--primary)] underline hover:text-[var(--primary-hover)]">bretzel.app</a
+			> universe.
 		</p>
 	</section>
 
