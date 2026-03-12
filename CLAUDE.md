@@ -180,6 +180,7 @@ Write tests first or alongside features. Tests serve as living documentation of 
 - Test database: `./data/test-crumbs.db` (cleaned via `global-setup.ts`)
 - Auth fixture: `tests/e2e/helpers/fixtures.ts` provides `authenticatedPage` (handles setup/login race conditions across parallel workers)
 - Auth tests use `test.describe.serial` because they depend on sequential database state
+- **Offline/online tests**: After `setOffline(false)`, always manually dispatch the `online` event via `page.evaluate(() => window.dispatchEvent(new Event('online')))` — Playwright doesn't reliably emit it in headless/CI environments, causing flaky `waitForResponse` timeouts
 
 ### Gherkin-style Given/When/Then
 

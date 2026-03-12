@@ -62,8 +62,11 @@ test.describe('Offline Support', () => {
 		await expect(page.getByText('Survive Reload')).toBeVisible();
 
 		// When the network is restored and sync completes
-		const syncResponse = page.waitForResponse('**/api/sync');
+		const syncResponse = page.waitForResponse((resp) => resp.url().includes('/api/sync'));
 		await page.context().setOffline(false);
+		// Manually dispatch the online event as a safety net — in CI/headless
+		// environments, setOffline(false) doesn't always emit it reliably
+		await page.evaluate(() => window.dispatchEvent(new Event('online')));
 		await syncResponse;
 
 		// And the user reloads the page
