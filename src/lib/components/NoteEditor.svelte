@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import ColorPicker from './ColorPicker.svelte';
 	import Checklist from './Checklist.svelte';
 	import FormattingToolbar from './FormattingToolbar.svelte';
@@ -55,6 +56,15 @@
 
 	// svelte-ignore state_referenced_locally
 	let attachmentsList = $state<Attachment[]>(note?.attachments ?? []);
+
+	// Guard against mobile ghost clicks: on touch devices, a tap on the note card
+	// can produce a synthetic click that lands on editor buttons rendered at the same
+	// coordinates. Suppress pointer events on toolbar controls until mount completes.
+	let toolbarInteractive = $state(false);
+	onMount(() => {
+		const timer = setTimeout(() => { toolbarInteractive = true; }, 150);
+		return () => clearTimeout(timer);
+	});
 
 	let showShareDialog = $state(false);
 	let showHistory = $state(false);
@@ -316,11 +326,16 @@
 
 		<!-- Formatting toolbar -->
 		{#if !rawMarkdownMode && !checklistMode}
-			<FormattingToolbar editor={tiptapEditor} tick={editorTick} />
+			<div style={toolbarInteractive ? '' : 'pointer-events: none'}>
+				<FormattingToolbar editor={tiptapEditor} tick={editorTick} />
+			</div>
 		{/if}
 
 		<!-- Toolbar -->
-		<div class="flex items-center justify-between border-t border-[var(--border-subtle)] px-2 py-2">
+		<div
+			class="flex items-center justify-between border-t border-[var(--border-subtle)] px-2 py-2"
+			style={toolbarInteractive ? '' : 'pointer-events: none'}
+		>
 			<div class="flex items-center gap-1">
 				<!-- Color picker toggle -->
 				<div class="relative">
