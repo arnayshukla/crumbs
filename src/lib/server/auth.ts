@@ -228,6 +228,12 @@ export function getUser(userId: number): User | null {
 
 export async function deleteUser(userId: number): Promise<void> {
 	// Cascade: delete user's data in dependency order
+	sqlite.prepare('DELETE FROM user_preferences WHERE user_id = ?').run(userId);
+	sqlite.prepare('DELETE FROM api_keys WHERE user_id = ?').run(userId);
+	sqlite.prepare('DELETE FROM note_user_state WHERE user_id = ?').run(userId);
+	sqlite
+		.prepare('DELETE FROM note_collaborators WHERE user_id = ? OR added_by = ?')
+		.run(userId, userId);
 	sqlite.prepare('DELETE FROM sync_log WHERE user_id = ?').run(userId);
 	sqlite.prepare('DELETE FROM attachments WHERE user_id = ?').run(userId);
 	sqlite

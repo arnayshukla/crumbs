@@ -163,6 +163,13 @@ GitHub Actions with two workflows:
 
 **Docker**: Multi-stage Dockerfile (node:22-slim), exposes port 3000, persists data to `/data` volume.
 
+## Database schema changes
+
+When adding or modifying tables in `src/lib/server/db/schema.ts`:
+
+- **If the table has a foreign key to `users`**: update `deleteUser()` in `src/lib/server/auth.ts` to delete from the new table before the user row is removed. Order matters — delete child rows before parent rows.
+- **If the table has a foreign key to `notes`**: either add `onDelete: 'cascade'` in the schema definition, or add explicit cleanup in the note deletion logic.
+
 ## Testing philosophy: BDD/TDD
 
 Write tests first or alongside features. Tests serve as living documentation of expected behavior.
