@@ -40,8 +40,17 @@ export default defineConfig({
 			},
 			workbox: {
 				globPatterns: ['client/**/*.{js,css,ico,png,svg,webp,woff,woff2}'],
-				navigateFallback: '/',
+				navigateFallback: null,
 				runtimeCaching: [
+					{
+						urlPattern: ({ request }) => request.mode === 'navigate',
+						handler: 'NetworkFirst',
+						options: {
+							cacheName: 'pages-cache',
+							networkTimeoutSeconds: 3,
+							expiration: { maxEntries: 50, maxAgeSeconds: 30 * 24 * 60 * 60 }
+						}
+					},
 					{
 						urlPattern: /\/api\/notes\/.*\/attachments\?attachmentId=/,
 						handler: 'CacheFirst',
@@ -56,6 +65,14 @@ export default defineConfig({
 						options: {
 							cacheName: 'api-cache',
 							expiration: { maxEntries: 50, maxAgeSeconds: 300 }
+						}
+					},
+					{
+						urlPattern: /^https?:\/\/fonts\.(?:googleapis|gstatic)\.com\/.*/,
+						handler: 'CacheFirst',
+						options: {
+							cacheName: 'google-fonts-cache',
+							expiration: { maxEntries: 10, maxAgeSeconds: 365 * 24 * 60 * 60 }
 						}
 					}
 				]
