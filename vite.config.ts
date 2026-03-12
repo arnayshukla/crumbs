@@ -23,6 +23,8 @@ export default defineConfig({
 				]
 			: []),
 		SvelteKitPWA({
+			scope: '/',
+			buildBase: '/',
 			registerType: 'autoUpdate',
 			manifest: {
 				name: 'Crumbs by Bretzel',
