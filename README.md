@@ -11,6 +11,10 @@
 
 A self-hostable, offline-first note-taking app that respects your privacy. Part of the [Bretzel](https://bretzel.app) app universe.
 
+<p align="center">
+  <img src="website/assets/screenshot-grid.png" alt="Crumbs notes grid view" width="720">
+</p>
+
 ## Install
 
 ### Docker (Recommended)
