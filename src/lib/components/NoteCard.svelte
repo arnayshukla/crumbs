@@ -62,7 +62,7 @@
 
 <!-- svelte-ignore a11y_no_noninteractive_element_to_interactive_role -->
 <article
-	class="group relative cursor-pointer rounded-sm border border-[var(--border-subtle)] p-4 outline-none transition-all hover:border-[var(--primary)] shadow-[var(--card-shadow)] hover:shadow-[var(--card-shadow-hover)] {fullHeight ? 'h-full' : ''}"
+	class="group relative cursor-pointer rounded-sm border border-[var(--border-subtle)] p-4 outline-none transition-all hover:border-[var(--primary)] shadow-[var(--card-shadow)] hover:shadow-[var(--card-shadow-hover)] max-h-[17rem] overflow-hidden {fullHeight ? 'h-full' : ''}"
 	style={cardStyle}
 	onclick={() => onEdit(note)}
 	onkeydown={(e) => e.key === 'Enter' && onEdit(note)}
