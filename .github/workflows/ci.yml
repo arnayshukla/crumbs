@@ -121,5 +121,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Build Docker image
-        run: docker build -t crumbs:ci .
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          provenance: false
+          tags: crumbs:ci
+          cache-from: type=gha,scope=ci-docker
+          cache-to: type=gha,scope=ci-docker,mode=max
