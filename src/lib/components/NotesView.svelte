@@ -6,6 +6,7 @@
 	import { onMount } from 'svelte';
 	import type { Note, NoteFilter } from '$lib/types/index.js';
 	import Plus from 'lucide-svelte/icons/plus';
+	import SquareCheck from 'lucide-svelte/icons/square-check';
 
 	interface Props {
 		filter: NoteFilter;
@@ -16,6 +17,7 @@
 
 	let editingNote: Note | null = $state(null);
 	let showNewNote = $state(false);
+	let newNoteChecklist = $state(false);
 
 	// Sync store with route props and reload notes when filter changes
 	$effect(() => {
@@ -32,6 +34,7 @@
 	function closeEditor() {
 		editingNote = null;
 		showNewNote = false;
+		newNoteChecklist = false;
 		history.replaceState(null, '', location.pathname);
 	}
 
@@ -55,14 +58,24 @@
 
 {#if filter === 'all' && !tag}
 	<div class="mx-auto mb-6 hidden max-w-xl md:block">
-		<button
-			onclick={() => (showNewNote = true)}
-			class="flex w-full items-center gap-3 rounded-sm border border-dashed border-[var(--border-subtle)] bg-[var(--bg-surface)] px-4 py-3 text-left text-sm text-[var(--text-muted)] transition-colors hover:border-[var(--primary)] hover:text-[var(--primary)]"
-			data-testid="new-note-btn"
-		>
-			<Plus class="h-4 w-4" />
-			Add a crumb...
-		</button>
+		<div class="flex items-center gap-0 rounded-sm border border-dashed border-[var(--border-subtle)] bg-[var(--bg-surface)] transition-colors hover:border-[var(--primary)]">
+			<button
+				onclick={() => (showNewNote = true)}
+				class="flex flex-1 items-center gap-3 px-4 py-3 text-left text-sm text-[var(--text-muted)] hover:text-[var(--primary)]"
+				data-testid="new-note-btn"
+			>
+				<Plus class="h-4 w-4" />
+				Add a crumb...
+			</button>
+			<button
+				onclick={() => { newNoteChecklist = true; showNewNote = true; }}
+				class="rounded-sm p-3 text-[var(--text-muted)] hover:text-[var(--primary)]"
+				title="New checklist"
+				data-testid="new-checklist-btn"
+			>
+				<SquareCheck class="h-4 w-4" />
+			</button>
+		</div>
 	</div>
 	<button
 		onclick={() => (showNewNote = true)}
@@ -119,7 +132,7 @@
 {/if}
 
 {#if showNewNote}
-	<NoteEditor note={null} isNew={true} onClose={closeEditor} />
+	<NoteEditor note={null} isNew={true} initialChecklistMode={newNoteChecklist} onClose={closeEditor} />
 {/if}
 
 {#if editingNote}

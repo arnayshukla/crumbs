@@ -33,10 +33,11 @@
 	interface Props {
 		note: Note | null;
 		isNew?: boolean;
+		initialChecklistMode?: boolean;
 		onClose: () => void;
 	}
 
-	const { note, isNew = false, onClose }: Props = $props();
+	const { note, isNew = false, initialChecklistMode = false, onClose }: Props = $props();
 	const prefs = getPreferences();
 
 	// svelte-ignore state_referenced_locally
@@ -46,7 +47,7 @@
 	// svelte-ignore state_referenced_locally
 	let color = $state<NoteColor>(note?.color ?? prefs.defaultNoteColor);
 	// svelte-ignore state_referenced_locally
-	let checklistMode = $state(note?.checklistMode ?? false);
+	let checklistMode = $state(note?.checklistMode ?? initialChecklistMode);
 	let showColorPicker = $state(false);
 	let showImageUpload = $state(false);
 	// svelte-ignore state_referenced_locally
