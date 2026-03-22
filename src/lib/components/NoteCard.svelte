@@ -12,6 +12,7 @@
 	import Archive from 'lucide-svelte/icons/archive';
 	import ArchiveRestore from 'lucide-svelte/icons/archive-restore';
 	import UserMinus from 'lucide-svelte/icons/user-minus';
+	import { tooltip } from '$lib/utils/tooltip.js';
 
 	interface ChecklistItem {
 		text: string;
@@ -117,7 +118,7 @@
 			<button
 				onclick={stop(() => togglePin(note.id, note.pinned))}
 				class="rounded-sm p-1 text-[var(--primary)] hover:bg-[var(--border)]/10"
-				title="Unpin"
+				use:tooltip={"Unpin"}
 				data-testid="pin-indicator"
 			>
 				<Bookmark class="h-4 w-4 fill-[var(--primary)]" />
@@ -160,7 +161,7 @@
 			<button
 				onclick={stop(() => restoreNote(note.id))}
 				class="rounded-sm p-1.5 hover:bg-[var(--border)]/10"
-				title="Restore"
+				use:tooltip={"Restore"}
 				data-testid="restore-btn"
 			>
 				<Undo2 class="h-4 w-4" />
@@ -168,7 +169,7 @@
 			<button
 				onclick={stop(() => deleteNote(note.id))}
 				class="rounded-sm p-1.5 hover:bg-[var(--border)]/10"
-				title="Delete forever"
+				use:tooltip={"Delete forever"}
 				data-testid="delete-forever-btn"
 			>
 				<Trash2 class="h-4 w-4 text-[var(--destructive)]" />
@@ -178,7 +179,7 @@
 				<button
 					onclick={stop(() => togglePin(note.id, note.pinned))}
 					class="rounded-sm p-1.5 hover:bg-[var(--border)]/10"
-					title="Pin"
+					use:tooltip={"Pin"}
 					data-testid="pin-btn"
 				>
 					<Bookmark class="h-4 w-4" />
@@ -188,7 +189,7 @@
 				<button
 					onclick={stop(() => unarchiveNote(note.id))}
 					class="rounded-sm p-1.5 hover:bg-[var(--border)]/10"
-					title="Unarchive"
+					use:tooltip={"Unarchive"}
 					data-testid="unarchive-btn"
 				>
 					<ArchiveRestore class="h-4 w-4" />
@@ -197,7 +198,7 @@
 				<button
 					onclick={stop(() => archiveNote(note.id))}
 					class="rounded-sm p-1.5 hover:bg-[var(--border)]/10"
-					title="Archive"
+					use:tooltip={"Archive"}
 					data-testid="archive-btn"
 				>
 					<Archive class="h-4 w-4" />
@@ -207,7 +208,7 @@
 				<button
 					onclick={stop(() => leaveNote(note.id))}
 					class="rounded-sm p-1.5 hover:bg-[var(--border)]/10"
-					title="Leave note"
+					use:tooltip={"Leave note"}
 					data-testid="leave-btn"
 				>
 					<UserMinus class="h-4 w-4" />
@@ -216,7 +217,7 @@
 				<button
 					onclick={stop(() => trashNote(note.id))}
 					class="rounded-sm p-1.5 hover:bg-[var(--border)]/10"
-					title="Delete"
+					use:tooltip={"Trash"}
 					data-testid="trash-btn"
 				>
 					<Trash2 class="h-4 w-4" />

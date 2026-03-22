@@ -203,3 +203,24 @@ body::before {
 .prose ul.task-list li p {
 	margin: 0;
 }
+
+/* Custom tooltips */
+.tooltip-popup {
+	position: fixed;
+	z-index: 9999;
+	padding: 0.25rem 0.5rem;
+	font-family: 'JetBrains Mono', monospace;
+	font-size: 0.7rem;
+	line-height: 1.2;
+	color: var(--bg-surface);
+	background: var(--text);
+	border-radius: 2px;
+	pointer-events: none;
+	white-space: nowrap;
+	opacity: 0;
+	transition: opacity 100ms ease-out;
+}
+
+.tooltip-visible {
+	opacity: 1;
+}

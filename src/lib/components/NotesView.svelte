@@ -7,6 +7,7 @@
 	import type { Note, NoteFilter } from '$lib/types/index.js';
 	import Plus from 'lucide-svelte/icons/plus';
 	import SquareCheck from 'lucide-svelte/icons/square-check';
+	import { tooltip } from '$lib/utils/tooltip.js';
 
 	interface Props {
 		filter: NoteFilter;
@@ -70,7 +71,7 @@
 			<button
 				onclick={() => { newNoteChecklist = true; showNewNote = true; }}
 				class="cursor-pointer rounded-sm p-3 text-[var(--text-muted)] hover:text-[var(--primary)]"
-				title="New checklist"
+				use:tooltip={"New checklist"}
 				data-testid="new-checklist-btn"
 			>
 				<SquareCheck class="h-4 w-4" />

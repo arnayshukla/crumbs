@@ -29,6 +29,7 @@
 	import ListX from 'lucide-svelte/icons/list-x';
 	import Archive from 'lucide-svelte/icons/archive';
 	import { parseChecklist, serializeChecklist } from '$lib/utils/checklist.js';
+	import { tooltip } from '$lib/utils/tooltip.js';
 
 	interface Props {
 		note: Note | null;
@@ -415,7 +416,7 @@
 					<button
 						onclick={() => (showColorPicker = !showColorPicker)}
 						class="rounded-sm p-2 hover:bg-[var(--border)]/10"
-						title="Background color"
+						use:tooltip={"Background color"}
 						data-testid="color-picker-toggle"
 					>
 						<Palette class="h-5 w-5 text-[var(--text-muted)]" />
@@ -431,7 +432,7 @@
 				<button
 					onclick={toggleImageUpload}
 					class="rounded-sm p-2 hover:bg-[var(--border)]/10"
-					title="Image attachments"
+					use:tooltip={"Attachments"}
 					data-testid="image-toggle"
 				>
 					<ImageIcon class="h-5 w-5 {showImageUpload ? 'text-[var(--primary)]' : ''}" />
@@ -442,7 +443,7 @@
 					<button
 						onclick={toggleShareDialog}
 						class="rounded-sm p-2 hover:bg-[var(--border)]/10"
-						title="Share note"
+						use:tooltip={"Share"}
 						data-testid="share-toggle"
 					>
 						{#if hasPublicLink}
@@ -454,7 +455,7 @@
 						{/if}
 					</button>
 				{:else if isShared}
-					<span class="flex items-center gap-1 rounded-sm p-2 text-[var(--text-muted)]" title="Shared note">
+					<span class="flex items-center gap-1 rounded-sm p-2 text-[var(--text-muted)]" use:tooltip={"Shared note"}>
 						<Users class="h-5 w-5" />
 					</span>
 				{/if}
@@ -464,7 +465,7 @@
 					<button
 						onclick={handleArchive}
 						class="rounded-sm p-2 hover:bg-[var(--border)]/10"
-						title="Archive"
+						use:tooltip={"Archive"}
 						data-testid="archive-note-btn"
 					>
 						<Archive class="h-5 w-5" />
@@ -476,7 +477,7 @@
 					bind:this={overflowBtnEl}
 					onclick={() => (showOverflowMenu = !showOverflowMenu)}
 					class="rounded-sm p-2 hover:bg-[var(--border)]/10"
-					title="More actions"
+					use:tooltip={"More"}
 					data-testid="overflow-menu-btn"
 				>
 					<EllipsisVertical class="h-5 w-5" />
