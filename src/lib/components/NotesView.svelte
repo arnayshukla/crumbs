@@ -58,7 +58,7 @@
 
 {#if filter === 'all' && !tag}
 	<div class="mx-auto mb-6 hidden max-w-xl md:block">
-		<div class="flex items-center gap-0 rounded-sm border border-dashed border-[var(--border-subtle)] bg-[var(--bg-surface)] transition-colors hover:border-[var(--primary)]">
+		<div class="flex cursor-pointer items-center gap-0 rounded-sm border border-dashed border-[var(--border-subtle)] bg-[var(--bg-surface)] transition-colors hover:border-[var(--primary)]">
 			<button
 				onclick={() => (showNewNote = true)}
 				class="flex flex-1 items-center gap-3 px-4 py-3 text-left text-sm text-[var(--text-muted)] hover:text-[var(--primary)]"
