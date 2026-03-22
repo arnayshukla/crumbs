@@ -61,7 +61,7 @@
 		<div class="flex cursor-pointer items-center gap-0 rounded-sm border border-dashed border-[var(--border-subtle)] bg-[var(--bg-surface)] transition-colors hover:border-[var(--primary)]">
 			<button
 				onclick={() => (showNewNote = true)}
-				class="flex flex-1 items-center gap-3 px-4 py-3 text-left text-sm text-[var(--text-muted)] hover:text-[var(--primary)]"
+				class="flex flex-1 cursor-pointer items-center gap-3 px-4 py-3 text-left text-sm text-[var(--text-muted)] hover:text-[var(--primary)]"
 				data-testid="new-note-btn"
 			>
 				<Plus class="h-4 w-4" />
@@ -69,7 +69,7 @@
 			</button>
 			<button
 				onclick={() => { newNoteChecklist = true; showNewNote = true; }}
-				class="rounded-sm p-3 text-[var(--text-muted)] hover:text-[var(--primary)]"
+				class="cursor-pointer rounded-sm p-3 text-[var(--text-muted)] hover:text-[var(--primary)]"
 				title="New checklist"
 				data-testid="new-checklist-btn"
 			>
