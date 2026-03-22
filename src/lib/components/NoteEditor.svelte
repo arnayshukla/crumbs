@@ -7,7 +7,7 @@
 	import ImageUpload from './ImageUpload.svelte';
 	import ShareDialog from './ShareDialog.svelte';
 	import NoteHistory from './NoteHistory.svelte';
-	import { updateNote, createNote } from '$lib/stores/notes.js';
+	import { updateNote, createNote, trashNote, archiveNote } from '$lib/stores/notes.js';
 	import { notes } from '$lib/stores/notes.js';
 	import { getNoteColor } from '$lib/utils/colors.js';
 	import { getIsDarkMode } from '$lib/utils/theme.svelte.js';
@@ -24,6 +24,11 @@
 	import Users from 'lucide-svelte/icons/users';
 	import Globe from 'lucide-svelte/icons/globe';
 	import History from 'lucide-svelte/icons/history';
+	import EllipsisVertical from 'lucide-svelte/icons/ellipsis-vertical';
+	import Trash2 from 'lucide-svelte/icons/trash-2';
+	import ListX from 'lucide-svelte/icons/list-x';
+	import Archive from 'lucide-svelte/icons/archive';
+	import { parseChecklist, serializeChecklist } from '$lib/utils/checklist.js';
 
 	interface Props {
 		note: Note | null;
@@ -70,6 +75,29 @@
 
 	let showShareDialog = $state(false);
 	let showHistory = $state(false);
+	let showOverflowMenu = $state(false);
+	let overflowBtnEl: HTMLButtonElement | undefined = $state();
+	let overflowMenuEl: HTMLDivElement | undefined = $state();
+
+	// Close overflow menu when clicking outside
+	$effect(() => {
+		if (!showOverflowMenu) return;
+		function handleClickOutside(e: MouseEvent) {
+			const target = e.target as Node;
+			if (overflowBtnEl?.contains(target) || overflowMenuEl?.contains(target)) return;
+			showOverflowMenu = false;
+		}
+		// Use setTimeout to avoid the current click from closing the menu
+		const timer = setTimeout(() => document.addEventListener('click', handleClickOutside), 0);
+		return () => {
+			clearTimeout(timer);
+			document.removeEventListener('click', handleClickOutside);
+		};
+	});
+
+	const hasDoneItems = $derived(
+		checklistMode && content.includes('[x]')
+	);
 	// svelte-ignore state_referenced_locally
 	let collaboratorsList = $state<Collaborator[]>(note?.collaborators ?? []);
 	// svelte-ignore state_referenced_locally
@@ -267,6 +295,34 @@
 			requestAnimationFrame(() => textareaEl?.focus());
 		}
 	}
+
+	async function handleArchive() {
+		showOverflowMenu = false;
+		if (noteId) {
+			await archiveNote(noteId);
+			onClose();
+		}
+	}
+
+	async function handleTrash() {
+		showOverflowMenu = false;
+		if (noteId) {
+			await trashNote(noteId);
+			onClose();
+		}
+	}
+
+	function deleteCheckedItems() {
+		const items = parseChecklist(content).filter((i) => !i.checked);
+		content = serializeChecklist(items);
+		showOverflowMenu = false;
+	}
+
+	function uncheckAllItems() {
+		const items = parseChecklist(content).map((i) => ({ ...i, checked: false }));
+		content = serializeChecklist(items);
+		showOverflowMenu = false;
+	}
 </script>
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -370,20 +426,6 @@
 					{/if}
 				</div>
 
-				<!-- Checklist mode toggle -->
-				<button
-					onclick={() => (checklistMode = !checklistMode)}
-					class="rounded-sm p-2 hover:bg-[var(--border)]/10"
-					title={checklistMode ? 'Switch to text' : 'Checklist mode'}
-					data-testid="checklist-toggle"
-				>
-					{#if checklistMode}
-						<Type class="h-5 w-5" />
-					{:else}
-						<SquareCheck class="h-5 w-5" />
-					{/if}
-				</button>
-
 				<!-- Image attachment toggle -->
 				<button
 					onclick={toggleImageUpload}
@@ -394,22 +436,7 @@
 					<ImageIcon class="h-5 w-5 {showImageUpload ? 'text-[var(--primary)]' : ''}" />
 				</button>
 
-				<!-- Raw markdown mode toggle -->
-				<button
-					onclick={toggleMarkdownMode}
-					class="rounded-sm p-2 hover:bg-[var(--border)]/10 disabled:opacity-30 disabled:cursor-not-allowed"
-					title={rawMarkdownMode ? 'Rich text mode' : 'Markdown mode'}
-					disabled={checklistMode}
-					data-testid="markdown-toggle"
-				>
-					{#if rawMarkdownMode}
-						<FileText class="h-5 w-5" />
-					{:else}
-						<FileCode class="h-5 w-5" />
-					{/if}
-				</button>
-
-				<!-- Share button (owner only for new shares, all for viewing) -->
+				<!-- Share button -->
 				{#if isOwner}
 					<button
 						onclick={toggleShareDialog}
@@ -431,17 +458,28 @@
 					</span>
 				{/if}
 
-				<!-- History button (only for saved notes) -->
+				<!-- Archive button (only for saved notes) -->
 				{#if !currentlyNew}
 					<button
-						onclick={toggleHistory}
+						onclick={handleArchive}
 						class="rounded-sm p-2 hover:bg-[var(--border)]/10"
-						title="Version history"
-						data-testid="history-toggle"
+						title="Archive"
+						data-testid="archive-note-btn"
 					>
-						<History class="h-5 w-5 {showHistory ? 'text-[var(--primary)]' : ''}" />
+						<Archive class="h-5 w-5" />
 					</button>
 				{/if}
+
+				<!-- Overflow menu trigger -->
+				<button
+					bind:this={overflowBtnEl}
+					onclick={() => (showOverflowMenu = !showOverflowMenu)}
+					class="rounded-sm p-2 hover:bg-[var(--border)]/10"
+					title="More actions"
+					data-testid="overflow-menu-btn"
+				>
+					<EllipsisVertical class="h-5 w-5" />
+				</button>
 			</div>
 
 			<button
@@ -453,6 +491,97 @@
 			</button>
 		</div>
 	</div>
+
+	<!-- Overflow menu dropdown (rendered outside the card to escape overflow-hidden) -->
+	{#if showOverflowMenu && overflowBtnEl}
+		{@const rect = overflowBtnEl.getBoundingClientRect()}
+		<div
+			bind:this={overflowMenuEl}
+			class="fixed z-50 w-max whitespace-nowrap rounded-sm border border-[var(--border-subtle)] bg-[var(--bg-surface)] py-1 shadow-[var(--card-shadow)]"
+			style="bottom: {window.innerHeight - rect.top + 4}px; right: {window.innerWidth - rect.right}px;"
+			data-testid="overflow-menu"
+		>
+			<!-- Checklist mode toggle -->
+			<button
+				onclick={() => { checklistMode = !checklistMode; showOverflowMenu = false; }}
+				class="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-[var(--text)] hover:bg-[var(--border)]/10"
+				data-testid="checklist-toggle"
+			>
+				{#if checklistMode}
+					<Type class="h-4 w-4" />
+					Switch to text
+				{:else}
+					<SquareCheck class="h-4 w-4" />
+					Checklist mode
+				{/if}
+			</button>
+
+			<!-- Markdown mode toggle (not available in checklist mode) -->
+			{#if !checklistMode}
+				<button
+					onclick={() => { toggleMarkdownMode(); showOverflowMenu = false; }}
+					class="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-[var(--text)] hover:bg-[var(--border)]/10"
+					data-testid="markdown-toggle"
+				>
+					{#if rawMarkdownMode}
+						<FileText class="h-4 w-4" />
+						Rich text mode
+					{:else}
+						<FileCode class="h-4 w-4" />
+						Markdown mode
+					{/if}
+				</button>
+			{/if}
+
+			<!-- History -->
+			{#if !currentlyNew}
+				<button
+					onclick={() => { toggleHistory(); showOverflowMenu = false; }}
+					class="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-[var(--text)] hover:bg-[var(--border)]/10"
+					data-testid="history-toggle"
+				>
+					<History class="h-4 w-4 {showHistory ? 'text-[var(--primary)]' : ''}" />
+					Version history
+				</button>
+			{/if}
+
+			<!-- Trash (only for saved notes) -->
+			{#if !currentlyNew}
+				<div class="my-1 border-t border-[var(--border-subtle)]"></div>
+				<button
+					onclick={handleTrash}
+					class="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-[var(--destructive)] hover:bg-[var(--border)]/10"
+					data-testid="trash-note-btn"
+				>
+					<Trash2 class="h-4 w-4" />
+					Move to trash
+				</button>
+			{/if}
+
+			<!-- Checklist-specific actions -->
+			{#if checklistMode}
+				<div class="my-1 border-t border-[var(--border-subtle)]"></div>
+				{#if hasDoneItems}
+					<button
+						onclick={deleteCheckedItems}
+						class="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-[var(--text)] hover:bg-[var(--border)]/10"
+						data-testid="delete-checked-btn"
+					>
+						<Trash2 class="h-4 w-4" />
+						Delete checked
+					</button>
+				{/if}
+				<button
+					onclick={uncheckAllItems}
+					class="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-[var(--text)] hover:bg-[var(--border)]/10"
+					data-testid="uncheck-all-btn"
+				>
+					<ListX class="h-4 w-4" />
+					Uncheck all
+				</button>
+			{/if}
+		</div>
+	{/if}
 </div>
 
 {#if showShareDialog && noteId}

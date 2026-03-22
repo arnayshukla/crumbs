@@ -1,11 +1,17 @@
 import { test, expect, noteCard } from './helpers/fixtures.js';
 import type { Page } from '@playwright/test';
 
+/** Toggle checklist mode via the overflow menu. */
+async function toggleChecklistMode(page: Page) {
+	await page.getByTestId('overflow-menu-btn').click();
+	await page.getByTestId('checklist-toggle').click();
+}
+
 /** Create a checklist note via UI. Leaves the editor closed. */
 async function createChecklistNote(page: Page, title: string, items: string[]) {
 	await page.getByTestId('new-note-btn').click();
 	await page.getByTestId('note-title-input').fill(title);
-	await page.getByTestId('checklist-toggle').click();
+	await toggleChecklistMode(page);
 	for (let i = 0; i < items.length; i++) {
 		await page.getByTestId('checklist-input').nth(i).fill(items[i]);
 		if (i < items.length - 1) {
@@ -22,7 +28,7 @@ test.describe('Checklist', () => {
 		await page.getByTestId('new-note-btn').click();
 
 		// When the user enables checklist mode
-		await page.getByTestId('checklist-toggle').click();
+		await toggleChecklistMode(page);
 
 		// Then the checklist component is displayed
 		await expect(page.getByTestId('checklist')).toBeVisible();
@@ -88,7 +94,7 @@ test.describe('Checklist', () => {
 	test('Scenario: Enter key adds a new checklist item', async ({ authenticatedPage: page }) => {
 		// Given a checklist with one item
 		await page.getByTestId('new-note-btn').click();
-		await page.getByTestId('checklist-toggle').click();
+		await toggleChecklistMode(page);
 		await page.getByTestId('checklist-input').first().fill('First item');
 
 		// When the user presses Enter
@@ -127,7 +133,7 @@ test.describe('Checklist', () => {
 	test('Scenario: Backspace on empty item removes it from the list', async ({ authenticatedPage: page }) => {
 		// Given a checklist with two items where the second is empty
 		await page.getByTestId('new-note-btn').click();
-		await page.getByTestId('checklist-toggle').click();
+		await toggleChecklistMode(page);
 		await page.getByTestId('checklist-input').first().fill('First item');
 		await page.getByTestId('checklist-input').first().press('Enter');
 		await expect(page.getByTestId('checklist-input')).toHaveCount(2);
@@ -143,7 +149,7 @@ test.describe('Checklist', () => {
 		// Given a checklist note with two items
 		await page.getByTestId('new-note-btn').click();
 		await page.getByTestId('note-title-input').fill('Hide Done Test');
-		await page.getByTestId('checklist-toggle').click();
+		await toggleChecklistMode(page);
 		await page.getByTestId('checklist-input').first().fill('Done task');
 		await page.getByTestId('checklist-input').first().press('Enter');
 		await page.getByTestId('checklist-input').nth(1).fill('Pending task');
@@ -164,7 +170,7 @@ test.describe('Checklist', () => {
 	test('Scenario: Arrow keys navigate between checklist items', async ({ authenticatedPage: page }) => {
 		// Given a checklist with three items
 		await page.getByTestId('new-note-btn').click();
-		await page.getByTestId('checklist-toggle').click();
+		await toggleChecklistMode(page);
 		await page.getByTestId('checklist-input').first().fill('First');
 		await page.getByTestId('checklist-input').first().press('Enter');
 		await page.getByTestId('checklist-input').nth(1).fill('Second');
@@ -187,7 +193,7 @@ test.describe('Checklist', () => {
 	test('Scenario: Tab indents an item and Shift+Tab outdents it', async ({ authenticatedPage: page }) => {
 		// Given a checklist with two top-level items
 		await page.getByTestId('new-note-btn').click();
-		await page.getByTestId('checklist-toggle').click();
+		await toggleChecklistMode(page);
 		await page.getByTestId('checklist-input').first().fill('Parent');
 		await page.getByTestId('checklist-input').first().press('Enter');
 		await page.getByTestId('checklist-input').nth(1).fill('Child');
@@ -208,7 +214,7 @@ test.describe('Checklist', () => {
 	test('Scenario: Checking a parent checks all its children', async ({ authenticatedPage: page }) => {
 		// Given a checklist with a parent and two children
 		await page.getByTestId('new-note-btn').click();
-		await page.getByTestId('checklist-toggle').click();
+		await toggleChecklistMode(page);
 		await page.getByTestId('checklist-input').first().fill('Buy groceries');
 		await page.getByTestId('checklist-input').first().press('Enter');
 		await page.getByTestId('checklist-input').nth(1).fill('Milk');
@@ -227,7 +233,7 @@ test.describe('Checklist', () => {
 	test('Scenario: Checking a child shows read-only parent label in done section', async ({ authenticatedPage: page }) => {
 		// Given a checklist with a parent and a child
 		await page.getByTestId('new-note-btn').click();
-		await page.getByTestId('checklist-toggle').click();
+		await toggleChecklistMode(page);
 		await page.getByTestId('checklist-input').first().fill('Groceries');
 		await page.getByTestId('checklist-input').first().press('Enter');
 		await page.getByTestId('checklist-input').nth(1).fill('Milk');
@@ -245,7 +251,7 @@ test.describe('Checklist', () => {
 	test('Scenario: Unchecking a parent from done restores group to active', async ({ authenticatedPage: page }) => {
 		// Given a checklist with a parent and child, all checked
 		await page.getByTestId('new-note-btn').click();
-		await page.getByTestId('checklist-toggle').click();
+		await toggleChecklistMode(page);
 		await page.getByTestId('checklist-input').first().fill('Shopping');
 		await page.getByTestId('checklist-input').first().press('Enter');
 		await page.getByTestId('checklist-input').nth(1).fill('Milk');
@@ -281,7 +287,7 @@ test.describe('Checklist', () => {
 	test('Scenario: Enter on a child creates a sibling at the same level', async ({ authenticatedPage: page }) => {
 		// Given a checklist with a parent and a child
 		await page.getByTestId('new-note-btn').click();
-		await page.getByTestId('checklist-toggle').click();
+		await toggleChecklistMode(page);
 		await page.getByTestId('checklist-input').first().fill('Parent');
 		await page.getByTestId('checklist-input').first().press('Enter');
 		await page.getByTestId('checklist-input').nth(1).fill('Child 1');
@@ -310,14 +316,49 @@ test.describe('Checklist', () => {
 	test('Scenario: Disabling checklist mode restores the rich text editor', async ({ authenticatedPage: page }) => {
 		// Given checklist mode is enabled on a new note
 		await page.getByTestId('new-note-btn').click();
-		await page.getByTestId('checklist-toggle').click();
+		await toggleChecklistMode(page);
 		await expect(page.getByTestId('checklist')).toBeVisible();
 
 		// When the user disables checklist mode
-		await page.getByTestId('checklist-toggle').click();
+		await toggleChecklistMode(page);
 
 		// Then the rich text editor is displayed again
 		await expect(page.getByTestId('tiptap-editor')).toBeVisible();
 		await expect(page.getByTestId('checklist')).not.toBeVisible();
+	});
+
+	test('Scenario: Delete checked items removes only done items', async ({ authenticatedPage: page }) => {
+		// Given a checklist note with two checked and one unchecked item
+		await createChecklistNote(page, 'Cleanup', ['Keep me', 'Done 1', 'Done 2']);
+		await noteCard(page, 'Cleanup').click();
+		await page.getByTestId('checklist-checkbox').nth(1).click();
+		await page.getByTestId('checklist-checkbox').nth(1).click();
+		await expect(page.getByTestId('checklist-toggle-done')).toContainText('2 done');
+
+		// When the user deletes checked items via the overflow menu
+		await page.getByTestId('overflow-menu-btn').click();
+		await page.getByTestId('delete-checked-btn').click();
+
+		// Then only the unchecked item remains
+		await expect(page.getByTestId('checklist-input')).toHaveCount(1);
+		await expect(page.getByTestId('checklist-input').first()).toHaveValue('Keep me');
+		await expect(page.getByTestId('checklist-toggle-done')).not.toBeVisible();
+	});
+
+	test('Scenario: Uncheck all items moves everything back to active', async ({ authenticatedPage: page }) => {
+		// Given a checklist note with checked items
+		await createChecklistNote(page, 'Reset', ['Item A', 'Item B']);
+		await noteCard(page, 'Reset').click();
+		await page.getByTestId('checklist-checkbox').first().click();
+		await page.getByTestId('checklist-checkbox').first().click();
+		await expect(page.getByTestId('checklist-toggle-done')).toContainText('2 done');
+
+		// When the user unchecks all via the overflow menu
+		await page.getByTestId('overflow-menu-btn').click();
+		await page.getByTestId('uncheck-all-btn').click();
+
+		// Then all items are back in the active section
+		await expect(page.getByTestId('checklist-input')).toHaveCount(2);
+		await expect(page.getByTestId('checklist-toggle-done')).not.toBeVisible();
 	});
 });

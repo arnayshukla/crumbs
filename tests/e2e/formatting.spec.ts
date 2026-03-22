@@ -13,11 +13,17 @@ async function runTiptapCommand(page: Page, commandFn: string) {
 	);
 }
 
+/** Toggle markdown mode via the overflow menu. */
+async function toggleMarkdownMode(page: Page) {
+	await page.getByTestId('overflow-menu-btn').click();
+	await page.getByTestId('markdown-toggle').click();
+}
+
 /** Type content into the TipTap editor via markdown mode (reliable for e2e) */
 async function typeViaMarkdown(page: Page, content: string) {
-	await page.getByTestId('markdown-toggle').click();
+	await toggleMarkdownMode(page);
 	await page.getByTestId('note-content-input').fill(content);
-	await page.getByTestId('markdown-toggle').click();
+	await toggleMarkdownMode(page);
 }
 
 test.describe('Rich text formatting', () => {
@@ -34,7 +40,7 @@ test.describe('Rich text formatting', () => {
 		await expect(editor.locator('strong')).toHaveText('world');
 
 		// And the markdown content contains bold syntax
-		await page.getByTestId('markdown-toggle').click();
+		await toggleMarkdownMode(page);
 		await expect(page.getByTestId('note-content-input')).toHaveValue('hello **world**');
 	});
 
@@ -95,7 +101,7 @@ test.describe('Rich text formatting', () => {
 		await expect(editor.locator('strong')).toHaveText('bold');
 
 		// When the user toggles markdown mode
-		await page.getByTestId('markdown-toggle').click();
+		await toggleMarkdownMode(page);
 
 		// Then the raw markdown textarea is shown with the markdown source
 		await expect(page.getByTestId('note-content-input')).toBeVisible();
