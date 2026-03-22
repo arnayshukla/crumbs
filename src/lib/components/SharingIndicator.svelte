@@ -66,7 +66,7 @@
 
 	{#if showPopover}
 		<div
-			class="absolute right-0 bottom-full z-20 mb-1 min-w-[180px] rounded-sm border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-2 shadow-[var(--card-shadow)] animate-[fade-in_150ms_ease-out]"
+			class="absolute right-0 top-full z-20 mt-1 min-w-[180px] rounded-sm border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-2 shadow-[var(--card-shadow)] animate-[fade-in_150ms_ease-out]"
 			data-testid="sharing-popover"
 		>
 			{#if hasPublicLink}
