@@ -238,21 +238,20 @@ export function updateNote(db: Db, userId: number, id: string, input: UpdateNote
 
 	if (input.title !== undefined) { sharedUpdates.title = input.title; hasSharedUpdates = true; }
 	if (input.content !== undefined) {
-		// 3-way merge to preserve concurrent edits from other users
-		if (input.content !== existing.content) {
-			const baseSnapshot = input.baseVersion !== undefined
-				? db.select({ content: noteVersions.content })
-					.from(noteVersions)
-					.where(and(eq(noteVersions.noteId, id), lte(noteVersions.version, input.baseVersion)))
-					.orderBy(desc(noteVersions.version))
-					.limit(1)
-					.get()
-				: db.select({ content: noteVersions.content })
-					.from(noteVersions)
-					.where(eq(noteVersions.noteId, id))
-					.orderBy(desc(noteVersions.version))
-					.limit(1)
-					.get();
+		// 3-way merge to preserve concurrent edits from other users.
+		// Only attempt merge when there's a concurrent edit: the client's
+		// baseVersion is behind the current version, meaning someone else
+		// saved between the client's load and this save.
+		const hasConcurrentEdit = input.baseVersion !== undefined
+			&& input.baseVersion < existing.version;
+
+		if (hasConcurrentEdit && input.content !== existing.content) {
+			const baseSnapshot = db.select({ content: noteVersions.content })
+				.from(noteVersions)
+				.where(and(eq(noteVersions.noteId, id), lte(noteVersions.version, input.baseVersion!)))
+				.orderBy(desc(noteVersions.version))
+				.limit(1)
+				.get();
 
 			if (baseSnapshot && baseSnapshot.content !== existing.content) {
 				sharedUpdates.content = mergeContent(baseSnapshot.content, input.content, existing.content);

@@ -60,6 +60,31 @@ test.describe('Checklist', () => {
 		await expect(page.getByTestId('checklist-done-checkbox').first()).toBeChecked();
 	});
 
+	test('Scenario: Sequential check and uncheck both persist correctly', async ({ authenticatedPage: page }) => {
+		// Given a checklist note with an item "Buy milk" exists
+		await createChecklistNote(page, 'Tasks2', ['Buy milk']);
+
+		// When the user checks the item and closes
+		await noteCard(page, 'Tasks2').click();
+		await page.getByTestId('checklist-checkbox').first().click();
+		await expect(page.getByTestId('checklist-toggle-done')).toContainText('1 done');
+		await page.getByTestId('close-editor-btn').click();
+
+		// Then the checked state persists
+		await noteCard(page, 'Tasks2').click();
+		await expect(page.getByTestId('checklist-done-checkbox').first()).toBeChecked();
+
+		// When the user unchecks the item from the done section and closes
+		await page.getByTestId('checklist-done-checkbox').first().click();
+		await expect(page.getByTestId('checklist-checkbox')).toHaveCount(1);
+		await page.getByTestId('close-editor-btn').click();
+
+		// Then the unchecked state also persists (not reverted by 3-way merge)
+		await noteCard(page, 'Tasks2').click();
+		await expect(page.getByTestId('checklist-checkbox')).toHaveCount(1);
+		await expect(page.getByTestId('checklist-input').first()).toHaveValue('Buy milk');
+	});
+
 	test('Scenario: Enter key adds a new checklist item', async ({ authenticatedPage: page }) => {
 		// Given a checklist with one item
 		await page.getByTestId('new-note-btn').click();
