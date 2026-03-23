@@ -3,7 +3,7 @@ import { createTestDb } from './db/test-helpers.js';
 import { users, sessions } from './db/schema.js';
 import { eq } from 'drizzle-orm';
 import * as argon2 from 'argon2';
-import { randomBytes } from 'crypto';
+import { randomBytes, randomUUID } from 'crypto';
 import type { BetterSQLite3Database } from 'drizzle-orm/better-sqlite3';
 import type * as schema from './db/schema.js';
 
@@ -16,16 +16,16 @@ beforeEach(() => {
 
 describe('Auth - Password Hashing', () => {
 	it('should hash and verify a password correctly', async () => {
-		const password = 'mysecurepassword';
+		const password = randomUUID();
 		const hash = await argon2.hash(password);
 
 		expect(hash).not.toBe(password);
 		expect(await argon2.verify(hash, password)).toBe(true);
-		expect(await argon2.verify(hash, 'wrongpassword')).toBe(false);
+		expect(await argon2.verify(hash, randomUUID())).toBe(false);
 	});
 
 	it('should produce different hashes for the same password', async () => {
-		const password = 'mysecurepassword';
+		const password = randomUUID();
 		const hash1 = await argon2.hash(password);
 		const hash2 = await argon2.hash(password);
 
@@ -37,7 +37,7 @@ describe('Auth - Password Hashing', () => {
 
 describe('Auth - User Setup', () => {
 	it('should create a user with hashed password', async () => {
-		const password = 'testpassword123';
+		const password = randomUUID();
 		const hash = await argon2.hash(password);
 
 		await db.insert(users).values({

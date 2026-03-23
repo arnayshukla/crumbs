@@ -1,12 +1,16 @@
 import { test as base, expect, type Page, type Locator } from '@playwright/test';
+import { readFileSync } from 'fs';
 import { collectCoverage } from './coverage';
+import { TEST_CREDENTIALS_FILE } from '../global-setup';
+
+const { testPassword, collabPassword } = JSON.parse(readFileSync(TEST_CREDENTIALS_FILE, 'utf-8'));
 
 const TEST_EMAIL = 'admin@test.com';
-const TEST_PASSWORD = 'testpassword123';
+const TEST_PASSWORD = testPassword;
 const TEST_DISPLAY_NAME = 'Test Admin';
 
 const COLLAB_EMAIL = 'collab@test.com';
-const COLLAB_PASSWORD = 'collabpass123';
+const COLLAB_PASSWORD = collabPassword;
 const COLLAB_NAME = 'Collaborator User';
 
 /** Find a specific note card by its title text */
