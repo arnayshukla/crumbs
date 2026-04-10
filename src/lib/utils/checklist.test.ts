@@ -318,4 +318,9 @@ describe('unlinkifyHtml', () => {
 		expect(unlinkifyHtml('&lt;b&gt;bold&lt;/b&gt;')).toBe('<b>bold</b>');
 		expect(unlinkifyHtml('say &quot;hello&quot;')).toBe('say "hello"');
 	});
+
+	it('converts &nbsp; from contenteditable to regular spaces', () => {
+		expect(unlinkifyHtml('hello&nbsp;world')).toBe('hello world');
+		expect(unlinkifyHtml('a&nbsp;&nbsp;b')).toBe('a  b');
+	});
 });
