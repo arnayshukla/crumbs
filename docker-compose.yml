@@ -1,6 +1,6 @@
 services:
   crumbs:
-    image: ghcr.io/bretzel-app/crumbs:0.28.2
+    image: ghcr.io/bretzel-app/crumbs:0.28.3
     container_name: crumbs
     ports:
       - "3000:3000"
