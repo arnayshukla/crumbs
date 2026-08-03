@@ -18,6 +18,7 @@ Let a note reference another note by ID, so clicking it opens the target note in
 | Backlinks | Included in v1 | Requested explicitly; reuses the same extract-and-sync pattern tags already use, so the incremental cost is a reverse query, not new infrastructure |
 | Public share page | Note-links never resolve, even if the target is also shared | Simplest, most conservative option — zero chance of leaking the existence of a private note to an anonymous visitor |
 | Link picker scope | Owned notes + notes shared with you | Same visibility scope the main notes list already uses; `searchNotes()` already implements this |
+| Removing an existing link | Hover-reveal a small × on the chip | Click already navigates instantly, so it can't also open an edit/remove popover the way external links do; a hover-revealed remove button solves this without touching the click behavior. Repointing a link is just remove + re-insert — no separate "edit target" UI |
 
 ## Architecture
 
@@ -57,7 +58,7 @@ This keeps the existing raw-markdown-mode toggle showing something readable, and
 
 | Component | Change |
 |---|---|
-| `src/lib/components/tiptap/NoteLink.ts` (new) | Inline atomic tiptap node extension. `NodeView` looks up the target's title via `getNote(id)` from `src/lib/sync/idb.ts` — **not** the reactive `notes` writable store, which only holds whatever the current filter (all/archived/trashed) last loaded and would wrongly grey out a valid note just because it's outside the current view. IndexedDB is kept complete for all accessible notes by the existing `/api/sync` incremental sync, independent of which filter is on screen, so it's the correct source of truth here — and it works offline too. Renders a chip (note icon + title), greys out and disables click if the note isn't found. Click opens the note editor overlay for that ID. |
+| `src/lib/components/tiptap/NoteLink.ts` (new) | Inline atomic tiptap node extension. `NodeView` looks up the target's title via `getNote(id)` from `src/lib/sync/idb.ts` — **not** the reactive `notes` writable store, which only holds whatever the current filter (all/archived/trashed) last loaded and would wrongly grey out a valid note just because it's outside the current view. IndexedDB is kept complete for all accessible notes by the existing `/api/sync` incremental sync, independent of which filter is on screen, so it's the correct source of truth here — and it works offline too. Renders a chip (note icon + title), greys out and disables click if the note isn't found. Click opens the note editor overlay for that ID. A small × button is layered on the chip using the app's existing hover-action pattern (`max-md:opacity-100 md:opacity-0 transition-opacity md:group-hover:opacity-100` — always visible on touch, hover-revealed on desktop) that deletes the node from the document without navigating; there's no separate "change target" action, since deleting and re-inserting is simple enough that a dedicated repoint UI isn't worth building. |
 | `src/lib/components/TiptapEditor.svelte` | Register the `NoteLink` node extension alongside the existing ones. |
 | `src/lib/components/FormattingToolbar.svelte` | The existing link dropdown gets a note-search results list below the URL input, live-filtered by whatever's typed there (debounced, via `/api/search`, excluding the currently-open note) — no heuristic needed to guess whether the typed text is a URL or a note search; both affordances are just available side by side. Applying the URL input still applies the normal external `Link` mark; picking a search result instead inserts a `NoteLink` node at the cursor (replacing any selection). |
 | `src/lib/components/NoteEditor.svelte` | New "Referenced by" section, shown when `note.backlinks` is non-empty — a small chip list near where tags render, each chip opens that referencing note. |
@@ -105,6 +106,7 @@ This keeps the existing raw-markdown-mode toggle showing something readable, and
 - The linked-to note shows a "Referenced by" backlink to the note that links to it
 - A public share page never renders a note-link as clickable, even if the target is also shared
 - The note-picker excludes the currently-open note from its own search results
+- Hovering a note-link chip reveals a × button that removes it from the document without navigating; the × is always visible (not hover-gated) on touch devices
 
 ## Out of Scope (v1)
 
@@ -124,3 +126,4 @@ This keeps the existing raw-markdown-mode toggle showing something readable, and
 - [ ] Public share page never renders a note-link as clickable
 - [ ] Note-links round-trip correctly through raw markdown mode as `[title](crumb-note://id)`
 - [ ] The link picker excludes the current note and includes both owned and shared-with-you notes
+- [ ] Hovering a note-link chip reveals a × that removes it without navigating; always visible on touch
