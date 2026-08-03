@@ -79,7 +79,7 @@
 		editor = new Editor({
 			element: element!,
 			extensions: [
-				StarterKit,
+				StarterKit.configure({ link: false, underline: false }),
 				Link.configure({ openOnClick: false }),
 				Underline,
 				TextAlign.configure({ types: ['heading', 'paragraph'] }),

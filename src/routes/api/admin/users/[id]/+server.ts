@@ -15,6 +15,9 @@ export const PATCH: RequestHandler = async ({ params, request, ...event }) => {
 	const origin = process.env.ORIGIN || 'http://localhost:3000';
 
 	if (body.role !== undefined) {
+		if (body.role !== 'admin' && body.role !== 'user') {
+			throw error(400, 'Invalid role');
+		}
 		// Prevent admin from demoting themselves
 		if (userId === admin.id && body.role !== 'admin') {
 			throw error(400, 'Cannot change your own role');

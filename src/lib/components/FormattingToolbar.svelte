@@ -37,11 +37,14 @@
 
 	let { editor, tick }: Props = $props();
 
-	function canUndo() { void tick; return editor?.can().chain().focus().undo().run() ?? false; }
-	function canRedo() { void tick; return editor?.can().chain().focus().redo().run() ?? false; }
+	// A stale `editor` reference can still point at an instance mid-teardown (e.g. while
+	// NoteEditor swaps in a fresh Editor across a markdown-mode toggle); calling its
+	// commands after `destroy()` throws, so every accessor here must check isDestroyed too.
+	function canUndo() { void tick; return (!editor?.isDestroyed && editor?.can().chain().focus().undo().run()) ?? false; }
+	function canRedo() { void tick; return (!editor?.isDestroyed && editor?.can().chain().focus().redo().run()) ?? false; }
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	function isActive(nameOrAttrs: any, attrs?: Record<string, any>): boolean { void tick; return editor?.isActive(nameOrAttrs, attrs) ?? false; }
-	function getAttrs(type: string) { void tick; return editor?.getAttributes(type) ?? {}; }
+	function isActive(nameOrAttrs: any, attrs?: Record<string, any>): boolean { void tick; return (!editor?.isDestroyed && editor?.isActive(nameOrAttrs, attrs)) ?? false; }
+	function getAttrs(type: string) { void tick; return (!editor?.isDestroyed && editor?.getAttributes(type)) || {}; }
 
 	let openDropdown: string | null = $state(null);
 	let dropdownAnchorEl: HTMLElement | null = $state(null);

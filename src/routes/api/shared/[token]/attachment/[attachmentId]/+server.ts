@@ -31,6 +31,7 @@ export const GET: RequestHandler = async ({ params, url, getClientAddress }) => 
 		return new Response(buffer, {
 			headers: {
 				'Content-Type': mimeType,
+				'X-Content-Type-Options': 'nosniff',
 				'Content-Disposition': `inline; filename="${attachment.filename}"`,
 				'Cache-Control': 'public, max-age=3600'
 			}
