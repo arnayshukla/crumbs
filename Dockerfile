@@ -49,8 +49,6 @@ ENV ORIGIN=http://localhost:3000
 
 EXPOSE 3000
 
-VOLUME ["/data"]
-
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s \
     CMD node -e "fetch('http://localhost:3000/login').then(r => r.ok ? process.exit(0) : process.exit(1)).catch(() => process.exit(1))"
 
