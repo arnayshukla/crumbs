@@ -149,7 +149,7 @@
 {/if}
 
 <div class="mb-4">
-	<div class="mb-3 flex items-center justify-end gap-2">
+	<div class="mb-3 flex flex-wrap items-center justify-end gap-2">
 		{#if selectionMode}
 			<span class="mr-auto text-sm text-[var(--text-muted)]">{selectedIds.size} selected</span>
 			{#if filter === 'trashed'}
@@ -157,6 +157,7 @@
 				<button disabled={!selectionOwned} class="rounded-sm px-3 py-2 text-sm text-[var(--destructive)] disabled:opacity-40" onclick={() => runBulk('delete')}>Delete forever</button>
 			{:else}
 				<button class="rounded-sm px-3 py-2 text-sm hover:bg-[var(--bg-surface)]" onclick={() => runBulk('pin')}>Pin</button>
+				<button class="rounded-sm px-3 py-2 text-sm hover:bg-[var(--bg-surface)]" onclick={() => runBulk('unpin')}>Unpin</button>
 				<button class="rounded-sm px-3 py-2 text-sm hover:bg-[var(--bg-surface)]" onclick={() => runBulk(filter === 'archived' ? 'unarchive' : 'archive')}>{filter === 'archived' ? 'Unarchive' : 'Archive'}</button>
 				<select bind:value={bulkColor} onchange={() => runBulk('color')} class="rounded-sm border border-[var(--border)] bg-[var(--bg-surface)] px-2 py-2 text-sm" aria-label="Set color">
 					{#each ['default','coral','peach','sand','mint','sage','fog','storm','dusk','blossom','clay','chalk'] as option}<option value={option}>{option}</option>{/each}

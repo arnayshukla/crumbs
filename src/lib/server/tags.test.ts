@@ -108,4 +108,15 @@ describe('tag management', () => {
 		applyTagChange(db, USER_ID, 'work');
 		expect(db.select().from(notes).where(eq(notes.id, 'n1')).get()?.content).toBe('Plan today');
 	});
+
+	it('deletes an orphaned tag with no associated crumbs', () => {
+		db.insert(tags).values({ name: 'orphaned', userId: USER_ID }).run();
+		expect(listTagsWithUsage(db, USER_ID)).toMatchObject([
+			{ name: 'orphaned', usageCount: 0 }
+		]);
+
+		applyTagChange(db, USER_ID, 'orphaned');
+
+		expect(listTagsWithUsage(db, USER_ID)).toEqual([]);
+	});
 });

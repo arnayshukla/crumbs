@@ -50,13 +50,25 @@ test.describe('Intentional feature set', () => {
 		expect(created.ok()).toBeTruthy();
 
 		await page.goto('/settings/tags');
-		const row = page.locator('div').filter({ hasText: `#${source}` }).filter({ has: page.getByRole('button', { name: 'Rename' }) }).last();
-		await row.getByRole('button', { name: 'Rename' }).click();
+		await page.getByRole('button', { name: `Rename #${source}` }).click();
 		await page.locator('#tag-target').fill(target);
 		await page.getByRole('button', { name: 'Preview' }).click();
 		await expect(page.getByTestId('tag-change-preview')).toContainText('1 owned crumb');
 		await page.getByTestId('tag-change-preview').getByRole('button', { name: 'Confirm' }).click();
 		await expect(page.getByText(`#${target}`, { exact: true })).toBeVisible();
+	});
+
+	test('tags delete immediately without a confirmation step', async ({ authenticatedPage: page }, testInfo) => {
+		const source = `delete-${testInfo.workerIndex}-${Date.now()}`;
+		const created = await page.request.post('/api/notes', { data: { title: 'Temporary tag', content: `#${source}` } });
+		expect(created.ok()).toBeTruthy();
+
+		await page.goto('/settings/tags');
+		const deleteButton = page.getByRole('button', { name: `Delete #${source}` });
+		await expect(deleteButton).toBeVisible();
+		await deleteButton.click();
+		await expect(deleteButton).toHaveCount(0);
+		await expect(page.getByTestId('tag-change-preview')).toHaveCount(0);
 	});
 
 	test('bookmarklet-style capture requires preview and explicit save', async ({ authenticatedPage: page }, testInfo) => {
@@ -125,5 +137,15 @@ test.describe('Intentional feature set', () => {
 		expect(instance.ok()).toBeTruthy();
 		expect(instance.headers()['content-type']).toContain('application/zip');
 		expect((await instance.body()).length).toBeGreaterThan(100);
+	});
+
+	test('portable import file picker enables import after choosing an archive', async ({ authenticatedPage: page }, testInfo) => {
+		await page.goto('/settings/data');
+		await page.getByTestId('portable-import-input').setInputFiles({
+			name: 'crumbs-portable.zip',
+			mimeType: 'application/zip',
+			buffer: await portableArchive(`Picker ${testInfo.workerIndex}-${Date.now()}`)
+		});
+		await expect(page.getByTestId('portable-import-button')).toBeEnabled();
 	});
 });
