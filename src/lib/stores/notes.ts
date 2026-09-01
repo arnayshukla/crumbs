@@ -1,5 +1,5 @@
 import { writable, derived } from 'svelte/store';
-import type { Note, NoteFilter, NoteCreate, NoteUpdate } from '$lib/types/index.js';
+import type { Note, NoteFilter, NoteCreate, NoteUpdate, BulkNoteAction } from '$lib/types/index.js';
 import { addToSyncQueue, putNote, deleteNoteFromIdb, getAllNotes, clearNotes as clearIdbNotes } from '$lib/sync/idb.js';
 import { showToast } from '$lib/stores/toast.js';
 import { extractTags } from '$lib/utils/tags.js';
@@ -324,6 +324,30 @@ export async function updateSortOrders(orders: { id: string; sortOrder: number }
 		return res.ok;
 	} catch {
 		// Offline — optimistic update stands
+		return false;
+	}
+}
+
+export async function bulkNoteAction(action: BulkNoteAction): Promise<boolean> {
+	try {
+		const response = await fetch('/api/notes/bulk', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify(action)
+		});
+		if (!response.ok) {
+			showToast((await response.text()) || 'Bulk action failed', 'error');
+			return false;
+		}
+		const result: { updated: Note[]; removedIds: string[] } = await response.json();
+		const updatedMap = new Map(result.updated.map((note) => [note.id, note]));
+		const removed = new Set(result.removedIds);
+		notes.update((list) => list.filter((note) => !removed.has(note.id)).map((note) => updatedMap.get(note.id) ?? note));
+		await Promise.all(result.updated.map((note) => putNote(note)));
+		await Promise.all(result.removedIds.map((id) => deleteNoteFromIdb(id)));
+		return true;
+	} catch {
+		showToast('Bulk actions require a connection', 'info');
 		return false;
 	}
 }

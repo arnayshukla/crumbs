@@ -8,19 +8,26 @@
 	import { flip } from 'svelte/animate';
 	import { type ChecklistItem, generateId, parseChecklist, serializeChecklist, toggleItemWithCascade, indentItem, outdentItem, linkifyText, unlinkifyHtml } from '$lib/utils/checklist.js';
 	import LinkPopover from './LinkPopover.svelte';
+	import TagSuggestions from './TagSuggestions.svelte';
+	import { getTagQuery, insertTagAtQuery, rankTagSuggestions, type TagQuery } from '$lib/utils/tag-autocomplete.js';
 
 	interface Props {
 		content: string;
 		onChange: (content: string) => void;
+		tags?: string[];
 	}
 
-	let { content, onChange }: Props = $props();
+	let { content, onChange, tags = [] }: Props = $props();
 
 	// svelte-ignore state_referenced_locally
 	let items = $state<ChecklistItem[]>(parseChecklist(content));
 	let doneExpanded = $state(true);
 	const flipDurationMs = 150;
 	let linkPopover = $state<{ url: string; anchor: DOMRect } | null>(null);
+	let tagItemId = $state<string | null>(null);
+	let tagQuery = $state<TagQuery | null>(null);
+	let tagSuggestionIndex = $state(0);
+	let tagSuggestions = $derived(tagQuery ? rankTagSuggestions(tags, tagQuery.query) : []);
 
 	// Track the last content we emitted so we can distinguish self-originated
 	// changes from external ones (sync, history restore, etc.)
@@ -93,6 +100,55 @@
 			item.text = unlinkifyHtml(innerHTML);
 			emitChange();
 		}
+	}
+
+	function updateChecklistTagQuery(id: string, element: HTMLElement) {
+		const selection = window.getSelection();
+		let cursor = element.textContent?.length ?? 0;
+		if (selection?.rangeCount && element.contains(selection.anchorNode)) {
+			const range = selection.getRangeAt(0).cloneRange();
+			range.selectNodeContents(element);
+			range.setEnd(selection.anchorNode!, selection.anchorOffset);
+			cursor = range.toString().length;
+		}
+		const item = items.find((candidate) => candidate.id === id);
+		tagItemId = id;
+		tagQuery = item ? getTagQuery(item.text, cursor) : null;
+		tagSuggestionIndex = 0;
+	}
+
+	function selectChecklistTag(tag: string) {
+		if (!tagItemId || !tagQuery) return;
+		const item = items.find((candidate) => candidate.id === tagItemId);
+		if (!item) return;
+		item.text = insertTagAtQuery(item.text, tagQuery, tag);
+		items = [...items];
+		emitChange();
+		const id = tagItemId;
+		tagItemId = null;
+		tagQuery = null;
+		requestAnimationFrame(() => document.querySelector<HTMLElement>(`[data-item-id="${id}"]`)?.focus());
+	}
+
+	function handleChecklistTagKeydown(event: KeyboardEvent): boolean {
+		if (!tagQuery || tagSuggestions.length === 0) return false;
+		if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+			event.preventDefault();
+			const direction = event.key === 'ArrowDown' ? 1 : -1;
+			tagSuggestionIndex = (tagSuggestionIndex + direction + tagSuggestions.length) % tagSuggestions.length;
+			return true;
+		}
+		if (event.key === 'Enter' || event.key === 'Tab') {
+			event.preventDefault();
+			selectChecklistTag(tagSuggestions[tagSuggestionIndex]);
+			return true;
+		}
+		if (event.key === 'Escape') {
+			event.preventDefault();
+			tagQuery = null;
+			return true;
+		}
+		return false;
 	}
 
 	function addItem(afterIndex: number) {
@@ -298,7 +354,7 @@
 		class="space-y-0.5"
 	>
 		{#each activeItems as item (item.id)}
-			<div class="group flex items-center gap-2 py-1.5 outline-none {item.parentId ? 'pl-8' : ''}"
+			<div class="group relative flex items-center gap-2 py-1.5 outline-none {item.parentId ? 'pl-8' : ''}"
 				data-testid={item.parentId ? 'checklist-child-row' : undefined}
 				animate:flip={{ duration: flipDurationMs }}>
 				<!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -320,8 +376,8 @@
 				<div
 					contenteditable="true"
 					use:editableContent={item.text}
-					oninput={(e) => updateText(item.id, (e.target as HTMLElement).innerHTML)}
-					onkeydown={(e) => handleKeydown(e, item.id)}
+					oninput={(e) => { updateText(item.id, e.currentTarget.innerHTML); updateChecklistTagQuery(item.id, e.currentTarget); }}
+					onkeydown={(e) => { if (!handleChecklistTagKeydown(e)) handleKeydown(e, item.id); }}
 					onclick={handleLinkClick}
 					onpaste={handlePaste}
 					onblur={(e) => {
@@ -340,6 +396,11 @@
 					role="textbox"
 					tabindex="0"
 				></div>
+				{#if tagItemId === item.id && tagQuery}
+					<div class="absolute left-12 top-full">
+						<TagSuggestions tags={tagSuggestions} activeIndex={tagSuggestionIndex} onSelect={selectChecklistTag} />
+					</div>
+				{/if}
 				<button
 					onclick={() => removeItem(item.id)}
 					class="max-md:opacity-100 md:opacity-0 md:group-hover:opacity-100 focus:opacity-100"
@@ -411,4 +472,3 @@
 		<LinkPopover url={linkPopover.url} anchor={linkPopover.anchor} onClose={() => (linkPopover = null)} />
 	{/if}
 </div>
-

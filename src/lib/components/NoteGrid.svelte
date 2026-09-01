@@ -11,9 +11,12 @@
 		draggable?: boolean;
 		dndType?: string;
 		onReorder?: (noteIds: string[]) => void;
+		selectionMode?: boolean;
+		selectedIds?: Set<string>;
+		onToggleSelection?: (note: Note) => void;
 	}
 
-	let { notes, label = '', onEdit, draggable = false, dndType = 'notes', onReorder }: Props = $props();
+	let { notes, label = '', onEdit, draggable = false, dndType = 'notes', onReorder, selectionMode = false, selectedIds = new Set<string>(), onToggleSelection }: Props = $props();
 
 	let localItems = $state<Note[]>([]);
 
@@ -32,14 +35,15 @@
 		onReorder?.(localItems.map((n) => n.id));
 	}
 
-	let displayItems = $derived(draggable ? localItems : notes);
+	let effectiveDraggable = $derived(draggable && !selectionMode);
+	let displayItems = $derived(effectiveDraggable ? localItems : notes);
 </script>
 
 {#if displayItems.length > 0}
 	{#if label}
 		<p class="mb-2 px-2 text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)]">{label}</p>
 	{/if}
-	{#if draggable}
+	{#if effectiveDraggable}
 		<div
 			class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
 			data-testid="note-grid"
@@ -56,7 +60,7 @@
 	{:else}
 		<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4" data-testid="note-grid">
 			{#each displayItems as note (note.id)}
-				<NoteCard {note} {onEdit} />
+				<NoteCard {note} {onEdit} {selectionMode} selected={selectedIds.has(note.id)} {onToggleSelection} />
 			{/each}
 		</div>
 	{/if}

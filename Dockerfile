@@ -34,6 +34,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY --from=build /app/build ./build
 COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/package.json ./
+COPY --from=build /app/scripts/apply-pending-restore.mjs ./scripts/apply-pending-restore.mjs
 
 # Create data directory
 RUN mkdir -p /data && chown -R node:node /data
@@ -50,4 +51,4 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s \
     CMD node -e "fetch('http://localhost:3000/login').then(r => r.ok ? process.exit(0) : process.exit(1)).catch(() => process.exit(1))"
 
-CMD ["sh", "-c", "chown node:node /data && exec gosu node node build"]
+CMD ["sh", "-c", "chown node:node /data && gosu node node scripts/apply-pending-restore.mjs && exec gosu node node build"]

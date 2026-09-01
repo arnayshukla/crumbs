@@ -10,6 +10,7 @@
 	import Checklist from './Checklist.svelte';
 	import FormattingToolbar from './FormattingToolbar.svelte';
 	import TiptapEditor from './TiptapEditor.svelte';
+	import TagSuggestions from './TagSuggestions.svelte';
 	import ImageUpload from './ImageUpload.svelte';
 	import ShareDialog from './ShareDialog.svelte';
 	import NoteHistory from './NoteHistory.svelte';
@@ -19,7 +20,8 @@
 	import { getIsDarkMode } from '$lib/utils/theme.svelte.js';
 	import { getPreferences } from '$lib/stores/preferences.svelte.js';
 	import type { Editor } from '@tiptap/core';
-	import type { Note, NoteColor, Attachment, Collaborator, NoteBacklink } from '$lib/types/index.js';
+	import type { Note, NoteColor, Attachment, Collaborator, NoteBacklink, Tag } from '$lib/types/index.js';
+	import { getTagQuery, insertTagAtQuery, rankTagSuggestions, type TagQuery } from '$lib/utils/tag-autocomplete.js';
 	import Palette from 'lucide-svelte/icons/palette';
 	import SquareCheck from 'lucide-svelte/icons/square-check';
 	import ImageIcon from 'lucide-svelte/icons/image';
@@ -57,6 +59,11 @@
 	let color = $state<NoteColor>(note?.color ?? prefs.defaultNoteColor);
 	// svelte-ignore state_referenced_locally
 	let checklistMode = $state(note?.checklistMode ?? initialChecklistMode);
+	let knownTags = $state<string[]>([]);
+	let tagQuery = $state<TagQuery | null>(null);
+	let tagField = $state<'title' | 'content' | null>(null);
+	let tagSuggestionIndex = $state(0);
+	let tagSuggestions = $derived(tagQuery ? rankTagSuggestions(knownTags, tagQuery.query) : []);
 	let showColorPicker = $state(false);
 	let showImageUpload = $state(false);
 	// svelte-ignore state_referenced_locally
@@ -136,7 +143,6 @@
 		const _c = content;
 		const _col = color;
 		const _cm = checklistMode;
-
 		if (!autoSaveReady) {
 			// Absorb TiptapEditor's initial content normalization as the baseline
 			lastSavedContent = _c;
@@ -190,6 +196,11 @@
 	// coordinates. Suppress pointer events on toolbar controls until mount completes.
 	let toolbarInteractive = $state(false);
 	onMount(() => {
+		fetch('/api/tags')
+			.then((response) => (response.ok ? response.json() : []))
+			.then((rows: Tag[]) => (knownTags = rows.map((tag) => tag.name)))
+			.catch(() => {});
+
 		function updateViewport() {
 			if (window.visualViewport) {
 				viewportHeight = `${window.visualViewport.height}px`;
@@ -224,6 +235,41 @@
 			}
 		};
 	});
+
+	function updateNativeTagQuery(field: 'title' | 'content', element: HTMLInputElement | HTMLTextAreaElement) {
+		tagField = field;
+		tagQuery = getTagQuery(element.value, element.selectionStart ?? element.value.length);
+		tagSuggestionIndex = 0;
+	}
+
+	function selectNativeTag(tag: string) {
+		if (!tagQuery || !tagField) return;
+		if (tagField === 'title') title = insertTagAtQuery(title, tagQuery, tag);
+		else content = insertTagAtQuery(content, tagQuery, tag);
+		tagQuery = null;
+		tagField = null;
+	}
+
+	function handleTagKeys(event: KeyboardEvent): boolean {
+		if (!tagQuery || tagSuggestions.length === 0) return false;
+		if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+			event.preventDefault();
+			const direction = event.key === 'ArrowDown' ? 1 : -1;
+			tagSuggestionIndex = (tagSuggestionIndex + direction + tagSuggestions.length) % tagSuggestions.length;
+			return true;
+		}
+		if (event.key === 'Enter' || event.key === 'Tab') {
+			event.preventDefault();
+			selectNativeTag(tagSuggestions[tagSuggestionIndex]);
+			return true;
+		}
+		if (event.key === 'Escape') {
+			event.preventDefault();
+			tagQuery = null;
+			return true;
+		}
+		return false;
+	}
 
 	// Lock body scroll while editor is open. Multiple editor instances can overlap during
 	// the ghost-click grace period, so keep the class until the last instance unmounts.
@@ -585,7 +631,7 @@
 		<!-- Gap filler to hide iOS Safari keyboard animation/viewport lag -->
 		<div class="absolute top-full left-0 w-full h-[50vh] md:hidden" style={bgStyle}></div>
 		<!-- Header (Mobile: Back + Title, Desktop: just Title) -->
-		<div class="flex items-center gap-2 border-b md:border-b-0 border-[var(--border-subtle)] px-2 py-2 md:px-4 md:pt-4 md:pb-0 shrink-0 touch-none">
+		<div class="relative flex items-center gap-2 border-b md:border-b-0 border-[var(--border-subtle)] px-2 py-2 md:px-4 md:pt-4 md:pb-0 shrink-0 touch-none">
 			<!-- Mobile Back Button -->
 			<button
 				onclick={saveAndClose}
@@ -601,7 +647,9 @@
 				bind:value={title}
 				class="flex-1 min-w-0 bg-transparent px-2 md:px-0 text-lg font-semibold text-[var(--text)] outline-none placeholder:text-[var(--text-muted)]"
 				data-testid="note-title-input"
+				oninput={(event) => updateNativeTagQuery('title', event.currentTarget)}
 				onkeydown={(e) => {
+					if (handleTagKeys(e)) return;
 					if (e.key === 'Enter') {
 						e.preventDefault();
 						if (textareaEl) textareaEl.focus();
@@ -609,6 +657,11 @@
 					}
 				}}
 			/>
+			{#if tagField === 'title'}
+				<div class="absolute left-12 top-full md:left-4">
+					<TagSuggestions tags={tagSuggestions} activeIndex={tagSuggestionIndex} onSelect={selectNativeTag} />
+				</div>
+			{/if}
 			
 			<!-- Mobile Overflow Trigger -->
 			<button
@@ -625,17 +678,26 @@
 		<div class="flex-1 overflow-y-auto overscroll-contain md:max-h-[60vh] md:flex-none">
 			{#if checklistMode}
 				<div class="px-4 py-2">
-					<Checklist {content} onChange={(c) => (content = c)} />
+					<Checklist {content} tags={knownTags} onChange={(c) => (content = c)} />
 				</div>
 			{:else if rawMarkdownMode}
-				<textarea
-					bind:this={textareaEl}
-					placeholder="Add a crumb..."
-					bind:value={content}
-					class="min-h-[300px] w-full resize-none bg-transparent px-4 py-2 text-base md:text-sm text-[var(--text)] outline-none placeholder:text-[var(--text-muted)]"
-					rows="12"
-					data-testid="note-content-input"
-				></textarea>
+				<div class="relative">
+					<textarea
+						bind:this={textareaEl}
+						placeholder="Add a crumb..."
+						bind:value={content}
+						class="min-h-[300px] w-full resize-none bg-transparent px-4 py-2 text-base md:text-sm text-[var(--text)] outline-none placeholder:text-[var(--text-muted)]"
+						rows="12"
+						data-testid="note-content-input"
+						oninput={(event) => updateNativeTagQuery('content', event.currentTarget)}
+						onkeydown={(event) => handleTagKeys(event)}
+					></textarea>
+					{#if tagField === 'content'}
+						<div class="absolute left-4 top-10">
+							<TagSuggestions tags={tagSuggestions} activeIndex={tagSuggestionIndex} onSelect={selectNativeTag} />
+						</div>
+					{/if}
+				</div>
 			{:else}
 				<TiptapEditor
 					{content}
@@ -644,6 +706,7 @@
 					onTransaction={() => editorTick++}
 					{onOpenNote}
 					placeholder="Add a crumb..."
+					tags={knownTags}
 				/>
 			{/if}
 		</div>

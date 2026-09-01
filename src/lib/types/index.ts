@@ -67,7 +67,30 @@ export interface Attachment {
 export interface Tag {
 	id: number;
 	name: string;
+	usageCount?: number;
 }
+
+export type TagManageRequest =
+	| { action: 'preview'; operation: 'rename' | 'delete'; source: string; target?: string }
+	| { action: 'rename'; source: string; target: string }
+	| { action: 'delete'; source: string };
+
+export interface TagManagePreview {
+	source: string;
+	target?: string;
+	affected: Array<{ id: string; title: string }>;
+}
+
+export interface CaptureDraft {
+	title: string;
+	content: string;
+	color?: NoteColor;
+	checklistMode?: boolean;
+}
+
+export type BulkNoteAction =
+	| { action: 'pin' | 'unpin' | 'archive' | 'unarchive' | 'trash' | 'restore' | 'delete'; noteIds: string[] }
+	| { action: 'color'; noteIds: string[]; color: NoteColor };
 
 export interface User {
 	id: number;

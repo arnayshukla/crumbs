@@ -11,6 +11,11 @@ test.describe('PWA', () => {
 		expect(manifest?.name).toBe('Crumbs by Bretzel');
 		expect(manifest?.display).toBe('standalone');
 		expect(manifest?.icons?.length).toBeGreaterThan(0);
+		expect(manifest?.share_target).toMatchObject({
+			action: '/capture',
+			method: 'POST',
+			params: { title: 'title', text: 'text', url: 'url' }
+		});
 	});
 
 	test('Scenario: Application declares a theme color for mobile browsers', async ({ page }) => {

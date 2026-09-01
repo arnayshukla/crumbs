@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { extractTags } from './tags.js';
+import { extractTags, findTagTokens, rewriteTag } from './tags.js';
 
 describe('extractTags', () => {
 	it('should extract simple hashtags', () => {
@@ -53,5 +53,23 @@ describe('extractTags', () => {
 	it('should handle mixed content with code and tags', () => {
 		const content = 'My #project uses `#define` and has a #deadline';
 		expect(extractTags(content)).toEqual(['project', 'deadline']);
+	});
+});
+
+describe('tag rewriting', () => {
+	it('rewrites recognised tags without touching code or URLs', () => {
+		const source = '#Work `#work` https://example.com/#work\n#work';
+		expect(rewriteTag(source, 'work', 'office')).toBe('#office `#work` https://example.com/#work\n#office');
+	});
+
+	it('removes tag tokens cleanly', () => {
+		expect(rewriteTag('Plan #work  today', 'work')).toBe('Plan today');
+	});
+
+	it('returns source offsets', () => {
+		expect(findTagTokens('A #one and #two')).toEqual([
+			{ name: 'one', start: 2, end: 6 },
+			{ name: 'two', start: 11, end: 15 }
+		]);
 	});
 });
