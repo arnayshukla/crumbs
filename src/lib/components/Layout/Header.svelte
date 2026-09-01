@@ -3,12 +3,14 @@
 	import SyncIndicator from '../SyncIndicator.svelte';
 	import Menu from 'lucide-svelte/icons/menu';
 	import Search from 'lucide-svelte/icons/search';
+	import Command from 'lucide-svelte/icons/command';
 
 	interface Props {
 		onMenuToggle: () => void;
+		onCommandPalette: () => void;
 	}
 
-	let { onMenuToggle }: Props = $props();
+	let { onMenuToggle, onCommandPalette }: Props = $props();
 	let mobileSearchOpen = $state(false);
 </script>
 
@@ -29,7 +31,7 @@
 
 		<div class="flex items-center gap-2">
 			<img src="/favicon.svg" alt="" class="h-8 w-8" />
-			<h1 class="font-['Press_Start_2P'] text-lg text-[var(--primary)]">Crumbs</h1>
+			<h1 class="hidden font-['Press_Start_2P'] text-lg text-[var(--primary)] sm:block">Crumbs</h1>
 		</div>
 
 		<!-- Desktop search bar -->
@@ -47,6 +49,9 @@
 		</button>
 
 		<div class="flex items-center gap-2">
+			<button onclick={onCommandPalette} class="rounded-sm p-2 hover:bg-[var(--hover-wash)]/10" aria-label="Open command palette" data-testid="command-palette-trigger">
+				<Command class="h-5 w-5 text-[var(--text)]" />
+			</button>
 			<SyncIndicator />
 		</div>
 	{/if}

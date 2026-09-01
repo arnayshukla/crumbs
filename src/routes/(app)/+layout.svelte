@@ -2,6 +2,7 @@
 	import Header from '$lib/components/Layout/Header.svelte';
 	import Sidebar from '$lib/components/Layout/Sidebar.svelte';
 	import Toast from '$lib/components/Layout/Toast.svelte';
+	import CommandPalette from '$lib/components/CommandPalette.svelte';
 	import { loadNotes } from '$lib/stores/notes.js';
 	import { startSync, stopSync } from '$lib/sync/client.js';
 	import { initDb } from '$lib/sync/idb.js';
@@ -10,9 +11,17 @@
 
 	let { data, children } = $props();
 	let sidebarOpen = $state(false);
+	let commandPaletteOpen = $state(false);
 	const prefs = $derived(getPreferences());
 
 	onMount(() => {
+		function handleGlobalKeydown(event: KeyboardEvent) {
+			if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+				event.preventDefault();
+				commandPaletteOpen = !commandPaletteOpen;
+			}
+		}
+		window.addEventListener('keydown', handleGlobalKeydown);
 		initPreferences();
 		const prefState = getPreferences();
 		if (prefState.sidebarDefaultState === 'collapsed') {
@@ -25,6 +34,7 @@
 		}
 		loadNotes();
 		startSync();
+		return () => window.removeEventListener('keydown', handleGlobalKeydown);
 	});
 
 	onDestroy(() => {
@@ -33,7 +43,7 @@
 </script>
 
 <div class="flex min-h-screen flex-col bg-[var(--bg-base)] text-[var(--text)]">
-	<Header onMenuToggle={() => (sidebarOpen = !sidebarOpen)} />
+	<Header onMenuToggle={() => (sidebarOpen = !sidebarOpen)} onCommandPalette={() => (commandPaletteOpen = true)} />
 	<Sidebar open={sidebarOpen} onClose={() => (sidebarOpen = false)} />
 
 	<main class="flex-1 pt-4 transition-all {sidebarOpen ? 'lg:ml-64' : ''}">
@@ -49,4 +59,5 @@
 	{/if}
 
 	<Toast />
+	<CommandPalette open={commandPaletteOpen} onClose={() => (commandPaletteOpen = false)} />
 </div>

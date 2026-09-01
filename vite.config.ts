@@ -31,6 +31,12 @@ export default defineConfig({
 				short_name: 'Crumbs',
 				description: 'A self-hostable, offline-first note-taking app by Bretzel',
 				start_url: '/',
+				share_target: {
+					action: '/capture',
+					method: 'POST',
+					enctype: 'application/x-www-form-urlencoded',
+					params: { title: 'title', text: 'text', url: 'url' }
+				},
 				display: 'standalone',
 				background_color: '#f0e6d3',
 				theme_color: '#C8860A',

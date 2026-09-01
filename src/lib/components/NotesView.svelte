@@ -2,14 +2,15 @@
 	import NoteGrid from '$lib/components/NoteGrid.svelte';
 	import NoteEditor from '$lib/components/NoteEditor.svelte';
 	import TagFilter from '$lib/components/TagFilter.svelte';
-	import { pinnedNotes, unpinnedNotes, selectedTag, currentFilter, notes, notesLoaded, loadNotes, updateSortOrders } from '$lib/stores/notes.js';
+	import { pinnedNotes, unpinnedNotes, selectedTag, currentFilter, notes, notesLoaded, loadNotes, updateSortOrders, bulkNoteAction } from '$lib/stores/notes.js';
 	import { onMount } from 'svelte';
 	import { replaceState } from '$app/navigation';
-	import type { Note, NoteFilter } from '$lib/types/index.js';
+	import type { Note, NoteFilter, NoteColor, BulkNoteAction } from '$lib/types/index.js';
 	import Plus from 'lucide-svelte/icons/plus';
 	import SquareCheck from 'lucide-svelte/icons/square-check';
 	import { tooltip } from '$lib/utils/tooltip.js';
 	import { getNote as getIdbNote } from '$lib/sync/idb.js';
+	import { uiIntent } from '$lib/stores/ui-intents.js';
 
 	interface Props {
 		filter: NoteFilter;
@@ -21,6 +22,11 @@
 	let editingNote: Note | null = $state(null);
 	let showNewNote = $state(false);
 	let newNoteChecklist = $state(false);
+	let selectionMode = $state(false);
+	let selectedIds = $state<Set<string>>(new Set());
+	let bulkColor = $state<NoteColor>('default');
+	let selectedNotes = $derived($notes.filter((note) => selectedIds.has(note.id)));
+	let selectionOwned = $derived(selectedNotes.every((note) => note.isOwner !== false));
 
 	// Sync store with route props and reload notes when filter changes
 	$effect(() => {
@@ -63,9 +69,40 @@
 		updateSortOrders(orders);
 	}
 
+	function toggleSelection(note: Note) {
+		const next = new Set(selectedIds);
+		if (next.has(note.id)) next.delete(note.id);
+		else next.add(note.id);
+		selectedIds = next;
+	}
+
+	function cancelSelection() {
+		selectionMode = false;
+		selectedIds = new Set();
+	}
+
+	async function runBulk(action: BulkNoteAction['action']) {
+		if (selectedIds.size === 0) return;
+		if (['trash', 'delete'].includes(action) && !confirm(`${action === 'delete' ? 'Delete forever' : 'Trash'} ${selectedIds.size} crumbs?`)) return;
+		const payload: BulkNoteAction = action === 'color'
+			? { action, noteIds: [...selectedIds], color: bulkColor }
+			: { action, noteIds: [...selectedIds] };
+		if (await bulkNoteAction(payload)) cancelSelection();
+	}
+
 	onMount(() => {
+		const unsubscribeIntent = uiIntent.subscribe((intent) => {
+			if (!intent) return;
+			uiIntent.set(null);
+			if (intent.type === 'new-note') {
+				newNoteChecklist = intent.checklist;
+				showNewNote = true;
+			} else {
+				openNoteById(intent.noteId);
+			}
+		});
 		const hash = location.hash.slice(1);
-		if (!hash) return;
+		if (!hash) return unsubscribeIntent;
 
 		const unsubscribe = notes.subscribe(($notes) => {
 			if ($notes.length === 0) return;
@@ -73,6 +110,10 @@
 			if (note) editingNote = note;
 			unsubscribe();
 		});
+		return () => {
+			unsubscribe();
+			unsubscribeIntent();
+		};
 	});
 </script>
 
@@ -108,6 +149,25 @@
 {/if}
 
 <div class="mb-4">
+	<div class="mb-3 flex items-center justify-end gap-2">
+		{#if selectionMode}
+			<span class="mr-auto text-sm text-[var(--text-muted)]">{selectedIds.size} selected</span>
+			{#if filter === 'trashed'}
+				<button class="rounded-sm px-3 py-2 text-sm hover:bg-[var(--bg-surface)]" onclick={() => runBulk('restore')}>Restore</button>
+				<button disabled={!selectionOwned} class="rounded-sm px-3 py-2 text-sm text-[var(--destructive)] disabled:opacity-40" onclick={() => runBulk('delete')}>Delete forever</button>
+			{:else}
+				<button class="rounded-sm px-3 py-2 text-sm hover:bg-[var(--bg-surface)]" onclick={() => runBulk('pin')}>Pin</button>
+				<button class="rounded-sm px-3 py-2 text-sm hover:bg-[var(--bg-surface)]" onclick={() => runBulk(filter === 'archived' ? 'unarchive' : 'archive')}>{filter === 'archived' ? 'Unarchive' : 'Archive'}</button>
+				<select bind:value={bulkColor} onchange={() => runBulk('color')} class="rounded-sm border border-[var(--border)] bg-[var(--bg-surface)] px-2 py-2 text-sm" aria-label="Set color">
+					{#each ['default','coral','peach','sand','mint','sage','fog','storm','dusk','blossom','clay','chalk'] as option}<option value={option}>{option}</option>{/each}
+				</select>
+				<button disabled={!selectionOwned} class="rounded-sm px-3 py-2 text-sm text-[var(--destructive)] disabled:opacity-40" onclick={() => runBulk('trash')}>Trash</button>
+			{/if}
+			<button class="rounded-sm px-3 py-2 text-sm hover:bg-[var(--bg-surface)]" onclick={cancelSelection}>Cancel</button>
+		{:else}
+			<button class="rounded-sm border border-[var(--border)] px-3 py-2 text-sm hover:border-[var(--primary)]" onclick={() => (selectionMode = true)} data-testid="select-notes">Select</button>
+		{/if}
+	</div>
 	<TagFilter />
 </div>
 
@@ -121,7 +181,7 @@
 
 {#if $pinnedNotes.length > 0}
 	<div class="mb-6">
-		<NoteGrid notes={$pinnedNotes} label="Pinned" onEdit={openEditor} draggable dndType="pinned-notes" onReorder={handleReorder} />
+		<NoteGrid notes={$pinnedNotes} label="Pinned" onEdit={openEditor} draggable dndType="pinned-notes" onReorder={handleReorder} {selectionMode} {selectedIds} onToggleSelection={toggleSelection} />
 	</div>
 {/if}
 
@@ -132,6 +192,9 @@
 	draggable
 	dndType="unpinned-notes"
 	onReorder={handleReorder}
+	{selectionMode}
+	{selectedIds}
+	onToggleSelection={toggleSelection}
 />
 
 {#if $notesLoaded && $pinnedNotes.length === 0 && $unpinnedNotes.length === 0}

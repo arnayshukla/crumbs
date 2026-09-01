@@ -1,5 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
+const port = Number(process.env.PLAYWRIGHT_PORT ?? '4173');
+
 export default defineConfig({
 	testDir: './tests/e2e',
 	fullyParallel: true,
@@ -9,10 +11,13 @@ export default defineConfig({
 	reporter: 'html',
 	globalSetup: './tests/e2e/global-setup.ts',
 	use: {
-		baseURL: 'http://localhost:4173',
+		baseURL: `http://localhost:${port}`,
 		trace: 'on-first-retry',
 		screenshot: 'only-on-failure',
-		serviceWorkers: 'block'
+		serviceWorkers: 'block',
+		launchOptions: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH
+			? { executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH }
+			: undefined
 	},
 	projects: [
 		{
@@ -35,9 +40,8 @@ export default defineConfig({
 		// database onto a deleted inode. Tests that read the database file
 		// directly (see linkUserToOAuth in admin-users.spec.ts) must see the
 		// server's real database file.
-		command:
-			'rm -f data/test-crumbs.db data/test-crumbs.db-wal data/test-crumbs.db-shm data/test-crumbs.db-journal && pnpm preview --port 4173',
-		port: 4173,
+		command: `rm -f data/test-crumbs.db data/test-crumbs.db-wal data/test-crumbs.db-shm data/test-crumbs.db-journal && corepack pnpm preview --port ${port}`,
+		port,
 		reuseExistingServer: !process.env.CI,
 		timeout: 120_000,
 		env: {

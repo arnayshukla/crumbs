@@ -25,9 +25,12 @@
 		note: Note;
 		onEdit: (note: Note) => void;
 		fullHeight?: boolean;
+		selectionMode?: boolean;
+		selected?: boolean;
+		onToggleSelection?: (note: Note) => void;
 	}
 
-	let { note, onEdit, fullHeight = false }: Props = $props();
+	let { note, onEdit, fullHeight = false, selectionMode = false, selected = false, onToggleSelection }: Props = $props();
 
 	$effect(() => {
 		cardStyle = `background-color: ${getNoteColor(note.color, getIsDarkMode())}`;
@@ -71,13 +74,18 @@
 <article
 	class="group relative cursor-pointer rounded-sm border border-[var(--border-subtle)] p-4 outline-none transition-all hover:border-[var(--primary)] shadow-[var(--card-shadow)] hover:shadow-[var(--card-shadow-hover)] max-h-[17rem] overflow-hidden {fullHeight ? 'h-full' : ''}"
 	style={cardStyle}
-	onclick={() => onEdit(note)}
-	onkeydown={(e) => e.key === 'Enter' && onEdit(note)}
+	onclick={() => selectionMode ? onToggleSelection?.(note) : onEdit(note)}
+	onkeydown={(e) => e.key === 'Enter' && (selectionMode ? onToggleSelection?.(note) : onEdit(note))}
 	role="button"
 	tabindex="0"
 	data-testid="note-card"
 	data-note-id={note.id}
 >
+	{#if selectionMode}
+		<div class="absolute left-2 top-2 z-10">
+			<input type="checkbox" checked={selected} tabindex="-1" aria-label="Select {note.title || 'crumb'}" class="h-5 w-5 accent-[var(--primary)]" />
+		</div>
+	{/if}
 	<!-- Thumbnail strip (featured images only) -->
 	{#if featuredAttachments.length > 0}
 		<div class="-mx-4 -mt-4 mb-3 flex overflow-hidden rounded-t-sm" data-testid="card-thumbnails">
@@ -160,7 +168,7 @@
 	{/if}
 
 	<!-- Action buttons - show on hover -->
-	<div class="absolute bottom-1 right-1 flex gap-1 max-md:opacity-100 md:opacity-0 transition-opacity md:group-hover:opacity-100">
+	{#if !selectionMode}<div class="absolute bottom-1 right-1 flex gap-1 max-md:opacity-100 md:opacity-0 transition-opacity md:group-hover:opacity-100">
 		{#if $currentFilter === 'trashed'}
 			<button
 				onclick={stop(() => restoreNote(note.id))}
@@ -228,10 +236,9 @@
 				</button>
 			{/if}
 		{/if}
-	</div>
+	</div>{/if}
 
 	{#if lightboxSrc}
 		<ImageLightbox src={lightboxSrc} alt={lightboxAlt} onClose={() => lightboxSrc = null} />
 	{/if}
 </article>
-

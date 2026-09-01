@@ -3,7 +3,7 @@
   "info": {
     "title": "Crumbs API",
     "description": "Auto-generated API spec for crumbs",
-    "version": "0.33.0",
+    "version": "0.34.0",
     "contact": {
       "name": "Bretzel",
       "url": "https://bretzel.app"
@@ -21,6 +21,39 @@
     }
   ],
   "paths": {
+    "/api/admin/backup": {
+      "get": {
+        "tags": [
+          "Admin"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/admin/restore": {
+      "post": {
+        "tags": [
+          "Admin"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/admin/users": {
       "get": {
         "tags": [
@@ -276,6 +309,39 @@
         }
       }
     },
+    "/api/data/export": {
+      "get": {
+        "tags": [
+          "Data"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/data/import": {
+      "post": {
+        "tags": [
+          "Data"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/mcp": {
       "post": {
         "tags": [
@@ -328,6 +394,27 @@
           }
         }
       },
+      "post": {
+        "tags": [
+          "Notes"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/notes/bulk": {
       "post": {
         "tags": [
           "Notes"
@@ -860,6 +947,25 @@
         "responses": {
           "200": {
             "description": "Success"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Tags"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
           }
         }
       }

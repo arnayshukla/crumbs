@@ -3,7 +3,7 @@ import { createTestDb } from './db/test-helpers.js';
 import { notes, tags, noteTags, users } from './db/schema.js';
 import { eq } from 'drizzle-orm';
 import type { Db } from './db/index.js';
-import { fetchTagsForNotes, syncNoteTags } from './tags.js';
+import { applyTagChange, fetchTagsForNotes, listTagsWithUsage, previewTagChange, syncNoteTags } from './tags.js';
 
 let db: Db;
 const USER_ID = 1;
@@ -85,5 +85,27 @@ describe('fetchTagsForNotes', () => {
 	it('should return empty map for empty noteIds', () => {
 		const map = fetchTagsForNotes(db, []);
 		expect(map.size).toBe(0);
+	});
+});
+
+describe('tag management', () => {
+	it('previews and renames tags only in owned crumbs', () => {
+		seedNote('n1');
+		db.update(notes).set({ title: '#work', content: 'Plan #work and `#work`' }).where(eq(notes.id, 'n1')).run();
+		syncNoteTags(db, 'n1', ['work'], USER_ID);
+		expect(previewTagChange(db, USER_ID, 'work', 'office').affected).toHaveLength(1);
+		applyTagChange(db, USER_ID, 'work', 'office');
+		const note = db.select().from(notes).where(eq(notes.id, 'n1')).get()!;
+		expect(note.title).toBe('#office');
+		expect(note.content).toBe('Plan #office and `#work`');
+		expect(listTagsWithUsage(db, USER_ID)).toMatchObject([{ name: 'office', usageCount: 1 }]);
+	});
+
+	it('deletes the token while retaining crumb content', () => {
+		seedNote('n1');
+		db.update(notes).set({ content: 'Plan #work today' }).where(eq(notes.id, 'n1')).run();
+		syncNoteTags(db, 'n1', ['work'], USER_ID);
+		applyTagChange(db, USER_ID, 'work');
+		expect(db.select().from(notes).where(eq(notes.id, 'n1')).get()?.content).toBe('Plan today');
 	});
 });

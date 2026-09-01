@@ -15,6 +15,8 @@
 	import { Markdown } from 'tiptap-markdown';
 	import { NoteLink } from './tiptap/NoteLink.js';
 	import { getAllNotes } from '$lib/sync/idb.js';
+	import TagSuggestions from './TagSuggestions.svelte';
+	import { getTagQuery, rankTagSuggestions } from '$lib/utils/tag-autocomplete.js';
 
 	interface Props {
 		content: string;
@@ -23,12 +25,17 @@
 		onTransaction?: () => void;
 		onOpenNote?: (noteId: string) => void;
 		placeholder?: string;
+		tags?: string[];
 	}
 
-	let { content, onUpdate, onEditor, onTransaction, onOpenNote, placeholder = 'Add a crumb...' }: Props = $props();
+	let { content, onUpdate, onEditor, onTransaction, onOpenNote, placeholder = 'Add a crumb...', tags = [] }: Props = $props();
 
 	let element: HTMLDivElement | undefined = $state();
 	let editor: Editor | undefined = $state();
+	let tagQuery = $state<string | null>(null);
+	let tagFrom = $state<number | null>(null);
+	let tagSuggestionIndex = $state(0);
+	let tagSuggestions = $derived(tagQuery === null ? [] : rankTagSuggestions(tags, tagQuery));
 
 	const titleIndexRef = { index: new Map<string, string>() };
 
@@ -80,6 +87,54 @@
 		);
 	}
 
+	function refreshTagQuery(editorInstance: Editor) {
+		const { from, empty } = editorInstance.state.selection;
+		if (!empty) {
+			tagQuery = null;
+			return;
+		}
+		const lineStart = Math.max(0, from - 80);
+		const text = editorInstance.state.doc.textBetween(lineStart, from, '\n', '\0');
+		const query = getTagQuery(text, text.length);
+		if (!query) {
+			tagQuery = null;
+			tagFrom = null;
+			return;
+		}
+		tagQuery = query.query;
+		tagFrom = from - (query.end - query.start);
+		tagSuggestionIndex = 0;
+	}
+
+	function selectTag(tag: string) {
+		if (!editor || tagFrom === null) return;
+		const to = editor.state.selection.from;
+		editor.chain().focus().insertContentAt({ from: tagFrom, to }, `#${tag} `).run();
+		tagQuery = null;
+		tagFrom = null;
+	}
+
+	function handleTagKeydown(event: KeyboardEvent): boolean {
+		if (tagQuery === null || tagSuggestions.length === 0) return false;
+		if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+			event.preventDefault();
+			const direction = event.key === 'ArrowDown' ? 1 : -1;
+			tagSuggestionIndex = (tagSuggestionIndex + direction + tagSuggestions.length) % tagSuggestions.length;
+			return true;
+		}
+		if (event.key === 'Enter' || event.key === 'Tab') {
+			event.preventDefault();
+			selectTag(tagSuggestions[tagSuggestionIndex]);
+			return true;
+		}
+		if (event.key === 'Escape') {
+			event.preventDefault();
+			tagQuery = null;
+			return true;
+		}
+		return false;
+	}
+
 	onMount(() => {
 		let destroyed = false;
 		let editorInstance: Editor | undefined;
@@ -91,6 +146,9 @@
 
 			editorInstance = new Editor({
 				element: element!,
+				editorProps: {
+					handleKeyDown: (_view, event) => handleTagKeydown(event)
+				},
 				extensions: [
 					StarterKit.configure({ link: false, underline: false }),
 					Link.configure({ openOnClick: false }),
@@ -112,7 +170,7 @@
 					// eslint-disable-next-line @typescript-eslint/no-explicit-any
 					onUpdate((e.storage as Record<string, any>).markdown.getMarkdown());
 				},
-				onTransaction: () => {
+				onTransaction: ({ editor: transactionEditor }) => {
 					// Removing this component's DOM node (e.g. a {#key}-driven remount
 					// in NotesView.svelte when switching to a different note) fires a
 					// native blur on the still-focused contenteditable, which
@@ -124,6 +182,7 @@
 					// microtask so the write lands after Svelte's current pass finishes.
 					queueMicrotask(() => {
 						if (destroyed) return;
+						refreshTagQuery(transactionEditor);
 						editor = editorInstance;
 						onTransaction?.();
 					});
@@ -146,17 +205,24 @@
 </script>
 
 <!-- svelte-ignore a11y_click_events_have_key_events -->
-<div
-	bind:this={element}
-	class="tiptap-wrapper prose md:prose-sm flex min-h-[300px] max-w-none flex-col px-4 py-2 text-[var(--text)]"
-	data-testid="tiptap-editor"
-	role="textbox"
-	aria-multiline="true"
-	tabindex="0"
-	onpointerdown={handleWrapperPointerDown}
-	onclick={handleWrapperClick}
-	onchangecapture={handleWrapperChangeCapture}
-></div>
+<div class="relative">
+	<div
+		bind:this={element}
+		class="tiptap-wrapper prose md:prose-sm flex min-h-[300px] max-w-none flex-col px-4 py-2 text-[var(--text)]"
+		data-testid="tiptap-editor"
+		role="textbox"
+		aria-multiline="true"
+		tabindex="0"
+		onpointerdown={handleWrapperPointerDown}
+		onclick={handleWrapperClick}
+		onchangecapture={handleWrapperChangeCapture}
+	></div>
+	{#if tagQuery !== null}
+		<div class="absolute left-4 top-10">
+			<TagSuggestions tags={tagSuggestions} activeIndex={tagSuggestionIndex} onSelect={selectTag} />
+		</div>
+	{/if}
+</div>
 
 <style>
 	.tiptap-wrapper :global(.tiptap) {
