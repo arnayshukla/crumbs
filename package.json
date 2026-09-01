@@ -1,7 +1,7 @@
 {
   "name": "crumbs",
   "private": true,
-  "version": "0.34.0",
+  "version": "0.34.1",
   "type": "module",
   "packageManager": "pnpm@9.15.9",
   "license": "MIT",
