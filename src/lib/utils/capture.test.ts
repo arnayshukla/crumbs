@@ -1,10 +1,25 @@
 import { describe, expect, it } from 'vitest';
-import { buildBookmarklet, buildCaptureDraft, decodeCaptureFragment } from './capture.js';
+import { buildBookmarklet, buildCaptureDraft, decodeCaptureFragment, sourceTagFromUrl } from './capture.js';
 
 describe('capture utilities', () => {
-	it('combines shared text and URL without duplicating the URL', () => {
-		expect(buildCaptureDraft({ title: 'Page', text: 'Quote', url: 'https://example.com' })).toEqual({ title: 'Page', content: 'Quote\n\nhttps://example.com' });
-		expect(buildCaptureDraft({ text: 'See https://example.com', url: 'https://example.com' }).content).toBe('See https://example.com');
+	it('parses shared text into a clean draft with source metadata', () => {
+		expect(buildCaptureDraft({ title: 'Page', text: 'Page\nQuote\nhttps://example.com', url: 'https://example.com' })).toEqual({
+			title: 'Page',
+			content: 'Quote\n\n[Source](https://example.com) · #example'
+		});
+	});
+
+	it('extracts a URL from share text and infers a missing title', () => {
+		expect(buildCaptureDraft({ text: 'An article title\nhttps://news.ycombinator.com/item?id=1' })).toEqual({
+			title: 'An article title',
+			content: '[Source](https://news.ycombinator.com/item?id=1) · #ycombinator'
+		});
+	});
+
+	it('derives readable source tags without treating co.uk as the source', () => {
+		expect(sourceTagFromUrl('https://github.com/bretzel-app/crumbs')).toBe('github');
+		expect(sourceTagFromUrl('https://www.bbc.co.uk/news')).toBe('bbc');
+		expect(sourceTagFromUrl('not a url')).toBeNull();
 	});
 
 	it('decodes bookmarklet fragments safely', () => {

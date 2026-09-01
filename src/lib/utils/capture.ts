@@ -6,13 +6,79 @@ export interface SharedCapture {
 	url?: string;
 }
 
+const URL_PATTERN = /https?:\/\/[^\s<>]+/gi;
+const COMPOUND_DOMAIN_LABELS = new Set(['ac', 'co', 'com', 'edu', 'gov', 'net', 'org']);
+
+function cleanUrlCandidate(value: string): string {
+	return value.replace(/[),.;!?]+$/, '');
+}
+
+function findSharedUrl(explicitUrl: string, text: string): string {
+	const candidates = [explicitUrl, ...(text.match(URL_PATTERN) ?? [])];
+	return candidates.map(cleanUrlCandidate).find((candidate) => {
+		try {
+			const parsed = new URL(candidate);
+			return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+		} catch {
+			return false;
+		}
+	}) ?? '';
+}
+
+export function sourceTagFromUrl(url: string): string | null {
+	if (!url) return null;
+	try {
+		const hostname = new URL(url).hostname.toLowerCase().replace(/^www\./, '');
+		const labels = hostname.split('.').filter(Boolean);
+		if (labels.length === 0) return null;
+		const finalLabel = labels.at(-1) ?? '';
+		const penultimate = labels.at(-2) ?? '';
+		const useThirdFromEnd = finalLabel.length === 2 && COMPOUND_DOMAIN_LABELS.has(penultimate);
+		const source = labels.at(useThirdFromEnd ? -3 : -2) ?? labels[0];
+		const normalized = source.replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '').slice(0, 48);
+		return normalized || null;
+	} catch {
+		return null;
+	}
+}
+
+function removeShareSheetDuplicates(text: string, title: string, url: string): string {
+	const normalizedUrl = cleanUrlCandidate(url);
+	const lines = text.split(/\r?\n/).map((line) => line.trim());
+	return lines
+		.filter((line, index) => {
+			if (!line) return false;
+			if (index === 0 && title && line.toLocaleLowerCase() === title.toLocaleLowerCase()) return false;
+			return !normalizedUrl || cleanUrlCandidate(line) !== normalizedUrl;
+		})
+		.join('\n')
+		.trim();
+}
+
 export function buildCaptureDraft(shared: SharedCapture): CaptureDraft {
-	const title = shared.title?.trim() ?? '';
-	const text = shared.text?.trim() ?? '';
-	const url = shared.url?.trim() ?? '';
-	const parts = [text];
-	if (url && !text.includes(url)) parts.push(url);
-	return { title, content: parts.filter(Boolean).join('\n\n') };
+	const suppliedTitle = shared.title?.trim().slice(0, 500) ?? '';
+	const sharedText = shared.text?.trim() ?? '';
+	const sourceUrl = findSharedUrl(shared.url?.trim() ?? '', sharedText);
+	let title = suppliedTitle;
+	let text = removeShareSheetDuplicates(sharedText, title, sourceUrl);
+
+	if (!title && text) {
+		const [firstLine, ...remainingLines] = text.split('\n');
+		if (firstLine.length <= 160 && !firstLine.match(URL_PATTERN)) {
+			title = firstLine;
+			text = remainingLines.join('\n').trim();
+		}
+	}
+
+	if (!title && sourceUrl) {
+		title = new URL(sourceUrl).hostname.replace(/^www\./, '');
+	}
+
+	const sourceTag = sourceTagFromUrl(sourceUrl);
+	const sourceLine = sourceUrl
+		? `[Source](${sourceUrl})${sourceTag ? ` · #${sourceTag}` : ''}`
+		: '';
+	return { title, content: [text, sourceLine].filter(Boolean).join('\n\n') };
 }
 
 export function decodeCaptureFragment(fragment: string): CaptureDraft | null {

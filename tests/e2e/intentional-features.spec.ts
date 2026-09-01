@@ -65,6 +65,7 @@ test.describe('Intentional feature set', () => {
 		await page.goto(`/capture#${fragment}`);
 		await expect(page.getByTestId('capture-title')).toHaveValue(title);
 		await expect(page.getByTestId('capture-content')).toHaveValue(/Selected text/);
+		await expect(page.getByTestId('capture-content')).toHaveValue(/\[Source\]\(https:\/\/example\.com\/article\) · #example/);
 		await page.getByTestId('capture-save').click();
 		await page.waitForURL(/\/#.+/);
 		await expect(noteCard(page, title)).toBeVisible();
