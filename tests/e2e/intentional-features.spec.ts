@@ -78,9 +78,42 @@ test.describe('Intentional feature set', () => {
 		await expect(page.getByTestId('capture-title')).toHaveValue(title);
 		await expect(page.getByTestId('capture-content')).toHaveValue(/Selected text/);
 		await expect(page.getByTestId('capture-content')).toHaveValue(/\[Source\]\(https:\/\/example\.com\/article\) · #example/);
+
+		let releaseStaleResponse: () => void = () => {};
+		let staleResponseCaptured: () => void = () => {};
+		const staleReady = new Promise<void>((resolve) => (staleResponseCaptured = resolve));
+		const releaseStale = new Promise<void>((resolve) => (releaseStaleResponse = resolve));
+		await page.route('**/api/notes?filter=all', async (route) => {
+			const response = await route.fetch();
+			staleResponseCaptured();
+			await releaseStale;
+			await route.fulfill({ response });
+		});
+
 		await page.getByTestId('capture-save').click();
-		await page.waitForURL(/\/#.+/);
-		await expect(noteCard(page, title)).toBeVisible();
+		await page.waitForURL((url) => url.pathname === '/' && !url.hash);
+		await staleReady;
+		await expect(page.getByTestId('note-editor')).toHaveCount(0);
+		const capturedCard = noteCard(page, title);
+		await expect(capturedCard).toBeVisible();
+		await expect(page.getByTestId('toast')).toContainText('Crumb captured');
+
+		await capturedCard.hover();
+		await capturedCard.getByTestId('trash-btn').click();
+		await expect(capturedCard).toHaveCount(0);
+		releaseStaleResponse();
+		await page.waitForTimeout(500);
+		await expect(capturedCard).toHaveCount(0);
+		await expect(page.getByTestId('toast')).toHaveCount(0, { timeout: 5_000 });
+	});
+
+	test('iPhone Shortcut input opens a parsed draft', async ({ authenticatedPage: page }) => {
+		const shared = encodeURIComponent('Interesting reel\nhttps://www.instagram.com/reel/example/');
+		await page.goto(`/capture#share=${shared}`);
+		await expect(page.getByTestId('capture-title')).toHaveValue('Interesting reel');
+		await expect(page.getByTestId('capture-content')).toHaveValue(
+			'[Source](https://www.instagram.com/reel/example/) · #instagram'
+		);
 	});
 
 	test('command palette opens notes and exposes core commands', async ({ authenticatedPage: page }, testInfo) => {

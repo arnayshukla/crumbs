@@ -124,13 +124,19 @@ export async function loadNotes(filter: NoteFilter = 'all') {
 		const res = await fetch(`/api/notes?filter=${filter}`);
 		if (res.ok) {
 			const data: Note[] = await res.json();
-			notes.update((current) => mergeNotesByVersion(current, data));
+			let reconciled = data;
+			notes.update((current) => {
+				reconciled = mergeNotesByVersion(current, data);
+				return reconciled;
+			});
 			currentFilter.set(filter);
 
-			// Update IDB with server state
+			// Persist the reconciled state, not the raw response. A stale request can
+			// finish after a local update; writing its payload would otherwise revive
+			// an archived or trashed crumb on the next cache read.
 			try {
 				await clearIdbNotes();
-				await Promise.all(data.map((n) => putNote(n)));
+				await Promise.all(reconciled.map((n) => putNote(n)));
 			} catch {
 				// IDB write failed — server data is still in the store
 			}
@@ -267,9 +273,7 @@ export async function deleteNote(id: string): Promise<boolean> {
 }
 
 export async function trashNote(id: string): Promise<Note | null> {
-	const result = await updateNote(id, { trashed: true });
-	if (result) notes.update((list) => list.filter((n) => n.id !== id));
-	return result;
+	return updateNote(id, { trashed: true });
 }
 
 export async function restoreNote(id: string): Promise<Note | null> {
@@ -277,9 +281,7 @@ export async function restoreNote(id: string): Promise<Note | null> {
 }
 
 export async function archiveNote(id: string): Promise<Note | null> {
-	const result = await updateNote(id, { archived: true });
-	if (result) notes.update((list) => list.filter((n) => n.id !== id));
-	return result;
+	return updateNote(id, { archived: true });
 }
 
 export async function unarchiveNote(id: string): Promise<Note | null> {

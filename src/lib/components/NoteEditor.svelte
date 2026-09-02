@@ -585,16 +585,16 @@
 	async function handleArchive() {
 		showOverflowMenu = false;
 		if (noteId) {
-			await archiveNote(noteId);
-			dismissOverlay();
+			const archived = await archiveNote(noteId);
+			if (archived) dismissOverlay();
 		}
 	}
 
 	async function handleTrash() {
 		showOverflowMenu = false;
 		if (noteId) {
-			await trashNote(noteId);
-			dismissOverlay();
+			const trashed = await trashNote(noteId);
+			if (trashed) dismissOverlay();
 		}
 	}
 

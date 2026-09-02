@@ -21,8 +21,20 @@ beforeEach(() => {
 describe('bulk note actions', () => {
 	it('archives the complete selection', () => {
 		const result = applyBulkNoteAction(db, 1, { action: 'archive', noteIds: ['one', 'two'] });
-		expect(result.removedIds).toEqual(['one', 'two']);
+		expect(result.removedIds).toEqual([]);
+		expect(result.updated).toHaveLength(2);
+		expect(result.updated.every((note) => note.archived)).toBe(true);
 		expect(db.select().from(notes).where(eq(notes.archived, true)).all()).toHaveLength(2);
+	});
+
+	it('returns soft-deleted notes as updates and reserves removedIds for permanent deletion', () => {
+		const trashed = applyBulkNoteAction(db, 1, { action: 'trash', noteIds: ['one'] });
+		expect(trashed.removedIds).toEqual([]);
+		expect(trashed.updated[0]).toMatchObject({ id: 'one', trashed: true });
+
+		const deleted = applyBulkNoteAction(db, 1, { action: 'delete', noteIds: ['two'] });
+		expect(deleted.updated).toEqual([]);
+		expect(deleted.removedIds).toEqual(['two']);
 	});
 
 	it('rejects an owner-only action for a collaborator before writing', () => {

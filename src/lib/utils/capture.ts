@@ -83,8 +83,17 @@ export function buildCaptureDraft(shared: SharedCapture): CaptureDraft {
 
 export function decodeCaptureFragment(fragment: string): CaptureDraft | null {
 	if (!fragment) return null;
+	const encoded = fragment.replace(/^#/, '');
+	if (encoded.startsWith('share=')) {
+		try {
+			const shared = decodeURIComponent(encoded.slice('share='.length)).trim();
+			return shared ? buildCaptureDraft({ text: shared }) : null;
+		} catch {
+			return null;
+		}
+	}
 	try {
-		const raw = JSON.parse(decodeURIComponent(fragment.replace(/^#/, ''))) as unknown;
+		const raw = JSON.parse(decodeURIComponent(encoded)) as unknown;
 		if (!raw || typeof raw !== 'object') return null;
 		const value = raw as Record<string, unknown>;
 		return buildCaptureDraft({
@@ -98,6 +107,6 @@ export function decodeCaptureFragment(fragment: string): CaptureDraft | null {
 }
 
 export function buildBookmarklet(origin: string): string {
-	const target = `${origin.replace(/\/$/, '')}/capture`;
-	return `javascript:(()=>{const d={title:document.title,text:String(window.getSelection()),url:location.href};window.open('${target}#'+encodeURIComponent(JSON.stringify(d)),'_blank','noopener')})()`;
+	const target = `${origin.replace(/\/$/, '')}/capture?from=bookmarklet`;
+	return `javascript:(()=>{const d={title:document.title,text:String(window.getSelection()),url:location.href};location.assign('${target}#'+encodeURIComponent(JSON.stringify(d)))})()`;
 }
