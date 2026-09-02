@@ -1,20 +1,38 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { Check, Copy, Plus, Trash2 } from 'lucide-svelte';
 	import { buildBookmarklet } from '$lib/utils/capture.js';
 	import { showToast } from '$lib/stores/toast.js';
 
+	interface QuickCaptureToken {
+		id: string;
+		name: string;
+		keyPrefix: string;
+		createdAt: string;
+		lastUsedAt: string | null;
+	}
+
 	let bookmarklet = $state('');
 	let sampleCapture = $state('');
-	let shortcutPrefix = $state('');
+	let captureEndpoint = $state('');
+	let captureTokens = $state<QuickCaptureToken[]>([]);
+	let newTokenName = $state('My iPhone');
+	let createdToken = $state<string | null>(null);
+	let createdTokenId = $state<string | null>(null);
+	let tokenLoading = $state(false);
+	let tokenError = $state('');
+	let copiedValue = $state<'endpoint' | 'token' | 'authorization' | null>(null);
+
 	onMount(() => {
 		bookmarklet = buildBookmarklet(location.origin);
-		shortcutPrefix = `${location.origin}/capture#share=`;
+		captureEndpoint = `${location.origin}/api/quick-capture`;
 		const sample = encodeURIComponent(JSON.stringify({
 			title: 'Example captured page',
 			text: 'Selected text from the page',
 			url: 'https://example.com/article'
 		}));
 		sampleCapture = `/capture#${sample}`;
+		void loadCaptureTokens();
 	});
 
 	async function copyBookmarklet() {
@@ -26,13 +44,77 @@
 		}
 	}
 
-	async function copyShortcutPrefix() {
+	async function copyText(value: string, target: 'endpoint' | 'token' | 'authorization') {
 		try {
-			await navigator.clipboard.writeText(shortcutPrefix);
-			showToast('Shortcut URL prefix copied', 'success');
+			await navigator.clipboard.writeText(value);
+			copiedValue = target;
+			setTimeout(() => {
+				if (copiedValue === target) copiedValue = null;
+			}, 2_000);
+			showToast(target === 'endpoint' ? 'Capture endpoint copied' : 'Capture token copied', 'success');
 		} catch {
-			showToast('Could not copy the Shortcut URL prefix', 'error');
+			showToast('Could not copy to the clipboard', 'error');
 		}
+	}
+
+	async function loadCaptureTokens() {
+		try {
+			const response = await fetch('/api/settings/quick-capture-tokens');
+			if (response.ok) captureTokens = await response.json();
+		} catch {
+			// The page remains usable for the static setup instructions while offline.
+		}
+	}
+
+	async function createCaptureToken(event: SubmitEvent) {
+		event.preventDefault();
+		if (!newTokenName.trim() || tokenLoading) return;
+		tokenLoading = true;
+		tokenError = '';
+		createdToken = null;
+		createdTokenId = null;
+		try {
+			const response = await fetch('/api/settings/quick-capture-tokens', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ name: newTokenName.trim() })
+			});
+			const body: { id?: string; token?: string; error?: string } = await response.json();
+			if (!response.ok || !body.id || !body.token) {
+				tokenError = body.error ?? 'Could not create the capture token';
+				return;
+			}
+			createdToken = body.token;
+			createdTokenId = body.id;
+			newTokenName = '';
+			await loadCaptureTokens();
+		} catch {
+			tokenError = 'Could not connect to Crumbs';
+		} finally {
+			tokenLoading = false;
+		}
+	}
+
+	async function revokeCaptureToken(id: string) {
+		try {
+			const response = await fetch(`/api/settings/quick-capture-tokens/${id}`, { method: 'DELETE' });
+			if (!response.ok) {
+				showToast('Could not revoke the capture token', 'error');
+				return;
+			}
+			captureTokens = captureTokens.filter((token) => token.id !== id);
+			if (createdTokenId === id) {
+				createdToken = null;
+				createdTokenId = null;
+			}
+			showToast('Capture token revoked', 'success');
+		} catch {
+			showToast('Could not revoke the capture token', 'error');
+		}
+	}
+
+	function formatDate(value: string): string {
+		return new Date(value).toLocaleDateString(undefined, { dateStyle: 'medium' });
 	}
 </script>
 
@@ -65,20 +147,76 @@
 
 	<div class="mt-6 rounded-sm border border-[var(--border)] bg-[var(--bg-surface)] p-4">
 		<h3 class="font-semibold">From an iPhone or iPad with Shortcuts</h3>
-		<p class="mt-1 text-sm text-[var(--text-muted)]">Create a personal Share Sheet shortcut that passes a link or text into a private Crumbs URL fragment. Sign in to Crumbs in Safari before using it.</p>
+		<p class="mt-1 text-sm text-[var(--text-muted)]">A capture-only token lets your Shortcut save shared text or links directly. It cannot read, edit, export, or delete your crumbs.</p>
+
+		<form class="mt-4 flex flex-col gap-2 sm:flex-row" onsubmit={createCaptureToken}>
+			<label class="sr-only" for="capture-token-name">Device name</label>
+			<input id="capture-token-name" bind:value={newTokenName} maxlength="80" placeholder="Device name, e.g. My iPhone" class="flex-1 rounded-sm border border-[var(--border)] bg-[var(--bg-base)] px-3 py-2 text-sm outline-none focus:border-[var(--primary)]" data-testid="capture-token-name" />
+			<button type="submit" disabled={tokenLoading || !newTokenName.trim()} class="flex items-center justify-center gap-2 rounded-sm bg-[var(--primary)] px-4 py-2 text-sm font-medium text-white disabled:opacity-50" data-testid="create-capture-token">
+				<Plus size={15} /> {tokenLoading ? 'Creating…' : 'Create capture token'}
+			</button>
+		</form>
+		{#if tokenError}<p class="mt-2 text-xs text-[var(--destructive)]">{tokenError}</p>{/if}
+
+		{#if createdToken}
+			<div class="mt-4 rounded-sm border border-[var(--success-border,#a3b18a)] bg-[var(--success-bg,#f0f4e8)] p-4" data-testid="created-capture-token">
+				<p class="text-sm font-semibold text-[var(--success-text,#3a5a40)]">Copy this token now—it will not be shown again.</p>
+				<p class="mt-1 text-xs text-[var(--text-muted)]">Do not share the Shortcut after adding this value. You can revoke it below without signing out anywhere.</p>
+				<div class="mt-3 flex items-center gap-2">
+					<code class="min-w-0 flex-1 overflow-x-auto rounded-sm bg-[var(--bg-base)] px-3 py-2 text-xs" data-testid="created-capture-token-value">{createdToken}</code>
+					<button type="button" class="rounded-sm border border-[var(--border)] p-2" onclick={() => copyText(createdToken!, 'token')} aria-label="Copy capture token">
+						{#if copiedValue === 'token'}<Check size={15} />{:else}<Copy size={15} />{/if}
+					</button>
+				</div>
+			</div>
+		{/if}
+
 		<ol class="mt-3 list-decimal space-y-2 pl-5 text-sm text-[var(--text-muted)]">
 			<li>In Shortcuts, create a shortcut named <strong>Capture to Crumbs</strong>.</li>
 			<li>Open its details, enable <strong>Show in Share Sheet</strong>, and accept <strong>URLs</strong> and <strong>Text</strong>.</li>
-			<li>Add <strong>URL Encode</strong> with <strong>Shortcut Input</strong> as its value.</li>
-			<li>Add a URL action, paste the prefix below, then insert the encoded result immediately after the equals sign.</li>
-			<li>Add <strong>Open URLs</strong>. The shortcut will open a draft for review; it never saves automatically.</li>
+			<li>Add <strong>Get Text from Input</strong> and use <strong>Shortcut Input</strong>.</li>
+			<li>Add <strong>Get Contents of URL</strong>. Use the endpoint below, choose <strong>POST</strong>, then choose a <strong>JSON</strong> request body.</li>
+			<li>Add a text field named <code>input</code> whose value is the output of <strong>Get Text from Input</strong>.</li>
+			<li>Add an <code>Authorization</code> header whose value is <code>Bearer </code> followed by the token shown above.</li>
+			<li>Add <strong>Get Dictionary Value</strong> for the key <code>message</code> from <strong>Contents of URL</strong>.</li>
+			<li>Add an <strong>If</strong> action: when Dictionary Value has any value, show it in <strong>Show Notification</strong>; otherwise show <strong>Capture failed</strong>.</li>
 		</ol>
-		<div class="mt-4 rounded-sm border border-[var(--border-subtle)] bg-[var(--bg-base)] p-3">
-			<code class="break-all text-xs">{shortcutPrefix}&lt;Encoded Shortcut Input&gt;</code>
+		<div class="mt-4 space-y-2 rounded-sm border border-[var(--border-subtle)] bg-[var(--bg-base)] p-3">
+			<div class="flex items-center gap-2">
+				<code class="min-w-0 flex-1 break-all text-xs">{captureEndpoint}</code>
+				<button type="button" class="rounded-sm border border-[var(--border)] p-2" onclick={() => copyText(captureEndpoint, 'endpoint')} aria-label="Copy capture endpoint">
+					{#if copiedValue === 'endpoint'}<Check size={14} />{:else}<Copy size={14} />{/if}
+				</button>
+			</div>
+			{#if createdToken}
+				<div class="flex items-center gap-2 border-t border-[var(--border-subtle)] pt-2">
+					<code class="min-w-0 flex-1 overflow-x-auto text-xs">Bearer {createdToken}</code>
+					<button type="button" class="rounded-sm border border-[var(--border)] p-2" onclick={() => copyText(`Bearer ${createdToken}`, 'authorization')} aria-label="Copy authorization header">
+						{#if copiedValue === 'authorization'}<Check size={14} />{:else}<Copy size={14} />{/if}
+					</button>
+				</div>
+			{/if}
 		</div>
-		<div class="mt-3 flex flex-wrap items-center gap-3">
-			<button class="rounded-sm border border-[var(--border)] px-4 py-2 text-sm hover:border-[var(--primary)]" onclick={copyShortcutPrefix}>Copy URL prefix</button>
-			<a class="text-xs text-[var(--primary)] underline" href="https://support.apple.com/guide/shortcuts/launch-a-shortcut-from-another-app-apd163eb9f95/ios" target="_blank" rel="noopener noreferrer">Apple’s Share Sheet instructions</a>
-		</div>
+		<p class="mt-3 text-xs text-[var(--text-muted)]">The Shortcut sends its request over HTTPS and does not open Safari or the Home Screen app. A shared URL gets a source link and hostname tag automatically.</p>
+		<a class="mt-3 inline-block text-xs text-[var(--primary)] underline" href="https://support.apple.com/guide/shortcuts/launch-a-shortcut-from-another-app-apd163eb9f95/ios" target="_blank" rel="noopener noreferrer">Apple’s Share Sheet instructions</a>
+
+		{#if captureTokens.length > 0}
+			<div class="mt-5 border-t border-[var(--border-subtle)] pt-4" data-testid="capture-token-list">
+				<h4 class="text-sm font-semibold">Active capture tokens</h4>
+				<div class="mt-2 space-y-2">
+					{#each captureTokens as token (token.id)}
+						<div class="flex items-center justify-between gap-3 rounded-sm border border-[var(--border-subtle)] bg-[var(--bg-base)] px-3 py-2" data-testid="capture-token-item">
+							<div class="min-w-0">
+								<p class="truncate text-sm font-medium">{token.name} <code class="text-xs text-[var(--text-muted)]">{token.keyPrefix}…</code></p>
+								<p class="text-xs text-[var(--text-muted)]">Created {formatDate(token.createdAt)}{token.lastUsedAt ? ` · Last used ${formatDate(token.lastUsedAt)}` : ' · Never used'}</p>
+							</div>
+							<button type="button" class="rounded-sm p-2 text-[var(--text-muted)] hover:text-[var(--destructive)]" onclick={() => revokeCaptureToken(token.id)} aria-label={`Revoke ${token.name}`} title="Revoke token">
+								<Trash2 size={16} />
+							</button>
+						</div>
+					{/each}
+				</div>
+			</div>
+		{/if}
 	</div>
 </section>

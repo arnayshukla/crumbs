@@ -136,6 +136,18 @@ export function createTestDb(options?: { seedUser?: boolean }) {
 			last_used_at INTEGER
 		);
 
+		CREATE TABLE quick_capture_tokens (
+			id TEXT PRIMARY KEY,
+			user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+			name TEXT NOT NULL,
+			key_hash TEXT NOT NULL,
+			key_prefix TEXT NOT NULL,
+			created_at INTEGER NOT NULL,
+			last_used_at INTEGER
+		);
+		CREATE UNIQUE INDEX quick_capture_tokens_key_hash_unique ON quick_capture_tokens(key_hash);
+		CREATE INDEX quick_capture_tokens_user_id_idx ON quick_capture_tokens(user_id);
+
 		CREATE TABLE user_preferences (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			user_id INTEGER NOT NULL REFERENCES users(id),

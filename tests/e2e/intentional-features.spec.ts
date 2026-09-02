@@ -116,6 +116,49 @@ test.describe('Intentional feature set', () => {
 		);
 	});
 
+	test('capture-only token saves shared input and cannot read notes', async ({ authenticatedPage: page }, testInfo) => {
+		const tokenName = `iPhone ${testInfo.workerIndex}-${Date.now()}`;
+		await page.goto('/settings/capture');
+		await page.getByTestId('capture-token-name').fill(tokenName);
+		await page.getByTestId('create-capture-token').click();
+		const tokenDisplay = page.getByTestId('created-capture-token-value');
+		await expect(tokenDisplay).toBeVisible();
+		const token = (await tokenDisplay.textContent())?.trim();
+		expect(token).toMatch(/^crumbs_capture_[a-f0-9]{64}$/);
+
+		const unauthorized = await page.request.post('/api/quick-capture', {
+			data: { input: 'Should not save' }
+		});
+		expect(unauthorized.status()).toBe(401);
+
+		const captureTitle = `Interesting reel ${Date.now()}`;
+		const captured = await page.request.post('/api/quick-capture', {
+			headers: { Authorization: `Bearer ${token}` },
+			data: { input: `${captureTitle}\nhttps://www.instagram.com/reel/example/` }
+		});
+		expect(captured.status()).toBe(201);
+		expect(await captured.json()).toMatchObject({ message: 'Crumb captured', crumb: { title: captureTitle } });
+
+		const forbiddenRead = await page.request.get('/api/notes', {
+			headers: { Authorization: `Bearer ${token}` }
+		});
+		expect(forbiddenRead.status()).toBe(401);
+
+		const notesResponse = await page.request.get('/api/notes');
+		const capturedNote = ((await notesResponse.json()) as Array<{ title: string; content: string }>).find(
+			(note) => note.title === captureTitle
+		);
+		expect(capturedNote?.content).toBe('[Source](https://www.instagram.com/reel/example/) · #instagram');
+
+		await page.getByRole('button', { name: `Revoke ${tokenName}` }).click();
+		await expect(page.getByRole('button', { name: `Revoke ${tokenName}` })).toHaveCount(0);
+		const revoked = await page.request.post('/api/quick-capture', {
+			headers: { Authorization: `Bearer ${token}` },
+			data: { input: 'Should not save after revocation' }
+		});
+		expect(revoked.status()).toBe(401);
+	});
+
 	test('command palette opens notes and exposes core commands', async ({ authenticatedPage: page }, testInfo) => {
 		const title = `Palette ${testInfo.workerIndex}-${Date.now()}`;
 		expect((await page.request.post('/api/notes', { data: { title, content: 'searchable' } })).ok()).toBeTruthy();
