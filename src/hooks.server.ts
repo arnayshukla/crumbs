@@ -3,11 +3,14 @@ import { redirect } from '@sveltejs/kit';
 import { validateSession, isSetupComplete } from '$lib/server/auth.js';
 import { validateApiKey, getUserForApiKey } from '$lib/server/api-keys.js';
 
-const PUBLIC_PATHS = [
+const PUBLIC_EXACT_PATHS = new Set([
 	'/login',
 	'/setup',
 	'/api/auth/login',
 	'/api/auth/setup',
+	'/api/quick-capture'
+]);
+const PUBLIC_PATH_PREFIXES = [
 	'/api/auth/oauth',
 	'/s/',
 	'/api/shared'
@@ -20,7 +23,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 	event.locals.user = null;
 
 	// Allow public paths
-	if (PUBLIC_PATHS.some((p) => pathname.startsWith(p))) {
+	if (PUBLIC_EXACT_PATHS.has(pathname) || PUBLIC_PATH_PREFIXES.some((p) => pathname.startsWith(p))) {
 		return resolve(event);
 	}
 

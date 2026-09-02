@@ -791,6 +791,61 @@
         }
       }
     },
+    "/api/quick-capture": {
+      "post": {
+        "tags": [
+          "Quick-capture"
+        ],
+        "responses": {
+          "201": {
+            "description": "Crumb captured"
+          },
+          "400": {
+            "description": "Invalid capture input"
+          },
+          "401": {
+            "description": "Invalid or revoked capture token"
+          },
+          "429": {
+            "description": "Too many requests"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "input"
+                ],
+                "properties": {
+                  "input": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 50000
+                  },
+                  "title": {
+                    "type": "string",
+                    "maxLength": 500
+                  },
+                  "url": {
+                    "type": "string",
+                    "maxLength": 4096
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "quickCaptureToken": []
+          }
+        ]
+      }
+    },
     "/api/search": {
       "get": {
         "tags": [
@@ -835,6 +890,59 @@
       }
     },
     "/api/settings/api-keys/{id}": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "delete": {
+        "tags": [
+          "Settings"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/settings/quick-capture-tokens": {
+      "get": {
+        "tags": [
+          "Settings"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Settings"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/settings/quick-capture-tokens/{id}": {
       "parameters": [
         {
           "name": "id",
@@ -989,6 +1097,11 @@
         "type": "apiKey",
         "in": "cookie",
         "name": "session"
+      },
+      "quickCaptureToken": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "A capture-only token created in Settings → Quick capture"
       }
     }
   }

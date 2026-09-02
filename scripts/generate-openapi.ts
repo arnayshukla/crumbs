@@ -106,6 +106,33 @@ for (const fullPath of files) {
 			};
 		}
 
+		if (apiPath === '/api/quick-capture' && method === 'post') {
+			operation.security = [{ quickCaptureToken: [] }];
+			operation.requestBody = {
+				required: true,
+				content: {
+					'application/json': {
+						schema: {
+							type: 'object',
+							additionalProperties: false,
+							required: ['input'],
+							properties: {
+								input: { type: 'string', minLength: 1, maxLength: 50_000 },
+								title: { type: 'string', maxLength: 500 },
+								url: { type: 'string', maxLength: 4_096 }
+							}
+						}
+					}
+				}
+			};
+			operation.responses = {
+				'201': { description: 'Crumb captured' },
+				'400': { description: 'Invalid capture input' },
+				'401': { description: 'Invalid or revoked capture token' },
+				'429': { description: 'Too many requests' }
+			};
+		}
+
 		pathEntry[method] = operation;
 	}
 
@@ -137,6 +164,11 @@ const spec = {
 				type: 'apiKey',
 				in: 'cookie',
 				name: 'session'
+			},
+			quickCaptureToken: {
+				type: 'http',
+				scheme: 'bearer',
+				description: 'A capture-only token created in Settings → Quick capture'
 			}
 		}
 	}
