@@ -136,12 +136,12 @@
 	</div>
 
 	{#if note.title}
-		<h3 class="mb-2 text-sm font-semibold text-[var(--text)]">{note.title}</h3>
+		<h3 class="mb-2 text-sm font-semibold text-[var(--text)] {selectionMode ? 'pl-7' : ''}">{note.title}</h3>
 	{/if}
 
 	{#if note.checklistMode && checklistItems.length > 0}
 		<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-		<ul class="space-y-2 mb-6" data-testid="note-checklist-preview"
+		<ul class="space-y-2 mb-6 {selectionMode && !note.title ? 'pl-7' : ''}" data-testid="note-checklist-preview"
 			onclick={(e) => { if ((e.target as HTMLElement).closest('a')) e.stopPropagation(); }}
 			onkeydown={(e) => { if ((e.target as HTMLElement).closest('a')) e.stopPropagation(); }}>
 			{#each sortedChecklistItems.slice(0, 8) as item}
@@ -162,7 +162,7 @@
 			{/if}
 		</ul>
 	{:else if note.content}
-		<div class="prose prose-sm line-clamp-6 max-w-none text-sm text-[var(--text-muted)]" data-testid="note-content-preview">
+		<div class="prose prose-sm line-clamp-6 max-w-none text-sm text-[var(--text-muted)] {selectionMode && !note.title ? 'pl-7' : ''}" data-testid="note-content-preview">
 			{@html renderedContent}
 		</div>
 	{/if}

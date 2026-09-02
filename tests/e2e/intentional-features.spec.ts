@@ -102,6 +102,7 @@ test.describe('Intentional feature set', () => {
 		}
 		await page.goto('/');
 		await page.getByTestId('select-notes').click();
+		await expect(noteCard(page, `${prefix} one`).getByRole('heading', { name: `${prefix} one` })).toHaveCSS('padding-left', '28px');
 		await noteCard(page, `${prefix} one`).click();
 		await noteCard(page, `${prefix} two`).click();
 		await page.getByRole('button', { name: 'Archive', exact: true }).click();
