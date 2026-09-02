@@ -122,6 +122,16 @@ export function applyTagChange(
 				.run();
 			syncNoteTags(tx as Db, note.id, extractTags(`${title} ${content}`), userId);
 		}
+
+		// A tag can be left behind without associations after an older sync or a
+		// deleted crumb. In that case there are no notes above to trigger
+		// syncNoteTags, so remove the source row explicitly.
+		const normalizedSource = source.toLowerCase();
+		if (!target || target.toLowerCase() !== normalizedSource) {
+			tx.delete(tags)
+				.where(and(eq(tags.userId, userId), eq(tags.name, normalizedSource)))
+				.run();
+		}
 	});
 
 	return preview;

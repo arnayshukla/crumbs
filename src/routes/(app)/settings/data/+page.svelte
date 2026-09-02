@@ -7,6 +7,12 @@
 	let confirmation = $state('');
 	let busy = $state(false);
 	let restartRequired = $state(false);
+	let personalArchiveInput: HTMLInputElement;
+
+	function fileFrom(event: Event): File | null {
+		const input = event.currentTarget;
+		return input instanceof HTMLInputElement ? (input.files?.[0] ?? null) : null;
+	}
 
 	async function upload(path: string, file: File, confirmationValue?: string) {
 		const form = new FormData();
@@ -18,12 +24,13 @@
 	}
 
 	async function importPersonal() {
-		if (!personalArchive || !confirm('Import this archive as new copies? Existing crumbs will not be overwritten.')) return;
+		if (!personalArchive) return;
 		busy = true;
 		try {
 			const result = await upload('/api/data/import', personalArchive);
 			showToast(`Imported ${result.notes} crumbs and ${result.attachments} attachments`, 'success');
 			personalArchive = null;
+			personalArchiveInput.value = '';
 		} catch (error) {
 			showToast(error instanceof Error ? error.message : 'Import failed', 'error');
 		} finally {
@@ -51,26 +58,28 @@
 	<p class="mt-1 text-sm text-[var(--text-muted)]">Portable copies for your account and disaster recovery for administrators.</p>
 
 	<div class="mt-6 rounded-sm border border-[var(--border)] bg-[var(--bg-surface)] p-4">
-		<h3 class="font-semibold">Your portable archive</h3>
-		<p class="mt-1 text-sm text-[var(--text-muted)]">Exports your owned crumbs, preferences, and attachments as Markdown and files. Sharing relationships and credentials are excluded.</p>
-		<div class="mt-4 flex flex-wrap items-center gap-3">
-			<a href="/api/data/export" class="rounded-sm bg-[var(--primary)] px-4 py-2 font-medium text-white">Export my data</a>
-			<label class="rounded-sm border border-[var(--border)] px-4 py-2 text-sm hover:border-[var(--primary)]">
-				Choose archive
-				<input type="file" accept=".zip,application/zip" class="sr-only" onchange={(event) => (personalArchive = event.currentTarget.files?.[0] ?? null)} />
-			</label>
-			{#if personalArchive}<span class="max-w-48 truncate text-sm text-[var(--text-muted)]">{personalArchive.name}</span><button disabled={busy} class="rounded-sm border border-[var(--border)] px-4 py-2 disabled:opacity-50" onclick={importPersonal}>Import as copies</button>{/if}
+		<h3 class="font-semibold">Portable account export</h3>
+		<p class="mt-1 text-sm text-[var(--text-muted)]">A readable copy of your owned crumbs, preferences, and attachments. Sharing relationships and credentials are excluded.</p>
+		<div class="mt-4">
+			<a href="/api/data/export" class="inline-block rounded-sm bg-[var(--primary)] px-4 py-2 font-medium text-white">Download portable export</a>
+		</div>
+		<div class="mt-5 border-t border-[var(--border-subtle)] pt-4">
+			<label class="block text-sm font-medium" for="portable-archive">Import a portable export as copies</label>
+			<p class="mt-1 text-xs text-[var(--text-muted)]">Select a ZIP created by “Download portable export.” Imported crumbs are added as new copies; existing crumbs are not replaced.</p>
+			<input bind:this={personalArchiveInput} id="portable-archive" data-testid="portable-import-input" type="file" accept=".zip,application/zip" class="mt-3 block w-full text-sm" onchange={(event) => (personalArchive = fileFrom(event))} />
+			<button data-testid="portable-import-button" disabled={busy || !personalArchive} class="mt-3 rounded-sm border border-[var(--border)] px-4 py-2 disabled:opacity-40" onclick={importPersonal}>Import as new copies</button>
 		</div>
 	</div>
 
 	{#if page.data.user?.role === 'admin'}
 		<div class="mt-6 rounded-sm border border-[var(--destructive)]/50 bg-[var(--bg-surface)] p-4">
-			<h3 class="font-semibold">Full-instance disaster recovery</h3>
-			<p class="mt-1 text-sm text-[var(--text-muted)]">Contains the complete SQLite database and attachment directory. OAuth and Railway environment secrets are not included.</p>
-			<div class="mt-4"><a href="/api/admin/backup" class="rounded-sm border border-[var(--border)] px-4 py-2">Download instance backup</a></div>
+			<h3 class="font-semibold">Whole-instance backup (admin only)</h3>
+			<p class="mt-1 text-sm text-[var(--text-muted)]">A disaster-recovery copy of every account, crumb, sharing relationship, and attachment in this Crumbs instance. OAuth and Railway environment secrets are not included.</p>
+			<div class="mt-4"><a href="/api/admin/backup" class="inline-block rounded-sm border border-[var(--border)] px-4 py-2">Download full backup</a></div>
 			<div class="mt-5 border-t border-[var(--border-subtle)] pt-4">
-				<label class="block text-sm font-medium" for="instance-archive">Stage a full restore</label>
-				<input id="instance-archive" type="file" accept=".zip,application/zip" class="mt-2 block w-full text-sm" onchange={(event) => (instanceArchive = event.currentTarget.files?.[0] ?? null)} />
+				<label class="block text-sm font-medium" for="instance-archive">Restore a full backup</label>
+				<p class="mt-1 text-xs text-[var(--destructive)]">Select only a ZIP created by “Download full backup.” After restart, it replaces all accounts, crumbs, sharing, and attachments in this instance.</p>
+				<input id="instance-archive" type="file" accept=".zip,application/zip" class="mt-3 block w-full text-sm" onchange={(event) => (instanceArchive = fileFrom(event))} />
 				<label class="mt-3 block text-sm">Type <strong>RESTORE</strong> to confirm
 					<input bind:value={confirmation} class="mt-1 block w-full rounded-sm border border-[var(--border)] bg-transparent px-3 py-2" />
 				</label>
