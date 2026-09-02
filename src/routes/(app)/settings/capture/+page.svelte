@@ -46,8 +46,9 @@
 	</div>
 
 	<div class="mt-6 rounded-sm border border-[var(--border)] bg-[var(--bg-surface)] p-4">
-		<h3 class="font-semibold">From a phone or tablet</h3>
-		<p class="mt-1 text-sm text-[var(--text-muted)]">Install Crumbs from your browser’s “Add to Home Screen” or “Install app” option. Then use Share in another app and choose Crumbs. Your device must support sharing to installed web apps; Crumbs will appear automatically when it does.</p>
+		<h3 class="font-semibold">From an Android phone or tablet</h3>
+		<p class="mt-1 text-sm text-[var(--text-muted)]">Install Crumbs from Chrome’s “Install app” option, then launch it once. You can then use Share in another app and choose Crumbs. If Crumbs was installed before this feature was deployed, uninstall and reinstall it so Android registers the Share target.</p>
 		<p class="mt-3 text-xs text-[var(--text-muted)]">The shared title, link, and text open as a draft. Crumbs adds a basic source tag from the website hostname, and nothing is saved until you press Save.</p>
+		<p class="mt-3 text-xs text-[var(--destructive)]">iPhone and iPad do not currently support manifest-based Share targets for installed web apps, so Crumbs will not appear in their system Share menu.</p>
 	</div>
 </section>
