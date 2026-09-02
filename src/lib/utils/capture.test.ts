@@ -28,7 +28,20 @@ describe('capture utilities', () => {
 		expect(decodeCaptureFragment('#not-json')).toBeNull();
 	});
 
-	it('targets the configured origin', () => {
-		expect(buildBookmarklet('https://crumbs.example/')).toContain('https://crumbs.example/capture#');
+	it('decodes URL-encoded Shortcut input without sending it to the server', () => {
+		const shared = encodeURIComponent('Interesting reel\nhttps://www.instagram.com/reel/example/');
+		expect(decodeCaptureFragment(`#share=${shared}`)).toEqual({
+			title: 'Interesting reel',
+			content: '[Source](https://www.instagram.com/reel/example/) · #instagram'
+		});
+		expect(decodeCaptureFragment('#share=')).toBeNull();
+		expect(decodeCaptureFragment('#share=%E0%A4%A')).toBeNull();
+	});
+
+	it('targets the configured origin in the current tab', () => {
+		const bookmarklet = buildBookmarklet('https://crumbs.example/');
+		expect(bookmarklet).toContain('https://crumbs.example/capture?from=bookmarklet#');
+		expect(bookmarklet).toContain('location.assign');
+		expect(bookmarklet).not.toContain('window.open');
 	});
 });

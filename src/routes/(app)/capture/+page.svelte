@@ -13,8 +13,10 @@
 	let color = $state<NoteColor>('default');
 	let knownTags = $state<string[]>([]);
 	let saving = $state(false);
+	let fromBookmarklet = $state(false);
 
 	onMount(() => {
+		fromBookmarklet = new URL(location.href).searchParams.get('from') === 'bookmarklet';
 		const fragmentDraft = decodeCaptureFragment(location.hash);
 		if (fragmentDraft) draft = fragmentDraft;
 		fetch('/api/tags')
@@ -31,13 +33,23 @@
 	}
 
 	async function save() {
-		if (!draft.title.trim() && !draft.content.trim()) return;
+		if (saving || (!draft.title.trim() && !draft.content.trim())) return;
 		saving = true;
 		const created = await createNote({ ...draft, color });
-		saving = false;
-		if (!created) return;
+		if (!created) {
+			saving = false;
+			return;
+		}
+		await goto('/', { replaceState: true });
 		showToast('Crumb captured', 'success');
-		await goto(`/#${created.id}`);
+	}
+
+	async function cancel() {
+		if (fromBookmarklet && history.length > 1) {
+			history.back();
+			return;
+		}
+		await goto('/', { replaceState: true });
 	}
 </script>
 
@@ -63,7 +75,7 @@
 			<ColorPicker selected={color} onSelect={(next) => (color = next)} />
 		</div>
 		<div class="mt-4 flex justify-end gap-2">
-			<a href="/" class="rounded-sm px-4 py-2 hover:bg-[var(--bg-base)]">Cancel</a>
+			<button type="button" class="rounded-sm px-4 py-2 hover:bg-[var(--bg-base)]" onclick={cancel}>Cancel</button>
 			<button disabled={saving || (!draft.title.trim() && !draft.content.trim())} class="rounded-sm bg-[var(--primary)] px-4 py-2 font-medium text-white disabled:opacity-50" onclick={save} data-testid="capture-save">{saving ? 'Saving…' : 'Save crumb'}</button>
 		</div>
 	</div>

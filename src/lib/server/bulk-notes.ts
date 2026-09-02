@@ -47,7 +47,6 @@ export function applyBulkNoteAction(db: Db, userId: number, input: BulkNoteActio
 						.set({ trashed: input.action === 'trash', trashedAt: input.action === 'trash' ? new Date() : null, updatedAt: new Date(), version: note.version + 1 })
 						.where(eq(notes.id, item.id))
 						.run();
-					if (input.action === 'trash') removedIds.push(item.id);
 					break;
 				case 'color':
 					createSnapshot(tx, item.id, note);
@@ -66,7 +65,6 @@ export function applyBulkNoteAction(db: Db, userId: number, input: BulkNoteActio
 						if (existing) tx.update(noteUserState).set({ [field]: value }).where(and(eq(noteUserState.noteId, item.id), eq(noteUserState.userId, userId))).run();
 						else tx.insert(noteUserState).values({ noteId: item.id, userId, pinned: field === 'pinned' ? value : false, archived: field === 'archived' ? value : false, sortOrder: 0 }).run();
 					}
-					if (input.action === 'archive') removedIds.push(item.id);
 					break;
 				}
 				default: {
@@ -78,7 +76,7 @@ export function applyBulkNoteAction(db: Db, userId: number, input: BulkNoteActio
 	});
 
 	const updated = noteIds
-		.filter((id) => !removedIds.includes(id) || input.action === 'restore')
+		.filter((id) => !removedIds.includes(id))
 		.map((id) => getNote(db, userId, id))
 		.filter((note): note is NonNullable<typeof note> => note !== null) as Note[];
 	return { updated, removedIds };
