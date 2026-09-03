@@ -1,6 +1,6 @@
-import { writable, derived } from 'svelte/store';
+import { writable, derived, get } from 'svelte/store';
 import type { Note, NoteFilter, NoteCreate, NoteUpdate, BulkNoteAction } from '$lib/types/index.js';
-import { addToSyncQueue, putNote, deleteNoteFromIdb, getAllNotes, clearNotes as clearIdbNotes } from '$lib/sync/idb.js';
+import { addToSyncQueue, putNote, deleteNoteFromIdb, getAllNotes, getPendingNoteIds, clearNotes as clearIdbNotes } from '$lib/sync/idb.js';
 import { showToast } from '$lib/stores/toast.js';
 import { extractTags } from '$lib/utils/tags.js';
 
@@ -10,6 +10,7 @@ export const selectedTag = writable<string | null>(null);
 export const notesLoaded = writable(false);
 export const searchQuery = writable<string>('');
 export const searchResults = writable<Note[]>([]);
+let latestLoadRequest = 0;
 
 /**
  * Reconcile search results against the canonical notes store so local edits and
@@ -88,7 +89,12 @@ function isNetworkError(err: unknown): boolean {
  * when a conflict exists. This prevents a stale loadNotes response from
  * overwriting a just-saved note (race between sync interval and updateNote).
  */
-export function mergeNotesByVersion(current: Note[], incoming: Note[]): Note[] {
+interface MergeNotesOptions {
+	pendingIds?: ReadonlySet<string>;
+	requestStartedAt?: number;
+}
+
+export function mergeNotesByVersion(current: Note[], incoming: Note[], options?: MergeNotesOptions): Note[] {
 	const currentMap = new Map(current.map((n) => [n.id, n]));
 	const incomingIds = new Set<string>();
 	const merged = incoming.map((incomingNote) => {
@@ -99,7 +105,10 @@ export function mergeNotesByVersion(current: Note[], incoming: Note[]): Note[] {
 	});
 	// Preserve local-only notes (e.g. just created, not yet in server/IDB response)
 	for (const local of current) {
-		if (!incomingIds.has(local.id)) {
+		const changedDuringRequest = options?.requestStartedAt !== undefined
+			&& new Date(local.updatedAt).getTime() >= options.requestStartedAt;
+		const preserveMissing = options === undefined || options.pendingIds?.has(local.id) || changedDuringRequest;
+		if (!incomingIds.has(local.id) && preserveMissing) {
 			merged.push(local);
 		}
 	}
@@ -107,6 +116,7 @@ export function mergeNotesByVersion(current: Note[], incoming: Note[]): Note[] {
 }
 
 export async function loadNotes(filter: NoteFilter = 'all') {
+	const requestId = ++latestLoadRequest;
 	// Load from IDB first for instant display
 	try {
 		const cached = await getAllNotes();
@@ -121,12 +131,15 @@ export async function loadNotes(filter: NoteFilter = 'all') {
 
 	// Then fetch from server in the background
 	try {
+		const requestStartedAt = Date.now();
 		const res = await fetch(`/api/notes?filter=${filter}`);
+		if (requestId !== latestLoadRequest) return;
 		if (res.ok) {
 			const data: Note[] = await res.json();
+			const pendingIds = await getPendingNoteIds();
 			let reconciled = data;
 			notes.update((current) => {
-				reconciled = mergeNotesByVersion(current, data);
+				reconciled = mergeNotesByVersion(current, data, { pendingIds, requestStartedAt });
 				return reconciled;
 			});
 			currentFilter.set(filter);
@@ -148,6 +161,12 @@ export async function loadNotes(filter: NoteFilter = 'all') {
 	} catch {
 		// Offline — IDB data already loaded above
 	}
+}
+
+async function removeLocalNote(id: string): Promise<void> {
+	notes.update((list) => list.filter((note) => note.id !== id));
+	searchResults.update((list) => list.filter((note) => note.id !== id));
+	await deleteNoteFromIdb(id);
 }
 
 export async function createNote(note: NoteCreate): Promise<Note | null> {
@@ -221,6 +240,11 @@ export async function updateNote(id: string, updates: NoteUpdate): Promise<Note 
 			await putNote(updated);
 			return updated;
 		}
+		if (res.status === 404) {
+			await removeLocalNote(id);
+			showToast('This crumb no longer exists or belongs to another account.', 'info');
+			return null;
+		}
 		showToast('Failed to save note', 'error');
 		return null;
 	} catch (err) {
@@ -253,11 +277,15 @@ export async function deleteNote(id: string): Promise<boolean> {
 	try {
 		const res = await fetch(`/api/notes/${id}`, { method: 'DELETE' });
 		if (res.ok) {
-			notes.update((list) => list.filter((n) => n.id !== id));
-			searchResults.update((list) => list.filter((n) => n.id !== id));
-			await deleteNoteFromIdb(id);
+			await removeLocalNote(id);
 			return true;
 		}
+		if (res.status === 404) {
+			await removeLocalNote(id);
+			showToast('This crumb no longer exists or belongs to another account.', 'info');
+			return true;
+		}
+		showToast((await res.text()) || 'Failed to delete crumb', 'error');
 		return false;
 	} catch (err) {
 		if (isNetworkError(err)) {
@@ -338,6 +366,17 @@ export async function bulkNoteAction(action: BulkNoteAction): Promise<boolean> {
 			body: JSON.stringify(action)
 		});
 		if (!response.ok) {
+			if (response.status === 404) {
+				await loadNotes(get(currentFilter));
+				const serverIds = new Set(get(notes).map((note) => note.id));
+				await Promise.all(
+					action.noteIds
+						.filter((id) => !serverIds.has(id))
+						.map((id) => removeLocalNote(id))
+				);
+				showToast('This crumb no longer exists or belongs to another account.', 'info');
+				return false;
+			}
 			showToast((await response.text()) || 'Bulk action failed', 'error');
 			return false;
 		}

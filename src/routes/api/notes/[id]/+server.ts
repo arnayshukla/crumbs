@@ -47,7 +47,7 @@ export const DELETE: RequestHandler = async ({ params, ...event }) => {
 		}
 	}
 
-	const deleted = deleteNote(db, userId, params.id);
+	const deleted = await deleteNote(db, userId, params.id);
 	if (!deleted) throw error(404, 'Note not found');
 
 	// Notify collaborators about the deleted note (fire-and-forget)

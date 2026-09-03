@@ -4,10 +4,20 @@ export interface SharedCapture {
 	title?: string;
 	text?: string;
 	url?: string;
+	tags?: string;
 }
 
 const URL_PATTERN = /https?:\/\/[^\s<>]+/gi;
 const COMPOUND_DOMAIN_LABELS = new Set(['ac', 'co', 'com', 'edu', 'gov', 'net', 'org']);
+const MAX_CAPTURE_TAGS = 20;
+
+export function normalizeCaptureTags(value: string): string[] {
+	const normalized = value
+		.split(/[\s,]+/)
+		.map((tag) => tag.trim().replace(/^#+/, '').toLowerCase())
+		.filter((tag) => /^[\w-]{1,48}$/.test(tag));
+	return [...new Set(normalized)].slice(0, MAX_CAPTURE_TAGS);
+}
 
 function cleanUrlCandidate(value: string): string {
 	return value.replace(/[),.;!?]+$/, '');
@@ -75,10 +85,12 @@ export function buildCaptureDraft(shared: SharedCapture): CaptureDraft {
 	}
 
 	const sourceTag = sourceTagFromUrl(sourceUrl);
+	const tags = normalizeCaptureTags([sourceTag, shared.tags].filter(Boolean).join(' '));
+	const tagText = tags.map((tag) => `#${tag}`).join(' ');
 	const sourceLine = sourceUrl
-		? `[Source](${sourceUrl})${sourceTag ? ` · #${sourceTag}` : ''}`
+		? `<${sourceUrl}>${tagText ? ` · ${tagText}` : ''}`
 		: '';
-	return { title, content: [text, sourceLine].filter(Boolean).join('\n\n') };
+	return { title, content: [text, sourceLine, sourceUrl ? '' : tagText].filter(Boolean).join('\n\n') };
 }
 
 export function decodeCaptureFragment(fragment: string): CaptureDraft | null {
@@ -99,7 +111,8 @@ export function decodeCaptureFragment(fragment: string): CaptureDraft | null {
 		return buildCaptureDraft({
 			title: typeof value.title === 'string' ? value.title : '',
 			text: typeof value.text === 'string' ? value.text : '',
-			url: typeof value.url === 'string' ? value.url : ''
+			url: typeof value.url === 'string' ? value.url : '',
+			tags: typeof value.tags === 'string' ? value.tags : ''
 		});
 	} catch {
 		return null;

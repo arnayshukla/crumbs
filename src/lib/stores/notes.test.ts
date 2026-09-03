@@ -78,6 +78,26 @@ describe('mergeNotesByVersion', () => {
 		expect(result.find((n) => n.id === 'n2')?.content).toBe('from server');
 	});
 
+	it('drops a server-absent cached note during authoritative reconciliation', () => {
+		const stale = makeNote({ id: 'captured-stale', updatedAt: new Date(1) });
+		const result = mergeNotesByVersion([stale], [], {
+			pendingIds: new Set(),
+			requestStartedAt: 2
+		});
+
+		expect(result).toEqual([]);
+	});
+
+	it('preserves a server-absent note with a pending offline operation', () => {
+		const pending = makeNote({ id: 'offline-note', updatedAt: new Date(1) });
+		const result = mergeNotesByVersion([pending], [], {
+			pendingIds: new Set(['offline-note']),
+			requestStartedAt: 2
+		});
+
+		expect(result).toEqual([pending]);
+	});
+
 	it('preserves multiple notes correctly during a race condition', () => {
 		const localNotes = [
 			makeNote({ id: 'n1', version: 5, content: '- [x] Just saved' }),

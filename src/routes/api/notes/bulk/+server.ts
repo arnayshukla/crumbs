@@ -16,7 +16,7 @@ export const POST: RequestHandler = async ({ request, ...event }) => {
 	const parsed = schema.safeParse(await request.json());
 	if (!parsed.success) throw error(400, 'Invalid bulk operation');
 	try {
-		return json(applyBulkNoteAction(db, userId, parsed.data));
+		return json(await applyBulkNoteAction(db, userId, parsed.data));
 	} catch (cause) {
 		if (cause instanceof BulkNoteError) throw error(cause.status, cause.message);
 		throw cause;

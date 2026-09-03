@@ -338,7 +338,7 @@ export function createMcpServer(userId: number): McpServer {
 				};
 			}
 
-			deleteNote(db, userId, id);
+			await deleteNote(db, userId, id);
 			return {
 				content: [
 					{

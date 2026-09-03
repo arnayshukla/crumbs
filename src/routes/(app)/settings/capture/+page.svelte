@@ -3,6 +3,7 @@
 	import { Check, Copy, Plus, Trash2 } from 'lucide-svelte';
 	import { buildBookmarklet } from '$lib/utils/capture.js';
 	import { showToast } from '$lib/stores/toast.js';
+	import { page } from '$app/state';
 
 	interface QuickCaptureToken {
 		id: string;
@@ -15,6 +16,7 @@
 	let bookmarklet = $state('');
 	let sampleCapture = $state('');
 	let captureEndpoint = $state('');
+	let captureOrigin = $state('');
 	let captureTokens = $state<QuickCaptureToken[]>([]);
 	let newTokenName = $state('My iPhone');
 	let createdToken = $state<string | null>(null);
@@ -25,6 +27,7 @@
 
 	onMount(() => {
 		bookmarklet = buildBookmarklet(location.origin);
+		captureOrigin = location.origin;
 		captureEndpoint = `${location.origin}/api/quick-capture`;
 		const sample = encodeURIComponent(JSON.stringify({
 			title: 'Example captured page',
@@ -147,7 +150,8 @@
 
 	<div class="mt-6 rounded-sm border border-[var(--border)] bg-[var(--bg-surface)] p-4">
 		<h3 class="font-semibold">From an iPhone or iPad with Shortcuts</h3>
-		<p class="mt-1 text-sm text-[var(--text-muted)]">A capture-only token lets your Shortcut save shared text or links directly. It cannot read, edit, export, or delete your crumbs.</p>
+		<p class="mt-1 text-sm text-[var(--text-muted)]">A capture-only token lets your Shortcut save shared text, links, and images directly. It cannot read, edit, export, or delete your crumbs.</p>
+		<p class="mt-2 text-xs text-[var(--text-muted)]">Tokens created here always save to <strong>{page.data.user?.displayName || page.data.user?.email}</strong> ({page.data.user?.email}). Use a separate token for each device or workflow so it can be revoked independently.</p>
 
 		<form class="mt-4 flex flex-col gap-2 sm:flex-row" onsubmit={createCaptureToken}>
 			<label class="sr-only" for="capture-token-name">Device name</label>
@@ -171,16 +175,28 @@
 			</div>
 		{/if}
 
-		<ol class="mt-3 list-decimal space-y-2 pl-5 text-sm text-[var(--text-muted)]">
+		<h4 class="mt-5 text-sm font-semibold">Share links, text, reels, or images</h4>
+		<ol class="mt-2 list-decimal space-y-2 pl-5 text-sm text-[var(--text-muted)]">
 			<li>In Shortcuts, create a shortcut named <strong>Capture to Crumbs</strong>.</li>
-			<li>Open its details, enable <strong>Show in Share Sheet</strong>, and accept <strong>URLs</strong> and <strong>Text</strong>.</li>
-			<li>Add <strong>Get Text from Input</strong> and use <strong>Shortcut Input</strong>.</li>
-			<li>Add <strong>Get Contents of URL</strong>. Use the endpoint below, choose <strong>POST</strong>, then choose a <strong>JSON</strong> request body.</li>
-			<li>Add a text field named <code>input</code> whose value is the output of <strong>Get Text from Input</strong>.</li>
-			<li>Add an <code>Authorization</code> header whose value is <code>Bearer </code> followed by the token shown above.</li>
-			<li>Add <strong>Get Dictionary Value</strong> for the key <code>message</code> from <strong>Contents of URL</strong>.</li>
-			<li>Add an <strong>If</strong> action: when Dictionary Value has any value, show it in <strong>Show Notification</strong>; otherwise show <strong>Capture failed</strong>.</li>
+			<li>Open its details, enable <strong>Show in Share Sheet</strong>, and accept <strong>Images</strong>, <strong>URLs</strong>, and <strong>Text</strong>.</li>
+			<li>Add a <strong>Choose from Menu</strong> action with <strong>Save now</strong> and <strong>Add tags</strong>. In Add tags, use <strong>Ask for Input</strong> with the prompt “Tags (comma or space separated)” and save the result as <code>Tags</code>.</li>
+			<li>For images, use <strong>Get Images from Input</strong> followed by <strong>Convert Image</strong> to JPEG. The API accepts up to 10 images.</li>
+			<li>Add <strong>Get Contents of URL</strong> using the endpoint below, choose <strong>POST</strong>, and use a <strong>Form</strong> request body.</li>
+			<li>Add <code>input</code> from <strong>Get Text from Input</strong>, optional <code>tags</code> from <code>Tags</code>, and <code>images</code> from the converted images. A URL inside the input is parsed automatically.</li>
+			<li>Add an <code>Authorization</code> header whose value is <code>Bearer </code> followed by the token shown above. For a Form request, also add <code>Origin</code> with the app origin <code>{captureOrigin}</code>.</li>
+			<li>Read <code>message</code> from <strong>Contents of URL</strong>. If it has a value, show it in <strong>Show Notification</strong>; otherwise show <strong>Capture failed</strong>.</li>
 		</ol>
+
+		<h4 class="mt-5 text-sm font-semibold">Dictate from iPhone or Apple Watch</h4>
+		<ol class="mt-2 list-decimal space-y-2 pl-5 text-sm text-[var(--text-muted)]">
+			<li>Create a second token above named <strong>Apple Watch</strong> and a shortcut named <strong>Voice to Crumbs</strong>.</li>
+			<li>Add <strong>Dictate Text</strong>. Stop the shortcut when the dictated result is empty.</li>
+			<li>Add the same <strong>Save now</strong> / <strong>Add tags</strong> menu. Tags can be dictated on the Watch.</li>
+			<li>POST a <strong>JSON</strong> body to the endpoint below with <code>title</code> set to <code>Voice note</code>, <code>input</code> set to the dictated text, and <code>tags</code> set to <code>voice</code> plus any tags you entered.</li>
+			<li>Add the token as the <code>Authorization</code> header and show the returned <code>message</code> as a notification.</li>
+			<li>In the shortcut details, enable <strong>Show on Apple Watch</strong>. Run it from Shortcuts, Siri, a complication, or the Action button where supported.</li>
+		</ol>
+		<p class="mt-2 text-xs text-[var(--text-muted)]">If Dictate Text is unavailable on your Watch, use a text input prompt and choose the Watch’s Dictation input method. The Watch needs internet access through its iPhone, Wi-Fi, or cellular. Speech is transcribed in your configured dictation language; audio is not uploaded.</p>
 		<div class="mt-4 space-y-2 rounded-sm border border-[var(--border-subtle)] bg-[var(--bg-base)] p-3">
 			<div class="flex items-center gap-2">
 				<code class="min-w-0 flex-1 break-all text-xs">{captureEndpoint}</code>
@@ -197,7 +213,7 @@
 				</div>
 			{/if}
 		</div>
-		<p class="mt-3 text-xs text-[var(--text-muted)]">The Shortcut sends its request over HTTPS and does not open Safari or the Home Screen app. A shared URL gets a source link and hostname tag automatically.</p>
+		<p class="mt-3 text-xs text-[var(--text-muted)]">The Shortcut sends its request over HTTPS and does not open Safari or the Home Screen app. Shared URLs get a visible source link and hostname tag automatically; your optional tags are merged without duplicates. Apps such as Instagram usually share only a URL, so Crumbs does not download the reel itself.</p>
 		<a class="mt-3 inline-block text-xs text-[var(--primary)] underline" href="https://support.apple.com/guide/shortcuts/launch-a-shortcut-from-another-app-apd163eb9f95/ios" target="_blank" rel="noopener noreferrer">Apple’s Share Sheet instructions</a>
 
 		{#if captureTokens.length > 0}

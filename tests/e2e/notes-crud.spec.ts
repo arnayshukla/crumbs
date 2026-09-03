@@ -69,4 +69,41 @@ test.describe('Notes CRUD', () => {
 		// Then the note is no longer visible
 		await expect(page.getByText('Delete Me')).not.toBeVisible();
 	});
+
+	test('Scenario: A server-absent captured crumb is removed after a 404 action', async ({ authenticatedPage: page }, testInfo) => {
+		const title = `Captured ghost ${testInfo.workerIndex}-${Date.now()}`;
+		const created = await page.request.post('/api/notes', { data: { title } });
+		const crumb = await created.json() as { id: string };
+		await page.goto('/');
+		const card = noteCard(page, title);
+		await expect(card).toBeVisible();
+
+		// Simulate a stale cached card whose server-side record has already gone.
+		// Intercept the UI request so the background refresh cannot remove it first.
+		await page.route(`**/api/notes/${crumb.id}`, async (route) => {
+			if (route.request().method() === 'PATCH') {
+				await route.fulfill({ status: 404, contentType: 'application/json', body: '{"error":"Not found"}' });
+				return;
+			}
+			await route.continue();
+		});
+		await card.hover();
+		await card.getByTestId('trash-btn').click({ force: true });
+
+		await expect(card).toHaveCount(0);
+		await expect(page.getByTestId('toast')).toContainText('no longer exists or belongs to another account');
+		expect((await page.request.delete(`/api/notes/${crumb.id}`)).ok()).toBeTruthy();
+	});
+
+	test('Scenario: Authoritative refresh does not resurrect a deleted cached crumb', async ({ authenticatedPage: page }, testInfo) => {
+		const title = `Cached ghost ${testInfo.workerIndex}-${Date.now()}`;
+		const created = await page.request.post('/api/notes', { data: { title } });
+		const crumb = await created.json() as { id: string };
+		await page.goto('/');
+		await expect(noteCard(page, title)).toBeVisible();
+		expect((await page.request.delete(`/api/notes/${crumb.id}`)).ok()).toBeTruthy();
+
+		await page.reload();
+		await expect(noteCard(page, title)).toHaveCount(0);
+	});
 });

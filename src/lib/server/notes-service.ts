@@ -1,12 +1,12 @@
 import type { Db } from './db/index.js';
-import { notes, noteTags, tags, noteCollaborators, noteUserState } from './db/schema.js';
+import { notes, noteTags, tags, noteCollaborators, noteUserState, attachments, syncLog } from './db/schema.js';
 import { eq, and, like, or, inArray, sql } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
 import { extractTags } from '$lib/utils/tags.js';
 import { extractNoteLinks } from '$lib/utils/note-links.js';
 import { fetchTagsForNotes, syncNoteTags } from './tags.js';
 import { syncNoteLinks, fetchBacklinksForNote } from './note-links.js';
-import { fetchAttachmentsForNotes } from './attachments.js';
+import { deleteAttachmentFiles, fetchAttachmentsForNotes } from './attachments.js';
 import { fetchCollaboratorsForNotes } from './collaborators.js';
 import { fetchSharesForNotes } from './shares-service.js';
 import { canAccessNote } from './api-utils.js';
@@ -342,7 +342,7 @@ export function updateNote(db: Db, userId: number, id: string, input: UpdateNote
 	return getNote(db, userId, id);
 }
 
-export function deleteNote(db: Db, userId: number, id: string): boolean {
+export async function deleteNote(db: Db, userId: number, id: string): Promise<boolean> {
 	const existing = db
 		.select()
 		.from(notes)
@@ -350,9 +350,18 @@ export function deleteNote(db: Db, userId: number, id: string): boolean {
 		.get();
 	if (!existing) return false;
 
-	db.delete(notes)
-		.where(and(eq(notes.id, id), eq(notes.userId, userId)))
-		.run();
+	const files = db
+		.select({ path: attachments.path, thumbnailPath: attachments.thumbnailPath })
+		.from(attachments)
+		.where(eq(attachments.noteId, id))
+		.all();
+	db.transaction((tx) => {
+		tx.delete(syncLog).where(eq(syncLog.noteId, id)).run();
+		tx.delete(notes)
+			.where(and(eq(notes.id, id), eq(notes.userId, userId)))
+			.run();
+	});
+	await deleteAttachmentFiles(files);
 	return true;
 }
 

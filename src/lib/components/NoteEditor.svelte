@@ -594,7 +594,7 @@
 		showOverflowMenu = false;
 		if (noteId) {
 			const trashed = await trashNote(noteId);
-			if (trashed) dismissOverlay();
+			if (trashed || !$notes.some((item) => item.id === noteId)) dismissOverlay();
 		}
 	}
 
