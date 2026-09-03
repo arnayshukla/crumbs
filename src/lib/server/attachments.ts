@@ -20,40 +20,55 @@ export async function saveAttachment(
 	noteId: string,
 	file: File,
 	userId: number,
-	thumbnail?: File | Blob | null
+	thumbnail?: File | Blob | null,
+	featured = false
 ): Promise<typeof attachments.$inferSelect> {
 	const id = uuidv4();
 	const ext = file.name.split('.').pop() || 'bin';
 	const filename = `${id}.${ext}`;
 	const filePath = join(ATTACHMENTS_DIR, filename);
+	const thumbnailPath = thumbnail ? join(ATTACHMENTS_DIR, `${id}_thumb.webp`) : null;
 
-	const buffer = Buffer.from(await file.arrayBuffer());
-	await writeFile(filePath, buffer);
+	try {
+		const buffer = Buffer.from(await file.arrayBuffer());
+		await writeFile(filePath, buffer);
+		if (thumbnail && thumbnailPath) {
+			const thumbBuffer = Buffer.from(await thumbnail.arrayBuffer());
+			await writeFile(thumbnailPath, thumbBuffer);
+		}
 
-	let thumbnailPath: string | null = null;
-	if (thumbnail) {
-		const thumbFilename = `${id}_thumb.webp`;
-		thumbnailPath = join(ATTACHMENTS_DIR, thumbFilename);
-		const thumbBuffer = Buffer.from(await thumbnail.arrayBuffer());
-		await writeFile(thumbnailPath, thumbBuffer);
+		const [attachment] = await db
+			.insert(attachments)
+			.values({
+				id,
+				userId,
+				noteId,
+				filename: file.name,
+				mimeType: file.type,
+				size: file.size,
+				path: filePath,
+				thumbnailPath,
+				featured,
+				createdAt: new Date()
+			})
+			.returning();
+
+		return attachment;
+	} catch (cause) {
+		await Promise.allSettled([
+			unlink(filePath),
+			...(thumbnailPath ? [unlink(thumbnailPath)] : [])
+		]);
+		throw cause;
 	}
+}
 
-	const [attachment] = await db
-		.insert(attachments)
-		.values({
-			id,
-			userId,
-			noteId,
-			filename: file.name,
-			mimeType: file.type,
-			size: file.size,
-			path: filePath,
-			thumbnailPath,
-			createdAt: new Date()
-		})
-		.returning();
-
-	return attachment;
+export async function deleteAttachmentFiles(
+	items: ReadonlyArray<{ path: string; thumbnailPath: string | null }>
+): Promise<void> {
+	await Promise.allSettled(
+		items.flatMap((item) => [unlink(item.path), ...(item.thumbnailPath ? [unlink(item.thumbnailPath)] : [])])
+	);
 }
 
 /**
@@ -105,18 +120,7 @@ export async function updateAttachment(db: Db, id: string, noteId: string, data:
 export async function deleteAttachment(db: Db, id: string, noteId: string) {
 	const attachment = await getAttachment(db, id, noteId);
 	if (attachment) {
-		try {
-			await unlink(attachment.path);
-		} catch {
-			// File may already be deleted
-		}
-		if (attachment.thumbnailPath) {
-			try {
-				await unlink(attachment.thumbnailPath);
-			} catch {
-				// Thumbnail may already be deleted
-			}
-		}
+		await deleteAttachmentFiles([attachment]);
 		await db.delete(attachments).where(and(eq(attachments.id, id), eq(attachments.noteId, noteId)));
 	}
 }

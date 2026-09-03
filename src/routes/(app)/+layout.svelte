@@ -3,7 +3,6 @@
 	import Sidebar from '$lib/components/Layout/Sidebar.svelte';
 	import Toast from '$lib/components/Layout/Toast.svelte';
 	import CommandPalette from '$lib/components/CommandPalette.svelte';
-	import { loadNotes } from '$lib/stores/notes.js';
 	import { startSync, stopSync } from '$lib/sync/client.js';
 	import { initDb } from '$lib/sync/idb.js';
 	import { initPreferences, getPreferences } from '$lib/stores/preferences.svelte.js';
@@ -32,7 +31,6 @@
 		if (data.user) {
 			initDb(data.user.id);
 		}
-		loadNotes();
 		startSync();
 		return () => window.removeEventListener('keydown', handleGlobalKeydown);
 	});

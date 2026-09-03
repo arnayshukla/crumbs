@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { createTestDb } from './db/test-helpers.js';
-import { notes, noteCollaborators, noteUserState, noteVersions, users } from './db/schema.js';
+import { notes, noteCollaborators, noteUserState, noteVersions, syncLog, users } from './db/schema.js';
 import { eq, and } from 'drizzle-orm';
 import type { Db } from './db/index.js';
 import {
@@ -306,17 +306,31 @@ describe('updateNote', () => {
 });
 
 describe('deleteNote', () => {
-	it('should allow owner to permanently delete', () => {
+	it('should allow owner to permanently delete', async () => {
 		seedNote('n1', { title: 'Delete me' });
-		const result = deleteNote(db, OWNER_ID, 'n1');
+		const result = await deleteNote(db, OWNER_ID, 'n1');
 		expect(result).toBe(true);
 		expect(getNote(db, OWNER_ID, 'n1')).toBeNull();
 	});
 
-	it('should return false for non-existent or unauthorized', () => {
+	it('should clear sync history before permanently deleting', async () => {
+		seedNote('n1', { title: 'Delete synced note' });
+		db.insert(syncLog).values({
+			userId: OWNER_ID,
+			noteId: 'n1',
+			operation: 'update',
+			timestamp: new Date(),
+			clientId: 'test'
+		}).run();
+
+		expect(await deleteNote(db, OWNER_ID, 'n1')).toBe(true);
+		expect(db.select().from(syncLog).where(eq(syncLog.noteId, 'n1')).all()).toEqual([]);
+	});
+
+	it('should return false for non-existent or unauthorized', async () => {
 		seedNote('n1', { title: 'Private' });
-		expect(deleteNote(db, COLLAB_ID, 'n1')).toBe(false);
-		expect(deleteNote(db, OWNER_ID, 'nonexistent')).toBe(false);
+		expect(await deleteNote(db, COLLAB_ID, 'n1')).toBe(false);
+		expect(await deleteNote(db, OWNER_ID, 'nonexistent')).toBe(false);
 	});
 });
 

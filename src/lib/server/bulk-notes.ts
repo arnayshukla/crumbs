@@ -1,10 +1,11 @@
 import type { Db } from './db/index.js';
-import { notes, noteUserState } from './db/schema.js';
+import { notes, noteUserState, attachments, syncLog } from './db/schema.js';
 import { and, eq, inArray } from 'drizzle-orm';
 import { canAccessNote } from './api-utils.js';
 import { createSnapshot } from './versions-service.js';
 import { getNote } from './notes-service.js';
 import type { BulkNoteAction, Note } from '$lib/types/index.js';
+import { deleteAttachmentFiles } from './attachments.js';
 
 export class BulkNoteError extends Error {
 	constructor(
@@ -20,7 +21,7 @@ export interface BulkNoteResult {
 	removedIds: string[];
 }
 
-export function applyBulkNoteAction(db: Db, userId: number, input: BulkNoteAction): BulkNoteResult {
+export async function applyBulkNoteAction(db: Db, userId: number, input: BulkNoteAction): Promise<BulkNoteResult> {
 	const noteIds = [...new Set(input.noteIds)];
 	if (noteIds.length === 0 || noteIds.length > 200) throw new BulkNoteError('Select between 1 and 200 crumbs', 400);
 
@@ -31,6 +32,7 @@ export function applyBulkNoteAction(db: Db, userId: number, input: BulkNoteActio
 	}
 
 	const removedIds: string[] = [];
+	const filesToDelete: Array<{ path: string; thumbnailPath: string | null }> = [];
 	db.transaction((tx) => {
 		for (const item of access) {
 			const note = tx.select().from(notes).where(eq(notes.id, item.id)).get();
@@ -38,6 +40,12 @@ export function applyBulkNoteAction(db: Db, userId: number, input: BulkNoteActio
 
 			switch (input.action) {
 				case 'delete':
+					filesToDelete.push(...tx
+						.select({ path: attachments.path, thumbnailPath: attachments.thumbnailPath })
+						.from(attachments)
+						.where(eq(attachments.noteId, item.id))
+						.all());
+					tx.delete(syncLog).where(eq(syncLog.noteId, item.id)).run();
 					tx.delete(notes).where(and(eq(notes.id, item.id), eq(notes.userId, userId))).run();
 					removedIds.push(item.id);
 					break;
@@ -74,6 +82,7 @@ export function applyBulkNoteAction(db: Db, userId: number, input: BulkNoteActio
 			}
 		}
 	});
+	await deleteAttachmentFiles(filesToDelete);
 
 	const updated = noteIds
 		.filter((id) => !removedIds.includes(id))

@@ -11,6 +11,7 @@
 	import { tooltip } from '$lib/utils/tooltip.js';
 	import { getNote as getIdbNote } from '$lib/sync/idb.js';
 	import { uiIntent } from '$lib/stores/ui-intents.js';
+	import { showToast } from '$lib/stores/toast.js';
 
 	interface Props {
 		filter: NoteFilter;
@@ -25,6 +26,10 @@
 	let selectionMode = $state(false);
 	let selectedIds = $state<Set<string>>(new Set());
 	let bulkColor = $state<NoteColor>('default');
+	let visibleNotes = $derived([...$pinnedNotes, ...$unpinnedNotes]);
+	let visibleNoteIds = $derived(new Set(visibleNotes.map((note) => note.id)));
+	let selectableVisibleNotes = $derived(visibleNotes.slice(0, 200));
+	let allVisibleSelected = $derived(selectableVisibleNotes.length > 0 && selectableVisibleNotes.every((note) => selectedIds.has(note.id)));
 	let selectedNotes = $derived($notes.filter((note) => selectedIds.has(note.id)));
 	let selectionOwned = $derived(selectedNotes.every((note) => note.isOwner !== false));
 
@@ -33,6 +38,14 @@
 		currentFilter.set(filter);
 		selectedTag.set(tag);
 		loadNotes(filter);
+	});
+
+	// Search and tag filters can change while selection mode is open. Prune IDs
+	// that are no longer visible so bulk actions never affect hidden crumbs.
+	$effect(() => {
+		if (!selectionMode) return;
+		const visibleSelection = new Set([...selectedIds].filter((id) => visibleNoteIds.has(id)));
+		if (visibleSelection.size !== selectedIds.size) selectedIds = visibleSelection;
 	});
 
 	// Use SvelteKit's replaceState (not the raw history API) so the router keeps
@@ -81,9 +94,18 @@
 		selectedIds = new Set();
 	}
 
+	function toggleSelectAll() {
+		if (allVisibleSelected) {
+			selectedIds = new Set();
+			return;
+		}
+		selectedIds = new Set(selectableVisibleNotes.map((note) => note.id));
+		if (visibleNotes.length > 200) showToast('Selected the first 200 visible crumbs.', 'info');
+	}
+
 	async function runBulk(action: BulkNoteAction['action']) {
 		if (selectedIds.size === 0) return;
-		if (['trash', 'delete'].includes(action) && !confirm(`${action === 'delete' ? 'Delete forever' : 'Trash'} ${selectedIds.size} crumbs?`)) return;
+		if (action === 'delete' && !confirm(`Delete forever ${selectedIds.size} crumbs?`)) return;
 		const payload: BulkNoteAction = action === 'color'
 			? { action, noteIds: [...selectedIds], color: bulkColor }
 			: { action, noteIds: [...selectedIds] };
@@ -151,7 +173,18 @@
 <div class="mb-4">
 	<div class="mb-3 flex flex-wrap items-center justify-end gap-2">
 		{#if selectionMode}
-			<span class="mr-auto text-sm text-[var(--text-muted)]">{selectedIds.size} selected</span>
+			<div class="mr-auto flex items-center gap-2">
+				<span class="text-sm text-[var(--text-muted)]">{selectedIds.size} selected</span>
+				<button
+					type="button"
+					disabled={visibleNotes.length === 0}
+					class="rounded-sm border border-[var(--border)] px-3 py-2 text-sm hover:border-[var(--primary)] disabled:opacity-40"
+					onclick={toggleSelectAll}
+					data-testid="select-all-notes"
+				>
+					{allVisibleSelected ? 'Clear all' : 'Select all'}
+				</button>
+			</div>
 			{#if filter === 'trashed'}
 				<button class="rounded-sm px-3 py-2 text-sm hover:bg-[var(--bg-surface)]" onclick={() => runBulk('restore')}>Restore</button>
 				<button disabled={!selectionOwned} class="rounded-sm px-3 py-2 text-sm text-[var(--destructive)] disabled:opacity-40" onclick={() => runBulk('delete')}>Delete forever</button>

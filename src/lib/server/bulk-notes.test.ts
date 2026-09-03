@@ -19,33 +19,33 @@ beforeEach(() => {
 });
 
 describe('bulk note actions', () => {
-	it('archives the complete selection', () => {
-		const result = applyBulkNoteAction(db, 1, { action: 'archive', noteIds: ['one', 'two'] });
+	it('archives the complete selection', async () => {
+		const result = await applyBulkNoteAction(db, 1, { action: 'archive', noteIds: ['one', 'two'] });
 		expect(result.removedIds).toEqual([]);
 		expect(result.updated).toHaveLength(2);
 		expect(result.updated.every((note) => note.archived)).toBe(true);
 		expect(db.select().from(notes).where(eq(notes.archived, true)).all()).toHaveLength(2);
 	});
 
-	it('returns soft-deleted notes as updates and reserves removedIds for permanent deletion', () => {
-		const trashed = applyBulkNoteAction(db, 1, { action: 'trash', noteIds: ['one'] });
+	it('returns soft-deleted notes as updates and reserves removedIds for permanent deletion', async () => {
+		const trashed = await applyBulkNoteAction(db, 1, { action: 'trash', noteIds: ['one'] });
 		expect(trashed.removedIds).toEqual([]);
 		expect(trashed.updated[0]).toMatchObject({ id: 'one', trashed: true });
 
-		const deleted = applyBulkNoteAction(db, 1, { action: 'delete', noteIds: ['two'] });
+		const deleted = await applyBulkNoteAction(db, 1, { action: 'delete', noteIds: ['two'] });
 		expect(deleted.updated).toEqual([]);
 		expect(deleted.removedIds).toEqual(['two']);
 	});
 
-	it('rejects an owner-only action for a collaborator before writing', () => {
+	it('rejects an owner-only action for a collaborator before writing', async () => {
 		db.insert(noteCollaborators).values({ noteId: 'two', userId: 2, addedBy: 1, addedAt: new Date() }).run();
-		expect(() => applyBulkNoteAction(db, 2, { action: 'trash', noteIds: ['two'] })).toThrow(BulkNoteError);
+		await expect(applyBulkNoteAction(db, 2, { action: 'trash', noteIds: ['two'] })).rejects.toThrow(BulkNoteError);
 		expect(db.select().from(notes).where(eq(notes.id, 'two')).get()?.trashed).toBe(false);
 	});
 
-	it('applies collaborator pin state without changing owner state', () => {
+	it('applies collaborator pin state without changing owner state', async () => {
 		db.insert(noteCollaborators).values({ noteId: 'two', userId: 2, addedBy: 1, addedAt: new Date() }).run();
-		expect(applyBulkNoteAction(db, 2, { action: 'pin', noteIds: ['two'] }).updated[0].pinned).toBe(true);
+		expect((await applyBulkNoteAction(db, 2, { action: 'pin', noteIds: ['two'] })).updated[0].pinned).toBe(true);
 		expect(db.select().from(notes).where(eq(notes.id, 'two')).get()?.pinned).toBe(false);
 	});
 });

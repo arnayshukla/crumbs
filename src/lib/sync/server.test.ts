@@ -380,6 +380,46 @@ describe('processSyncPush — shared notes', () => {
 		expect(note.title).toBe('Private'); // Unchanged
 	});
 
+	it('should clear sync history before an owner permanently deletes offline', async () => {
+		seedSharedNote('n1');
+		db.insert(syncLog).values({
+			userId: OWNER_ID,
+			noteId: 'n1',
+			operation: 'update',
+			timestamp: new Date(),
+			clientId: 'test'
+		}).run();
+
+		await processSyncPush(db, [{
+			noteId: 'n1',
+			operation: 'delete',
+			timestamp: Date.now()
+		}], OWNER_ID);
+
+		expect(db.select().from(notes).where(eq(notes.id, 'n1')).get()).toBeUndefined();
+		expect(db.select().from(syncLog).where(eq(syncLog.noteId, 'n1')).all()).toEqual([]);
+	});
+
+	it('should not let a collaborator delete an owner crumb or its sync history', async () => {
+		seedSharedNote('n1');
+		db.insert(syncLog).values({
+			userId: OWNER_ID,
+			noteId: 'n1',
+			operation: 'update',
+			timestamp: new Date(),
+			clientId: 'test'
+		}).run();
+
+		await processSyncPush(db, [{
+			noteId: 'n1',
+			operation: 'delete',
+			timestamp: Date.now()
+		}], COLLAB_ID);
+
+		expect(db.select().from(notes).where(eq(notes.id, 'n1')).get()).toBeDefined();
+		expect(db.select().from(syncLog).where(eq(syncLog.noteId, 'n1')).all()).toHaveLength(1);
+	});
+
 	it('should log sync operations', async () => {
 		const t1 = new Date('2024-01-01T00:00:00Z');
 		seedSharedNote('n1', { updatedAt: t1, createdAt: t1 });

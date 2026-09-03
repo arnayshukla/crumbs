@@ -1,17 +1,19 @@
 import type { Db } from '$lib/server/db/index.js';
-import { notes, noteCollaborators, noteUserState, syncLog } from '$lib/server/db/schema.js';
+import { notes, noteCollaborators, noteUserState, syncLog, attachments } from '$lib/server/db/schema.js';
 import { eq, gt, and, sql } from 'drizzle-orm';
 import { extractTags } from '$lib/utils/tags.js';
 import { syncNoteTags } from '$lib/server/tags.js';
 import { createSnapshot, getBaseContent } from '$lib/server/versions-service.js';
 import { mergeContentUpdate } from '$lib/utils/content-merge.js';
 import type { SyncQueueItem } from './idb.js';
+import { deleteAttachmentFiles } from '$lib/server/attachments.js';
 
 /**
  * Process incoming sync changes from client.
  */
 export async function processSyncPush(db: Db, changes: SyncQueueItem[], userId: number): Promise<void> {
 	const noteIdsToSyncTags: string[] = [];
+	const filesToDelete: Array<{ path: string; thumbnailPath: string | null }> = [];
 
 	db.transaction((tx) => {
 		for (const change of changes) {
@@ -144,23 +146,40 @@ export async function processSyncPush(db: Db, changes: SyncQueueItem[], userId: 
 					break;
 				}
 				case 'delete': {
-					// Only owner can delete
+					const ownedNote = tx
+						.select({ id: notes.id })
+						.from(notes)
+						.where(and(eq(notes.id, change.noteId), eq(notes.userId, userId)))
+						.get();
+					if (!ownedNote) break;
+
+					filesToDelete.push(...tx
+						.select({ path: attachments.path, thumbnailPath: attachments.thumbnailPath })
+						.from(attachments)
+						.where(eq(attachments.noteId, change.noteId))
+						.all());
+					tx.delete(syncLog).where(eq(syncLog.noteId, change.noteId)).run();
 					tx.delete(notes).where(and(eq(notes.id, change.noteId), eq(notes.userId, userId))).run();
 					break;
 				}
 			}
 
-			tx.insert(syncLog)
-				.values({
-					userId,
-					noteId: change.noteId,
-					operation: change.operation,
-					timestamp: new Date(change.timestamp),
-					clientId: 'default'
-				})
-				.run();
+			// A delete log cannot reference a row that has just been deleted on
+			// databases where sync_log.note_id has a foreign key.
+			if (change.operation !== 'delete') {
+				tx.insert(syncLog)
+					.values({
+						userId,
+						noteId: change.noteId,
+						operation: change.operation,
+						timestamp: new Date(change.timestamp),
+						clientId: 'default'
+					})
+					.run();
+			}
 		}
 	});
+	await deleteAttachmentFiles(filesToDelete);
 
 	for (const noteId of noteIdsToSyncTags) {
 		const note = db.select().from(notes).where(eq(notes.id, noteId)).get();

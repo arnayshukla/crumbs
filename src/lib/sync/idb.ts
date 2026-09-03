@@ -153,6 +153,11 @@ export async function getSyncQueue(): Promise<SyncQueueItem[]> {
 	return db.getAll('syncQueue');
 }
 
+export async function getPendingNoteIds(): Promise<Set<string>> {
+	const [queued, attachments] = await Promise.all([getSyncQueue(), getPendingAttachments()]);
+	return new Set([...queued.map((item) => item.noteId), ...attachments.map((item) => item.noteId)]);
+}
+
 export async function clearSyncQueue(): Promise<void> {
 	const db = await getDb();
 	await db.clear('syncQueue');
