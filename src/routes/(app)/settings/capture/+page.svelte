@@ -13,10 +13,10 @@
 		lastUsedAt: string | null;
 	}
 
-	let bookmarklet = $state('');
-	let sampleCapture = $state('');
 	let captureEndpoint = $state('');
 	let captureOrigin = $state('');
+	let desktopToken = $state<string | null>(null);
+	let bookmarklet = $derived(captureOrigin && desktopToken ? buildBookmarklet(captureOrigin, desktopToken) : '');
 	let captureTokens = $state<QuickCaptureToken[]>([]);
 	let newTokenName = $state('My iPhone');
 	let createdToken = $state<string | null>(null);
@@ -26,15 +26,8 @@
 	let copiedValue = $state<'endpoint' | 'token' | 'authorization' | null>(null);
 
 	onMount(() => {
-		bookmarklet = buildBookmarklet(location.origin);
 		captureOrigin = location.origin;
 		captureEndpoint = `${location.origin}/api/quick-capture`;
-		const sample = encodeURIComponent(JSON.stringify({
-			title: 'Example captured page',
-			text: 'Selected text from the page',
-			url: 'https://example.com/article'
-		}));
-		sampleCapture = `/capture#${sample}`;
 		void loadCaptureTokens();
 	});
 
@@ -69,9 +62,8 @@
 		}
 	}
 
-	async function createCaptureToken(event: SubmitEvent) {
-		event.preventDefault();
-		if (!newTokenName.trim() || tokenLoading) return;
+	async function issueCaptureToken(name: string): Promise<string | null> {
+		if (!name.trim() || tokenLoading) return null;
 		tokenLoading = true;
 		tokenError = '';
 		createdToken = null;
@@ -80,22 +72,34 @@
 			const response = await fetch('/api/settings/quick-capture-tokens', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ name: newTokenName.trim() })
+				body: JSON.stringify({ name: name.trim() })
 			});
 			const body: { id?: string; token?: string; error?: string } = await response.json();
 			if (!response.ok || !body.id || !body.token) {
 				tokenError = body.error ?? 'Could not create the capture token';
-				return;
+				return null;
 			}
 			createdToken = body.token;
 			createdTokenId = body.id;
-			newTokenName = '';
 			await loadCaptureTokens();
+			return body.token;
 		} catch {
 			tokenError = 'Could not connect to Crumbs';
+			return null;
 		} finally {
 			tokenLoading = false;
 		}
+	}
+
+	async function createCaptureToken(event: SubmitEvent) {
+		event.preventDefault();
+		const token = await issueCaptureToken(newTokenName);
+		if (token) newTokenName = '';
+	}
+
+	async function createDesktopBookmarklet() {
+		const token = await issueCaptureToken('Desktop bookmarklet');
+		if (token) desktopToken = token;
 	}
 
 	async function revokeCaptureToken(id: string) {
@@ -109,6 +113,7 @@
 			if (createdTokenId === id) {
 				createdToken = null;
 				createdTokenId = null;
+				desktopToken = null;
 			}
 			showToast('Capture token revoked', 'success');
 		} catch {
@@ -123,22 +128,29 @@
 
 <section>
 	<h2 class="text-xl font-semibold">Quick capture</h2>
-	<p class="mt-1 text-sm text-[var(--text-muted)]">Start a new crumb from the page or app you are already using, then review it before saving.</p>
+	<p class="mt-1 text-sm text-[var(--text-muted)]">Save a new crumb from the page or app you are already using.</p>
 
 	<div class="mt-6 rounded-sm border border-[var(--border)] bg-[var(--bg-surface)] p-4">
 		<h3 class="font-semibold">From a desktop browser</h3>
-		<p class="mt-1 text-sm text-[var(--text-muted)]">“Capture to Crumbs” is a special bookmark. It collects the current page title, URL, selected text, and a source tag.</p>
+		<p class="mt-1 text-sm text-[var(--text-muted)]">The smart bookmark saves the page title, full URL, selected text, and selected or copied images immediately—without opening another Crumbs window.</p>
 		<ol class="mt-3 list-decimal space-y-2 pl-5 text-sm text-[var(--text-muted)]">
-			<li>Show your browser’s bookmarks bar.</li>
-			<li>Drag the gold button below onto that bar. If dragging is unavailable, copy it and paste it as the URL of a new bookmark.</li>
-			<li>While viewing any page, optionally select useful text and click the saved bookmark.</li>
-			<li>Review the prepared crumb, adjust its tags or text, and save it.</li>
+			<li>Create the bookmark below, then drag it onto your browser’s bookmarks bar.</li>
+			<li>On a webpage, select useful text or a group containing inline images. You can also copy an image before running it.</li>
+			<li>Click <strong>Capture to Crumbs</strong>. A small message on the page confirms the save.</li>
 		</ol>
-		<div class="mt-4 flex flex-wrap gap-2">
-			<a href={bookmarklet} class="rounded-sm bg-[var(--primary)] px-4 py-2 font-medium text-white">Drag to bookmarks: Capture to Crumbs</a>
-			<button class="rounded-sm border border-[var(--border)] px-4 py-2" onclick={copyBookmarklet}>Copy bookmarklet</button>
-			<a href={sampleCapture} class="rounded-sm px-4 py-2 hover:bg-[var(--bg-base)]">Try a sample capture</a>
-		</div>
+		{#if bookmarklet}
+			<div class="mt-4 flex flex-wrap gap-2" data-testid="desktop-bookmarklet-ready">
+				<a href={bookmarklet} class="rounded-sm bg-[var(--primary)] px-4 py-2 font-medium text-white">Drag to bookmarks: Capture to Crumbs</a>
+				<button class="rounded-sm border border-[var(--border)] px-4 py-2" onclick={copyBookmarklet}>Copy bookmarklet</button>
+			</div>
+			<p class="mt-3 text-xs text-[var(--text-muted)]">This bookmark contains a capture-only token. It can create crumbs but cannot read, change, export, or delete them. Revoke “Desktop bookmarklet” below if the bookmark is exposed.</p>
+		{:else}
+			<button type="button" disabled={tokenLoading} class="mt-4 flex items-center gap-2 rounded-sm bg-[var(--primary)] px-4 py-2 text-sm font-medium text-white disabled:opacity-50" onclick={createDesktopBookmarklet} data-testid="create-desktop-bookmarklet">
+				<Plus size={15} /> {tokenLoading ? 'Creating…' : 'Create desktop bookmarklet'}
+			</button>
+		{/if}
+		{#if tokenError}<p class="mt-2 text-xs text-[var(--destructive)]">{tokenError}</p>{/if}
+		<p class="mt-3 text-xs text-[var(--text-muted)]">Some sites block cross-site requests. On those pages the bookmark falls back to Crumbs’ review screen in the current tab; copied image data cannot be carried through that fallback.</p>
 	</div>
 
 	<div class="mt-6 rounded-sm border border-[var(--border)] bg-[var(--bg-surface)] p-4">

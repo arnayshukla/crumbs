@@ -80,4 +80,16 @@ describe('capture utilities', () => {
 		expect(bookmarklet).toContain('location.assign');
 		expect(bookmarklet).not.toContain('window.open');
 	});
+
+	it('builds a direct smart-capture bookmarklet with a safe current-tab fallback', () => {
+		const bookmarklet = buildBookmarklet('https://crumbs.example/', 'crumbs_capture_test');
+		expect(bookmarklet).toContain("fetch(O+'/api/quick-capture'");
+		expect(bookmarklet).toContain("navigator.clipboard.read()");
+		expect(bookmarklet).toContain("F.append('imageUrls',u)");
+		expect(bookmarklet).toContain("Authorization:'Bearer '+T");
+		expect(bookmarklet).toContain('https://crumbs.example');
+		expect(bookmarklet).toContain('crumbs_capture_test');
+		expect(bookmarklet).toContain('location.assign');
+		expect(bookmarklet).not.toContain('window.open');
+	});
 });
