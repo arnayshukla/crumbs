@@ -109,6 +109,29 @@ test.describe('Intentional feature set', () => {
 		await expect(page.getByTestId('toast')).toHaveCount(0, { timeout: 5_000 });
 	});
 
+	test('smart desktop bookmarklet is generated with a revocable capture token', async ({ authenticatedPage: page }) => {
+		await page.goto('/settings/capture');
+		await page.getByTestId('create-desktop-bookmarklet').click();
+		const ready = page.getByTestId('desktop-bookmarklet-ready');
+		await expect(ready).toBeVisible();
+		const href = await ready.getByRole('link', { name: /Drag to bookmarks/ }).getAttribute('href');
+		expect(href).toContain('/api/quick-capture');
+		expect(href).toContain('navigator.clipboard.read');
+		expect(href).toContain("F.append('imageUrls',u)");
+		expect(href).not.toContain('window.open');
+
+		const preflight = await page.request.fetch('/api/quick-capture', {
+			method: 'OPTIONS',
+			headers: {
+				Origin: 'https://example.com',
+				'Access-Control-Request-Method': 'POST',
+				'Access-Control-Request-Headers': 'authorization,idempotency-key'
+			}
+		});
+		expect(preflight.status()).toBe(204);
+		expect(preflight.headers()['access-control-allow-origin']).toBe('*');
+	});
+
 	test('iPhone Shortcut input opens a parsed draft', async ({ authenticatedPage: page }) => {
 		const shared = encodeURIComponent('Interesting reel\nhttps://www.instagram.com/reel/example/');
 		await page.goto(`/capture#share=${shared}`);

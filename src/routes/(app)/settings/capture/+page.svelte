@@ -128,7 +128,7 @@
 
 <section>
 	<h2 class="text-xl font-semibold">Quick capture</h2>
-	<p class="mt-1 text-sm text-[var(--text-muted)]">Start a new crumb from the page or app you are already using, then review it before saving.</p>
+	<p class="mt-1 text-sm text-[var(--text-muted)]">Save a new crumb from the page or app you are already using.</p>
 
 	<div class="mt-6 rounded-sm border border-[var(--border)] bg-[var(--bg-surface)] p-4">
 		<h3 class="font-semibold">From a desktop browser</h3>
@@ -149,6 +149,7 @@
 				<Plus size={15} /> {tokenLoading ? 'Creating…' : 'Create desktop bookmarklet'}
 			</button>
 		{/if}
+		{#if tokenError}<p class="mt-2 text-xs text-[var(--destructive)]">{tokenError}</p>{/if}
 		<p class="mt-3 text-xs text-[var(--text-muted)]">Some sites block cross-site requests. On those pages the bookmark falls back to Crumbs’ review screen in the current tab; copied image data cannot be carried through that fallback.</p>
 	</div>
 
