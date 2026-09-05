@@ -5,7 +5,20 @@ export interface SharedCapture {
 	text?: string;
 	url?: string;
 	tags?: string;
+	mode?: CaptureMode;
+	imageCount?: number;
 }
+
+export const CAPTURE_MODES = ['auto', 'voice'] as const;
+export type CaptureMode = (typeof CAPTURE_MODES)[number];
+
+export const CAPTURE_CLIENTS = [
+	'ios-share',
+	'apple-watch',
+	'bookmarklet',
+	'android-share'
+] as const;
+export type CaptureClient = (typeof CAPTURE_CLIENTS)[number];
 
 const URL_PATTERN = /https?:\/\/[^\s<>]+/gi;
 const COMPOUND_DOMAIN_LABELS = new Set(['ac', 'co', 'com', 'edu', 'gov', 'net', 'org']);
@@ -23,7 +36,7 @@ function cleanUrlCandidate(value: string): string {
 	return value.replace(/[),.;!?]+$/, '');
 }
 
-function findSharedUrl(explicitUrl: string, text: string): string {
+export function findSharedUrl(explicitUrl: string, text: string): string {
 	const candidates = [explicitUrl, ...(text.match(URL_PATTERN) ?? [])];
 	return candidates.map(cleanUrlCandidate).find((candidate) => {
 		try {
@@ -39,6 +52,10 @@ export function sourceTagFromUrl(url: string): string | null {
 	if (!url) return null;
 	try {
 		const hostname = new URL(url).hostname.toLowerCase().replace(/^www\./, '');
+		if (hostname === 'amzn.to' || hostname === 'amazon.com' || hostname === 'amazon.in'
+			|| hostname.endsWith('.amazon.com') || hostname.endsWith('.amazon.in')) {
+			return 'amazon';
+		}
 		const labels = hostname.split('.').filter(Boolean);
 		if (labels.length === 0) return null;
 		const finalLabel = labels.at(-1) ?? '';
@@ -50,6 +67,28 @@ export function sourceTagFromUrl(url: string): string | null {
 	} catch {
 		return null;
 	}
+}
+
+export function captureTypeTags(shared: SharedCapture, sourceUrl: string, bodyText: string): string[] {
+	const tags: string[] = [];
+	if (shared.mode === 'voice') {
+		tags.push('voice');
+	} else if (bodyText) {
+		tags.push('text');
+	}
+	if (sourceUrl) tags.push('link');
+	if ((shared.imageCount ?? 0) > 0) tags.push('image');
+	if (sourceUrl) {
+		try {
+			const parsed = new URL(sourceUrl);
+			if (sourceTagFromUrl(sourceUrl) === 'instagram' && /^\/reels?\//i.test(parsed.pathname)) {
+				tags.push('reel');
+			}
+		} catch {
+			// findSharedUrl already validates URLs; keep this helper safe for direct callers.
+		}
+	}
+	return tags;
 }
 
 function removeShareSheetDuplicates(text: string, title: string, url: string): string {
@@ -85,7 +124,11 @@ export function buildCaptureDraft(shared: SharedCapture): CaptureDraft {
 	}
 
 	const sourceTag = sourceTagFromUrl(sourceUrl);
-	const tags = normalizeCaptureTags([sourceTag, shared.tags].filter(Boolean).join(' '));
+	const tags = normalizeCaptureTags([
+		...captureTypeTags(shared, sourceUrl, text),
+		sourceTag,
+		shared.tags
+	].filter(Boolean).join(' '));
 	const tagText = tags.map((tag) => `#${tag}`).join(' ');
 	const sourceLine = sourceUrl
 		? `<${sourceUrl}>${tagText ? ` · ${tagText}` : ''}`

@@ -153,6 +153,14 @@ sqlite.exec(`
 		created_at INTEGER NOT NULL,
 		last_used_at INTEGER
 	);
+
+	CREATE TABLE IF NOT EXISTS capture_requests (
+		id TEXT PRIMARY KEY,
+		user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+		note_id TEXT NOT NULL REFERENCES notes(id) ON DELETE CASCADE,
+		idempotency_key TEXT NOT NULL,
+		created_at INTEGER NOT NULL
+	);
 `);
 
 // Migration: detect old schema (no email column on users) and add columns
@@ -229,6 +237,9 @@ sqlite.exec(`
 	CREATE INDEX IF NOT EXISTS note_versions_note_id_idx ON note_versions(note_id);
 	CREATE UNIQUE INDEX IF NOT EXISTS quick_capture_tokens_key_hash_unique ON quick_capture_tokens(key_hash);
 	CREATE INDEX IF NOT EXISTS quick_capture_tokens_user_id_idx ON quick_capture_tokens(user_id);
+	CREATE UNIQUE INDEX IF NOT EXISTS capture_requests_user_key_unique ON capture_requests(user_id, idempotency_key);
+	CREATE INDEX IF NOT EXISTS capture_requests_note_id_idx ON capture_requests(note_id);
+	CREATE INDEX IF NOT EXISTS capture_requests_created_at_idx ON capture_requests(created_at);
 
 	CREATE TABLE IF NOT EXISTS api_keys (
 		id TEXT PRIMARY KEY,
