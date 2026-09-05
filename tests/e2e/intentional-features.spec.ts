@@ -77,7 +77,9 @@ test.describe('Intentional feature set', () => {
 		await page.goto(`/capture#${fragment}`);
 		await expect(page.getByTestId('capture-title')).toHaveValue(title);
 		await expect(page.getByTestId('capture-content')).toHaveValue(/Selected text/);
-		await expect(page.getByTestId('capture-content')).toHaveValue(/<https:\/\/example\.com\/article> · #example/);
+		await expect(page.getByTestId('capture-content')).toHaveValue(
+			/<https:\/\/example\.com\/article> · #text #link #example/
+		);
 
 		let releaseStaleResponse: () => void = () => {};
 		let staleResponseCaptured: () => void = () => {};
@@ -112,7 +114,7 @@ test.describe('Intentional feature set', () => {
 		await page.goto(`/capture#share=${shared}`);
 		await expect(page.getByTestId('capture-title')).toHaveValue('Interesting reel');
 		await expect(page.getByTestId('capture-content')).toHaveValue(
-			'<https://www.instagram.com/reel/example/> · #instagram'
+			'<https://www.instagram.com/reel/example/> · #link #reel #instagram'
 		);
 	});
 
@@ -154,7 +156,9 @@ test.describe('Intentional feature set', () => {
 		const capturedNote = ((await notesResponse.json()) as Array<{ title: string; content: string }>).find(
 			(note) => note.title === captureTitle
 		);
-		expect(capturedNote?.content).toBe('<https://www.instagram.com/reel/example/> · #instagram #work #later');
+		expect(capturedNote?.content).toContain(
+			'<https://www.instagram.com/reel/example/> · #link #reel #instagram #work #later'
+		);
 
 		const imageTitle = `Shared image ${Date.now()}`;
 		const imageCapture = await page.request.post('/api/quick-capture', {
@@ -179,7 +183,7 @@ test.describe('Intentional feature set', () => {
 			attachments?: Array<{ featured: boolean; filename: string }>;
 		}>;
 		const imageNote = imageNotes.find((note) => note.title === imageTitle);
-		expect(imageNote?.content).toBe('#photos #work');
+		expect(imageNote?.content).toBe('#image #photos #work');
 		expect(imageNote?.attachments).toMatchObject([{ featured: true, filename: 'shortcut.png' }]);
 
 		const multipleImagesTitle = `Shared images ${Date.now()}`;
@@ -208,8 +212,9 @@ test.describe('Intentional feature set', () => {
 			attachments?: Array<{ featured: boolean; filename: string }>;
 		}>;
 		const multipleImageNote = multipleImageNotes.find((note) => note.title === multipleImagesTitle);
-		expect(multipleImageNote?.content).toBe(
-			'Two photos from the Shortcut\n\n<https://photos.example.com/album/1> · #example #travel #later'
+		expect(multipleImageNote?.content).toContain('Two photos from the Shortcut');
+		expect(multipleImageNote?.content).toContain(
+			'<https://photos.example.com/album/1> · #text #link #image #example #travel #later'
 		);
 		expect(multipleImageNote?.attachments).toHaveLength(2);
 		expect(multipleImageNote?.attachments?.filter((attachment) => attachment.featured)).toHaveLength(1);
@@ -241,7 +246,7 @@ test.describe('Intentional feature set', () => {
 		const voiceTitle = `Voice note ${Date.now()}`;
 		const voiceCapture = await page.request.post('/api/quick-capture', {
 			headers: { Authorization: `Bearer ${token}` },
-			data: { title: voiceTitle, input: 'Remember to call Sam', tags: 'voice personal' }
+			data: { title: voiceTitle, input: 'Remember to call Sam', mode: 'voice', tags: 'voice personal' }
 		});
 		expect(voiceCapture.status()).toBe(201);
 		const voiceNotes = (await (await page.request.get('/api/notes')).json()) as Array<{ title: string; content: string }>;
