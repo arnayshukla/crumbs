@@ -108,6 +108,22 @@ for (const fullPath of files) {
 
 		if (apiPath === '/api/quick-capture' && method === 'post') {
 			operation.security = [{ quickCaptureToken: [] }];
+			operation.parameters = [{
+				name: 'Idempotency-Key',
+				in: 'header',
+				required: false,
+				description: 'Unique value used to make retries return the original crumb instead of creating a duplicate',
+				schema: { type: 'string', maxLength: 256 }
+			}];
+			const captureProperties = {
+				input: { type: 'string', maxLength: 50_000 },
+				title: { type: 'string', maxLength: 500 },
+				url: { type: 'string', maxLength: 4_096 },
+				tags: { type: 'string', maxLength: 1_000 },
+				mode: { type: 'string', enum: ['auto', 'voice'] },
+				client: { type: 'string', enum: ['ios-share', 'apple-watch', 'bookmarklet', 'android-share'] },
+				clientVersion: { type: 'string', maxLength: 32 }
+			};
 			operation.requestBody = {
 				required: true,
 				content: {
@@ -115,11 +131,23 @@ for (const fullPath of files) {
 						schema: {
 							type: 'object',
 							additionalProperties: false,
-							required: ['input'],
+							properties: captureProperties,
+							anyOf: [
+								{ required: ['input'] },
+								{ required: ['url'] }
+							]
+						}
+					},
+					'multipart/form-data': {
+						schema: {
+							type: 'object',
 							properties: {
-								input: { type: 'string', minLength: 1, maxLength: 50_000 },
-								title: { type: 'string', maxLength: 500 },
-								url: { type: 'string', maxLength: 4_096 }
+								...captureProperties,
+								images: {
+									type: 'array',
+									maxItems: 10,
+									items: { type: 'string', format: 'binary' }
+								}
 							}
 						}
 					}

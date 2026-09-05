@@ -1,8 +1,5 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
-import { lookup } from 'node:dns/promises';
-import { request as httpRequest } from 'node:http';
-import { request as httpsRequest } from 'node:https';
 import type { NoteFilter } from '$lib/types/index.js';
 import {
 	listNotes,
@@ -16,6 +13,7 @@ import {
 } from '../notes-service.js';
 import { saveAttachment } from '../attachments.js';
 import { db } from '../db/index.js';
+import { fetchPublicResource } from '../public-resource.js';
 
 const NOTE_COLORS = [
 	'default',
@@ -33,132 +31,6 @@ const NOTE_COLORS = [
 ] as const;
 
 const MAX_IMAGE_BYTES = 10 * 1024 * 1024; // 10MB, matches the manual attachment upload limit
-const MAX_IMAGE_REDIRECTS = 5;
-
-// Blocks loopback, unspecified, link-local (incl. cloud metadata 169.254.169.254),
-// RFC1918/ULA private ranges, 6to4/IPv4-mapped tunnels, and multicast/broadcast so
-// upload_image can't be used to reach internal network services.
-function isPrivateOrReservedIp(address: string): boolean {
-	if (address.includes(':')) {
-		const normalized = address.toLowerCase();
-		if (normalized === '::' || normalized === '::1') return true;
-		if (normalized.startsWith('fe80:')) return true;
-		if (normalized.startsWith('fc') || normalized.startsWith('fd')) return true;
-		if (normalized.startsWith('2002:')) return true; // 6to4 tunnel, can embed a private IPv4
-		if (normalized.startsWith('::ffff:')) return isPrivateOrReservedIp(normalized.split(':').pop()!);
-		// Legacy IPv4-compatible form, e.g. "::1.2.3.4" (distinct from "::ffff:1.2.3.4")
-		const ipv4Compatible = normalized.match(/^::(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})$/);
-		if (ipv4Compatible) return isPrivateOrReservedIp(ipv4Compatible[1]);
-		return false;
-	}
-	const parts = address.split('.').map(Number);
-	if (parts.length !== 4 || parts.some((p) => Number.isNaN(p))) return true;
-	const [a, b] = parts;
-	if (a === 10 || a === 127 || a === 0) return true;
-	if (a === 169 && b === 254) return true;
-	if (a === 172 && b >= 16 && b <= 31) return true;
-	if (a === 192 && b === 168) return true;
-	if (a === 100 && b >= 64 && b <= 127) return true;
-	if (a >= 224) return true; // multicast (224.0.0.0/4) and broadcast/reserved (240.0.0.0/4, 255.255.255.255)
-	return false;
-}
-
-// Resolves every A/AAAA record for a hostname and rejects if ANY is private/reserved
-// (not just the first), so a validated hostname can't have a private record hiding
-// behind a public one in the same DNS answer.
-async function resolveValidatedAddress(hostname: string): Promise<{ address: string; family: number }> {
-	const records = await lookup(hostname, { all: true });
-	if (records.length === 0) throw new Error('DNS lookup returned no addresses');
-	for (const record of records) {
-		if (isPrivateOrReservedIp(record.address)) {
-			throw new Error('URL resolves to a private or reserved address');
-		}
-	}
-	return records[0];
-}
-
-interface PinnedResponse {
-	ok: boolean;
-	status: number;
-	statusText: string;
-	headers: { get(name: string): string | null };
-	arrayBuffer(): Promise<ArrayBuffer>;
-}
-
-// Issues the request against the exact address validated by resolveValidatedAddress,
-// bypassing a second DNS resolution at connect time — otherwise a rebinding attacker
-// could serve a public address to the validator and a private one to the real connect.
-function requestPinnedAddress(url: URL, address: string, family: number): Promise<PinnedResponse> {
-	return new Promise((resolve, reject) => {
-		const requestFn = url.protocol === 'https:' ? httpsRequest : httpRequest;
-		const req = requestFn(
-			{
-				hostname: url.hostname,
-				servername: url.hostname,
-				port: url.port || (url.protocol === 'https:' ? 443 : 80),
-				path: url.pathname + url.search,
-				method: 'GET',
-				timeout: 15000,
-				lookup: (_hostname: string, _options: unknown, callback: (err: null, address: string, family: number) => void) => {
-					callback(null, address, family);
-				}
-			},
-			(res) => {
-				const chunks: Buffer[] = [];
-				let total = 0;
-				res.on('data', (chunk: Buffer) => {
-					total += chunk.length;
-					if (total > MAX_IMAGE_BYTES) {
-						req.destroy(new Error('Image too large (max 10MB)'));
-						return;
-					}
-					chunks.push(chunk);
-				});
-				res.on('end', () => {
-					const buffer = Buffer.concat(chunks);
-					const status = res.statusCode ?? 0;
-					resolve({
-						ok: status >= 200 && status < 300,
-						status,
-						statusText: res.statusMessage ?? '',
-						headers: {
-							get: (name: string) => {
-								const value = res.headers[name.toLowerCase()];
-								return Array.isArray(value) ? (value[0] ?? null) : (value ?? null);
-							}
-						},
-						arrayBuffer: async () =>
-							buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength) as ArrayBuffer
-					});
-				});
-				res.on('error', reject);
-			}
-		);
-		req.on('error', reject);
-		req.end();
-	});
-}
-
-// Fetches an attacker-supplied URL for the MCP upload_image tool, re-validating the
-// target on every redirect hop so a public URL can't SSRF via a 3xx to an internal address.
-async function fetchPublicImage(imageUrl: string): Promise<PinnedResponse> {
-	let currentUrl = new URL(imageUrl);
-	for (let hop = 0; hop <= MAX_IMAGE_REDIRECTS; hop++) {
-		if (currentUrl.protocol !== 'http:' && currentUrl.protocol !== 'https:') {
-			throw new Error('Only http/https URLs are allowed');
-		}
-		const { address, family } = await resolveValidatedAddress(currentUrl.hostname);
-		const response = await requestPinnedAddress(currentUrl, address, family);
-		if (response.status >= 300 && response.status < 400) {
-			const location = response.headers.get('location');
-			if (!location) return response;
-			currentUrl = new URL(location, currentUrl);
-			continue;
-		}
-		return response;
-	}
-	throw new Error('Too many redirects');
-}
 
 export function createMcpServer(userId: number): McpServer {
 	const server = new McpServer({
@@ -433,20 +305,24 @@ export function createMcpServer(userId: number): McpServer {
 			}
 
 			try {
-				const response = await fetchPublicImage(imageUrl);
-				if (!response.ok) {
+				const response = await fetchPublicResource(imageUrl, {
+					maxBytes: MAX_IMAGE_BYTES,
+					timeoutMs: 15_000,
+					accept: 'image/*'
+				});
+				if (response.status < 200 || response.status >= 300) {
 					return {
 						content: [
 							{
 								type: 'text' as const,
-								text: `Failed to fetch image: ${response.status} ${response.statusText}`
+								text: `Failed to fetch image: HTTP ${response.status}`
 							}
 						],
 						isError: true
 					};
 				}
 
-				const contentType = response.headers.get('content-type') || '';
+				const contentType = response.contentType;
 				if (!contentType.startsWith('image/')) {
 					return {
 						content: [{ type: 'text' as const, text: 'URL did not return an image' }],
@@ -454,15 +330,7 @@ export function createMcpServer(userId: number): McpServer {
 					};
 				}
 
-				const contentLength = Number(response.headers.get('content-length'));
-				if (contentLength > MAX_IMAGE_BYTES) {
-					return {
-						content: [{ type: 'text' as const, text: 'Image too large (max 10MB)' }],
-						isError: true
-					};
-				}
-
-				const buffer = Buffer.from(await response.arrayBuffer());
+				const buffer = response.body;
 				if (buffer.byteLength > MAX_IMAGE_BYTES) {
 					return {
 						content: [{ type: 'text' as const, text: 'Image too large (max 10MB)' }],
@@ -473,7 +341,7 @@ export function createMcpServer(userId: number): McpServer {
 				const ext = contentType.split('/')[1]?.split(';')[0] || 'png';
 				const filename = `upload_${Date.now()}.${ext}`;
 
-				const file = new File([buffer], filename, { type: contentType });
+				const file = new File([new Uint8Array(buffer)], filename, { type: contentType });
 				const attachment = await saveAttachment(db, noteId, file, userId);
 
 				return {
