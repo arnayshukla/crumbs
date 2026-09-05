@@ -162,7 +162,14 @@ export function decodeCaptureFragment(fragment: string): CaptureDraft | null {
 	}
 }
 
-export function buildBookmarklet(origin: string): string {
-	const target = `${origin.replace(/\/$/, '')}/capture?from=bookmarklet`;
-	return `javascript:(()=>{const d={title:document.title,text:String(window.getSelection()),url:location.href};location.assign('${target}#'+encodeURIComponent(JSON.stringify(d)))})()`;
+export function buildBookmarklet(origin: string, captureToken?: string): string {
+	const base = origin.replace(/\/$/, '');
+	const fallbackTarget = `${base}/capture?from=bookmarklet`;
+	if (!captureToken) {
+		return `javascript:(()=>{const d={title:document.title,text:String(window.getSelection()),url:location.href};location.assign('${fallbackTarget}#'+encodeURIComponent(JSON.stringify(d)))})()`;
+	}
+
+	const encodedBase = JSON.stringify(base);
+	const encodedToken = JSON.stringify(captureToken);
+	return `javascript:(async()=>{const O=${encodedBase},T=${encodedToken},S=window.getSelection(),X=String(S),R=[];for(let i=0;i<(S?.rangeCount||0);i++)R.push(S.getRangeAt(i));const U=[...document.images].filter(i=>R.some(r=>{try{return r.intersectsNode(i)}catch{return false}})).map(i=>i.currentSrc||i.src).filter((u,i,a)=>/^https?:/i.test(u)&&a.indexOf(u)===i);let B=[];try{for(const i of await navigator.clipboard.read()){const t=i.types.find(t=>t.startsWith('image/'));if(t)B.push(await i.getType(t))}}catch{}const F=new FormData();F.append('title',document.title);F.append('input',X);F.append('url',location.href);F.append('client','bookmarklet');F.append('clientVersion','1');B.slice(0,10).forEach((b,i)=>F.append('images',b,'clipboard-'+(i+1)+'.'+(b.type.split('/')[1]||'png')));U.slice(0,Math.max(0,10-B.length)).forEach(u=>F.append('imageUrls',u));const N=(m,o)=>{let n=document.getElementById('__crumbs_capture_notice');if(!n){n=document.createElement('div');n.id='__crumbs_capture_notice';Object.assign(n.style,{position:'fixed',right:'20px',bottom:'20px',zIndex:'2147483647',padding:'12px 16px',borderRadius:'6px',font:'600 14px system-ui',color:'#fff',boxShadow:'0 4px 18px #0005'});document.body.append(n)}n.style.background=o?'#3a5a40':'#9a6700';n.textContent=m;setTimeout(()=>n.remove(),4000)};try{const r=await fetch(O+'/api/quick-capture',{method:'POST',headers:{Authorization:'Bearer '+T,'Idempotency-Key':crypto.randomUUID?.()||String(Date.now())},body:F}),j=await r.json();if(!r.ok)throw Error(j.error||'Capture failed');N(j.warning?'Crumb captured · '+j.warning:(j.message||'Crumb captured'),true)}catch(e){N('Direct capture blocked — opening Crumbs',false);const d={title:document.title,text:X,url:location.href};setTimeout(()=>location.assign(O+'/capture?from=bookmarklet#'+encodeURIComponent(JSON.stringify(d))),900)}})()`;
 }
