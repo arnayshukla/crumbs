@@ -2,6 +2,10 @@
 	import { onMount } from 'svelte';
 	import { Check, Copy, Plus, Trash2 } from 'lucide-svelte';
 	import { buildBookmarklet } from '$lib/utils/capture.js';
+	import {
+		APPLE_SHORTCUTS,
+		type AppleShortcutKind
+	} from '$lib/utils/apple-shortcuts.js';
 	import { showToast } from '$lib/stores/toast.js';
 	import { page } from '$app/state';
 
@@ -23,6 +27,8 @@
 	let createdTokenId = $state<string | null>(null);
 	let tokenLoading = $state(false);
 	let tokenError = $state('');
+	let preparingShortcut = $state<AppleShortcutKind | null>(null);
+	let preparedShortcut = $state<AppleShortcutKind | null>(null);
 	let copiedValue = $state<'endpoint' | 'token' | 'authorization' | null>(null);
 
 	onMount(() => {
@@ -102,6 +108,16 @@
 		if (token) desktopToken = token;
 	}
 
+	async function prepareAppleShortcut(kind: AppleShortcutKind) {
+		if (preparingShortcut) return;
+		preparingShortcut = kind;
+		const token = await issueCaptureToken(APPLE_SHORTCUTS[kind].tokenName);
+		preparingShortcut = null;
+		if (!token) return;
+		preparedShortcut = kind;
+		showToast('Setup token created — copy the endpoint and token, then install', 'success');
+	}
+
 	async function revokeCaptureToken(id: string) {
 		try {
 			const response = await fetch(`/api/settings/quick-capture-tokens/${id}`, { method: 'DELETE' });
@@ -176,8 +192,14 @@
 
 		{#if createdToken}
 			<div class="mt-4 rounded-sm border border-[var(--success-border,#a3b18a)] bg-[var(--success-bg,#f0f4e8)] p-4" data-testid="created-capture-token">
-				<p class="text-sm font-semibold text-[var(--success-text,#3a5a40)]">Copy this token now—it will not be shown again.</p>
-				<p class="mt-1 text-xs text-[var(--text-muted)]">Do not share the Shortcut after adding this value. You can revoke it below without signing out anywhere.</p>
+				<p class="text-sm font-semibold text-[var(--success-text,#3a5a40)]">Copy both setup values now.</p>
+				<p class="mt-1 text-xs text-[var(--text-muted)]">The token will not be shown again. The installer asks for the endpoint first and token second.</p>
+				<div class="mt-3 flex items-center gap-2">
+					<code class="min-w-0 flex-1 break-all rounded-sm bg-[var(--bg-base)] px-3 py-2 text-xs">{captureEndpoint}</code>
+					<button type="button" class="rounded-sm border border-[var(--border)] p-2" onclick={() => copyText(captureEndpoint, 'endpoint')} aria-label="Copy capture endpoint">
+						{#if copiedValue === 'endpoint'}<Check size={15} />{:else}<Copy size={15} />{/if}
+					</button>
+				</div>
 				<div class="mt-3 flex items-center gap-2">
 					<code class="min-w-0 flex-1 overflow-x-auto rounded-sm bg-[var(--bg-base)] px-3 py-2 text-xs" data-testid="created-capture-token-value">{createdToken}</code>
 					<button type="button" class="rounded-sm border border-[var(--border)] p-2" onclick={() => copyText(createdToken!, 'token')} aria-label="Copy capture token">
@@ -187,28 +209,39 @@
 			</div>
 		{/if}
 
-		<h4 class="mt-5 text-sm font-semibold">Share links, text, reels, or images</h4>
-		<ol class="mt-2 list-decimal space-y-2 pl-5 text-sm text-[var(--text-muted)]">
-			<li>In Shortcuts, create a shortcut named <strong>Capture to Crumbs</strong>.</li>
-			<li>Open its details, enable <strong>Show in Share Sheet</strong>, and accept <strong>Images</strong>, <strong>URLs</strong>, and <strong>Text</strong>.</li>
-			<li>Add a <strong>Choose from Menu</strong> action with <strong>Save now</strong> and <strong>Add tags</strong>. In Add tags, use <strong>Ask for Input</strong> with the prompt “Tags (comma or space separated)” and save the result as <code>Tags</code>.</li>
-			<li>For images, use <strong>Get Images from Input</strong> followed by <strong>Convert Image</strong> to JPEG. The API accepts up to 10 images.</li>
-			<li>Add <strong>Get Contents of URL</strong> using the endpoint below, choose <strong>POST</strong>, and use a <strong>Form</strong> request body.</li>
-			<li>Add <code>input</code> from <strong>Get Text from Input</strong>, optional <code>tags</code> from <code>Tags</code>, and <code>images</code> from the converted images. A URL inside the input is parsed automatically.</li>
-			<li>Add an <code>Authorization</code> header whose value is <code>Bearer </code> followed by the token shown above. For a Form request, also add <code>Origin</code> with the app origin <code>{captureOrigin}</code>.</li>
-			<li>Read <code>message</code> from <strong>Contents of URL</strong>. If it has a value, show it in <strong>Show Notification</strong>; otherwise show <strong>Capture failed</strong>.</li>
-		</ol>
+		<div class="mt-5 grid gap-4 lg:grid-cols-2">
+			<article class="rounded-sm border border-[var(--border-subtle)] bg-[var(--bg-base)] p-4" data-testid="share-shortcut-card">
+				<h4 class="text-sm font-semibold">Capture to Crumbs</h4>
+				<p class="mt-1 text-xs text-[var(--text-muted)]">Shares text, URLs, reels, and up to ten images from iPhone or iPad. You can save immediately or add optional tags.</p>
+				<ol class="mt-3 list-decimal space-y-1 pl-5 text-xs text-[var(--text-muted)]">
+					<li>Create the two private setup values.</li>
+					<li>Copy both values, then install and paste them when Apple asks.</li>
+					<li>Enable <strong>Show in Share Sheet</strong> if Apple does not enable it automatically.</li>
+				</ol>
+				<div class="mt-4 flex flex-wrap gap-2">
+					<button type="button" disabled={preparingShortcut !== null} class="rounded-sm bg-[var(--primary)] px-3 py-2 text-sm font-medium text-white disabled:opacity-50" onclick={() => prepareAppleShortcut('share')} data-testid="prepare-share-shortcut">1. {preparingShortcut === 'share' ? 'Creating…' : 'Create setup token'}</button>
+					<a class="rounded-sm border border-[var(--border)] px-3 py-2 text-sm" href={APPLE_SHORTCUTS.share.installUrl}>2. Install Shortcut</a>
+				</div>
+				{#if preparedShortcut === 'share'}<p class="mt-2 text-xs text-[var(--success-text,#3a5a40)]">Setup values are ready above.</p>{/if}
+			</article>
 
-		<h4 class="mt-5 text-sm font-semibold">Dictate from iPhone or Apple Watch</h4>
-		<ol class="mt-2 list-decimal space-y-2 pl-5 text-sm text-[var(--text-muted)]">
-			<li>Create a second token above named <strong>Apple Watch</strong> and a shortcut named <strong>Voice to Crumbs</strong>.</li>
-			<li>Add <strong>Dictate Text</strong>. Stop the shortcut when the dictated result is empty.</li>
-			<li>Add the same <strong>Save now</strong> / <strong>Add tags</strong> menu. Tags can be dictated on the Watch.</li>
-			<li>POST a <strong>JSON</strong> body to the endpoint below with <code>title</code> set to <code>Voice note</code>, <code>input</code> set to the dictated text, and <code>tags</code> set to <code>voice</code> plus any tags you entered.</li>
-			<li>Add the token as the <code>Authorization</code> header and show the returned <code>message</code> as a notification.</li>
-			<li>In the shortcut details, enable <strong>Show on Apple Watch</strong>. Run it from Shortcuts, Siri, a complication, or the Action button where supported.</li>
-		</ol>
-		<p class="mt-2 text-xs text-[var(--text-muted)]">If Dictate Text is unavailable on your Watch, use a text input prompt and choose the Watch’s Dictation input method. The Watch needs internet access through its iPhone, Wi-Fi, or cellular. Speech is transcribed in your configured dictation language; audio is not uploaded.</p>
+			<article class="rounded-sm border border-[var(--border-subtle)] bg-[var(--bg-base)] p-4" data-testid="voice-shortcut-card">
+				<h4 class="text-sm font-semibold">Voice to Crumbs</h4>
+				<p class="mt-1 text-xs text-[var(--text-muted)]">Dictates a thought on iPhone or Apple Watch, optionally dictates tags, and saves only the transcript with <code>#voice</code>.</p>
+				<ol class="mt-3 list-decimal space-y-1 pl-5 text-xs text-[var(--text-muted)]">
+					<li>Create a separate Apple Watch token.</li>
+					<li>Copy the endpoint and token, then install and paste them.</li>
+					<li>Enable <strong>Show on Apple Watch</strong>, then run it from Siri, Shortcuts, a complication, or the Action button.</li>
+				</ol>
+				<div class="mt-4 flex flex-wrap gap-2">
+					<button type="button" disabled={preparingShortcut !== null} class="rounded-sm bg-[var(--primary)] px-3 py-2 text-sm font-medium text-white disabled:opacity-50" onclick={() => prepareAppleShortcut('voice')} data-testid="prepare-voice-shortcut">1. {preparingShortcut === 'voice' ? 'Creating…' : 'Create Watch token'}</button>
+					<a class="rounded-sm border border-[var(--border)] px-3 py-2 text-sm" href={APPLE_SHORTCUTS.voice.installUrl}>2. Install Shortcut</a>
+				</div>
+				{#if preparedShortcut === 'voice'}<p class="mt-2 text-xs text-[var(--success-text,#3a5a40)]">Watch setup values are ready above.</p>{/if}
+			</article>
+		</div>
+		<p class="mt-3 text-xs text-[var(--text-muted)]">The public installers are signed by Apple and contain no Crumbs account, domain, or token. To rotate a token, revoke the old one below, create a replacement, and reinstall the Shortcut with the new values.</p>
+		<p class="mt-2 text-xs text-[var(--text-muted)]">Apple Watch must have connectivity through its paired iPhone, Wi-Fi, or cellular. Voice uses the configured dictation language and stores text—not an audio recording.</p>
 		<div class="mt-4 space-y-2 rounded-sm border border-[var(--border-subtle)] bg-[var(--bg-base)] p-3">
 			<div class="flex items-center gap-2">
 				<code class="min-w-0 flex-1 break-all text-xs">{captureEndpoint}</code>
