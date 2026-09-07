@@ -6,6 +6,7 @@
 	import { startSync, stopSync } from '$lib/sync/client.js';
 	import { initDb } from '$lib/sync/idb.js';
 	import { initPreferences, getPreferences } from '$lib/stores/preferences.svelte.js';
+	import { showToast } from '$lib/stores/toast.js';
 	import { onMount, onDestroy } from 'svelte';
 
 	let { data, children } = $props();
@@ -14,6 +15,19 @@
 	const prefs = $derived(getPreferences());
 
 	onMount(() => {
+		const captureUrl = new URL(location.href);
+		const captureStatus = captureUrl.searchParams.get('capture');
+		if (captureStatus === 'success') {
+			showToast('Crumb captured', 'success');
+		} else if (captureStatus === 'error') {
+			showToast(captureUrl.searchParams.get('captureMessage') || 'Capture failed', 'error');
+		}
+		if (captureStatus) {
+			captureUrl.searchParams.delete('capture');
+			captureUrl.searchParams.delete('captureMessage');
+			history.replaceState(history.state, '', captureUrl);
+		}
+
 		function handleGlobalKeydown(event: KeyboardEvent) {
 			if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
 				event.preventDefault();

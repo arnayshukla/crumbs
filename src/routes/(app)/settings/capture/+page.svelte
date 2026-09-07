@@ -172,7 +172,8 @@
 	<div class="mt-6 rounded-sm border border-[var(--border)] bg-[var(--bg-surface)] p-4">
 		<h3 class="font-semibold">From an Android phone or tablet</h3>
 		<p class="mt-1 text-sm text-[var(--text-muted)]">Install Crumbs from Chrome’s “Install app” option, then launch it once. You can then use Share in another app and choose Crumbs. If Crumbs was installed before this feature was deployed, uninstall and reinstall it so Android registers the Share target.</p>
-		<p class="mt-3 text-xs text-[var(--text-muted)]">The shared title, link, and text open as a draft. Crumbs adds a basic source tag from the website hostname, and nothing is saved until you press Save.</p>
+		<p class="mt-3 text-xs text-[var(--text-muted)]">Shared text, links, and selected images save immediately to your signed-in account. Crumbs adds type and source tags automatically and confirms the capture in the app.</p>
+		<p class="mt-2 text-xs text-[var(--text-muted)]">Android capture currently requires a connection. If it fails, Crumbs shows an error and does not silently queue a duplicate; reconnect and share the item again.</p>
 		<p class="mt-3 text-xs text-[var(--destructive)]">iPhone and iPad do not currently support manifest-based Share targets for installed web apps, so Crumbs will not appear in their system Share menu.</p>
 	</div>
 
