@@ -25,6 +25,11 @@ describe('cross-origin form protection', () => {
 		).toBe(false);
 	});
 
+	it('allows capture-token attachment requests without an Origin header', () => {
+		const url = new URL('https://crumbs.example/api/quick-capture/note-id/attachments');
+		expect(isForbiddenCrossOriginForm(request('POST', 'text/plain', undefined, url), url)).toBe(false);
+	});
+
 	it('keeps same-origin form submissions working', () => {
 		expect(isForbiddenCrossOriginForm(request('POST', 'multipart/form-data; boundary=test', appUrl.origin), appUrl)).toBe(false);
 	});

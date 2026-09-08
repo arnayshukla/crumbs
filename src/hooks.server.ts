@@ -13,6 +13,7 @@ const PUBLIC_EXACT_PATHS = new Set([
 ]);
 const PUBLIC_PATH_PREFIXES = [
 	'/api/auth/oauth',
+	'/api/quick-capture/',
 	'/s/',
 	'/api/shared',
 	'/shortcuts/install/'

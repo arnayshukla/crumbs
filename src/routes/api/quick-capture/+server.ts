@@ -1,4 +1,5 @@
 import { json } from '@sveltejs/kit';
+import { randomUUID } from 'node:crypto';
 import type { RequestHandler } from './$types.js';
 import { db } from '$lib/server/db/index.js';
 import { validateQuickCaptureToken } from '$lib/server/quick-capture-tokens.js';
@@ -17,6 +18,21 @@ const responseHeaders = {
 };
 
 function captureResponse(request: Request, payload: Record<string, unknown>, status: number): Response {
+	const responseMode = new URL(request.url).searchParams.get('response');
+	const crumb = payload.crumb;
+	if (
+		status < 400 &&
+		responseMode === 'crumb-id' &&
+		typeof crumb === 'object' &&
+		crumb !== null &&
+		'id' in crumb &&
+		typeof crumb.id === 'string'
+	) {
+		return new Response(crumb.id, {
+			status,
+			headers: { ...responseHeaders, 'Content-Type': 'text/plain; charset=utf-8' }
+		});
+	}
 	const wantsText = request.headers
 		.get('accept')
 		?.split(',')
@@ -72,10 +88,14 @@ export const POST: RequestHandler = async ({ request, getClientAddress }) => {
 			if (image) remoteImages.push(image);
 		}
 		const skippedImages = capture.imageUrls.length - remoteImages.length;
+		const uploadContinuation = new URL(request.url).searchParams.get('response') === 'crumb-id';
 		const result = await captureCrumb(db, userId, {
 			...capture,
 			images: [...capture.images, ...remoteImages],
-			idempotencyKey: request.headers.get('idempotency-key')?.trim().slice(0, 256) || undefined
+			idempotencyKey:
+				uploadContinuation
+					? `upload:${randomUUID()}`
+					: request.headers.get('idempotency-key')?.trim().slice(0, 256) || undefined
 		});
 		const warning =
 			skippedImages > 0

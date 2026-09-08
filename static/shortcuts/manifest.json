@@ -1,13 +1,13 @@
 {
-  "generatorSha256": "044d58bb618c1286dd5723c4d8f9aa6510a25b5d36caa314f9989c3e91a5e1bf",
+  "generatorSha256": "ca3ae2c50302cec180ac3307872a117ee4d0c54504afd2a395e9350b1637489b",
   "artifacts": {
     "capture-to-crumbs.shortcut": {
-      "version": "3",
-      "sha256": "57c0d520667d8a3367a657575702748a52bde4b43d6bdb6d5ea296ca27235831"
+      "version": "4",
+      "sha256": "1d6ce9537dc2aee44bd3535b8373ae02bf9a207eb26e927963b07ae24f502400"
     },
     "voice-to-crumbs.shortcut": {
       "version": "1",
-      "sha256": "b4fed68b3ab64f962854b69b3c6d13823f6e30b2f7e272e7ae5e7159471345be"
+      "sha256": "d9fda9fb279e0bd47ae0b61ad83a13f59a2128f627846e25ac6a444971b9682e"
     }
   }
 }

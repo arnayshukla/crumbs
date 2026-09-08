@@ -10,6 +10,7 @@ export const captureInputSchema = z
 		mode: z.enum(CAPTURE_MODES).optional(),
 		client: z.enum(CAPTURE_CLIENTS).optional(),
 		clientVersion: z.string().trim().max(32).optional(),
+		imageCount: z.coerce.number().int().min(0).max(10).optional().default(0),
 		imageUrls: z.array(z.string().trim().url().max(4_096)).max(10).optional().default([])
 	})
 	.strict();
@@ -34,6 +35,7 @@ function parseFormData(formData: FormData): CaptureRequest | null {
 		mode: formText(formData, 'mode'),
 		client: formText(formData, 'client'),
 		clientVersion: formText(formData, 'clientVersion'),
+		imageCount: formText(formData, 'imageCount') ?? 0,
 		imageUrls: formData.getAll('imageUrls').filter((value): value is string => typeof value === 'string')
 	});
 	if (!parsed.success) return null;

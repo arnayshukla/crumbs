@@ -46,14 +46,10 @@ def output_attachment(action_id: str, output_name: str) -> dict[str, Any]:
     }
 
 
-def file_attachment(action_id: str, output_name: str) -> dict[str, Any]:
-    """Wrap an action output as a multipart Form file parameter."""
+def named_variable(variable_name: str) -> dict[str, Any]:
     return {
-        "Value": {
-            "Value": output_attachment(action_id, output_name),
-            "WFSerializationType": "WFTokenAttachmentParameterState",
-        },
-        "WFSerializationType": "WFTokenAttachmentParameterState",
+        "Value": {"Type": "Variable", "VariableName": variable_name},
+        "WFSerializationType": "WFTextTokenAttachment",
     }
 
 
@@ -82,6 +78,27 @@ def token_string(
         },
     }
     return {"Value": value, "WFSerializationType": "WFTextTokenString"}
+
+
+def token_string_parts(parts: list[str | tuple[str, str]]) -> dict[str, Any]:
+    rendered = ""
+    attachments: dict[str, Any] = {}
+    for part in parts:
+        if isinstance(part, str):
+            rendered += part
+            continue
+        action_id, output_name = part
+        offset = len(rendered)
+        rendered += REPLACEMENT_CHARACTER
+        attachments[f"{{{offset}, 1}}"] = {
+            "OutputUUID": action_id,
+            "Type": "ActionOutput",
+            "OutputName": output_name,
+        }
+    return {
+        "Value": {"string": rendered, "attachmentsByRange": attachments},
+        "WFSerializationType": "WFTextTokenString",
+    }
 
 
 def dictionary_value(items: list[tuple[str, int, Any]]) -> dict[str, Any]:
@@ -236,7 +253,11 @@ def build_share_workflow() -> dict[str, Any]:
     token_id = new_id()
     text_id = new_id()
     images_id = new_id()
-    request_id = new_id()
+    converted_image_id = new_id()
+    image_count_id = new_id()
+    create_request_id = new_id()
+    repeat_group_id = new_id()
+    upload_request_id = new_id()
     menu, menu_result_id = menu_actions("Capture to Crumbs")
     actions = [
         action(
@@ -257,6 +278,15 @@ def build_share_workflow() -> dict[str, Any]:
             {"WFInput": extension_input(), "UUID": images_id},
         ),
         action(
+            "is.workflow.actions.count",
+            {
+                "Input": output_attachment(images_id, "Images"),
+                "WFInput": output_attachment(images_id, "Images"),
+                "WFCountType": "Items",
+                "UUID": image_count_id,
+            },
+        ),
+        action(
             "is.workflow.actions.downloadurl",
             {
                 "WFHTTPHeaders": dictionary_value(
@@ -271,27 +301,79 @@ def build_share_workflow() -> dict[str, Any]:
                 ),
                 "WFHTTPMethod": "POST",
                 "WFHTTPBodyType": "Form",
-                # Apple uses this request variable to carry file bytes into
-                # the multipart encoder; the Form dictionary describes the
-                # field name and file type.
-                "WFRequestVariable": output_attachment(images_id, "Images"),
                 "WFFormValues": dictionary_value(
                     [
                         ("input", 0, token_string("", text_id, "Text")),
                         ("tags", 0, token_string("", menu_result_id, "Menu Result")),
-                        # Form file fields use item type 5 plus Apple's file
-                        # parameter-state wrapper. This preserves every shared
-                        # image as a multipart attachment.
-                        ("images", 5, file_attachment(images_id, "Images")),
+                        ("imageCount", 0, token_string("", image_count_id, "Count")),
                         ("client", 0, text_field("apple-shortcut")),
-                        ("clientVersion", 0, text_field("3")),
+                        ("clientVersion", 0, text_field("4")),
                     ]
                 ),
-                "WFURL": token_string("", endpoint_id, "Text"),
-                "UUID": request_id,
+                "WFURL": token_string("", endpoint_id, "Text", "?response=crumb-id"),
+                "UUID": create_request_id,
             },
         ),
-        *response_actions(request_id),
+        action(
+            "is.workflow.actions.repeat.each",
+            {
+                "WFInput": output_attachment(images_id, "Images"),
+                "GroupingIdentifier": repeat_group_id,
+                "WFControlFlowMode": 0,
+            },
+        ),
+        action(
+            "is.workflow.actions.image.convert",
+            {
+                "WFImageFormat": "JPEG",
+                "WFInput": named_variable("Repeat Item"),
+                "UUID": converted_image_id,
+            },
+        ),
+        action(
+            "is.workflow.actions.downloadurl",
+            {
+                "WFHTTPHeaders": dictionary_value(
+                    [
+                        ("Accept", 0, text_field("text/plain")),
+                        (
+                            "Authorization",
+                            0,
+                            token_string("Bearer ", token_id, "Text"),
+                        ),
+                    ]
+                ),
+                "WFHTTPMethod": "POST",
+                "WFHTTPBodyType": "File",
+                # File-body requests are reliable in Shortcuts. Repeating over
+                # the converted images also prevents the “Which One?” prompt.
+                "WFRequestVariable": output_attachment(
+                    converted_image_id, "Converted Image"
+                ),
+                "WFFormValues": dictionary_value([]),
+                "WFURL": token_string_parts(
+                    [
+                        (endpoint_id, "Text"),
+                        "/",
+                        (create_request_id, "Contents of URL"),
+                        "/attachments",
+                    ]
+                ),
+                "UUID": upload_request_id,
+            },
+        ),
+        action(
+            "is.workflow.actions.repeat.each",
+            {
+                "GroupingIdentifier": repeat_group_id,
+                "WFControlFlowMode": 2,
+                "UUID": new_id(),
+            },
+        ),
+        action(
+            "is.workflow.actions.notification",
+            {"WFNotificationActionBody": "Crumb captured", "UUID": new_id()},
+        ),
     ]
     return base_workflow(actions, share_sheet=True)
 
