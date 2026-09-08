@@ -45,6 +45,9 @@ ENV DATA_DIR=/data
 ENV DATABASE_URL=/data/crumbs.db
 ENV PORT=3000
 ENV ORIGIN=http://localhost:3000
+# adapter-node defaults to 512 KiB. Keep its transport ceiling just above the
+# application's stricter 50 MiB total Quick Capture limit.
+ENV BODY_SIZE_LIMIT=51M
 
 EXPOSE 3000
 

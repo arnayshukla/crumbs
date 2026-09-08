@@ -323,6 +323,8 @@ test.describe('Intentional feature set', () => {
 		expect(firstRawImage.status()).toBe(201);
 		expect(await firstRawImage.text()).toBe('Image added');
 
+		const largeJpeg = Buffer.alloc(1024 * 1024);
+		largeJpeg.set([0xff, 0xd8, 0xff]);
 		const secondRawImage = await page.request.post(
 			`/api/quick-capture/${rawCaptureId}/attachments`,
 			{
@@ -331,7 +333,7 @@ test.describe('Intentional feature set', () => {
 					Authorization: `Bearer ${token}`,
 					'Content-Type': 'application/octet-stream'
 				},
-				data: Buffer.from([0xff, 0xd8, 0xff, 0x00])
+				data: largeJpeg
 			}
 		);
 		expect(secondRawImage.status()).toBe(201);

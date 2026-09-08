@@ -46,7 +46,8 @@ export default defineConfig({
 		timeout: 120_000,
 		env: {
 			DATABASE_URL: './data/test-crumbs.db',
-			NODE_ENV: 'test'
+			NODE_ENV: 'test',
+			BODY_SIZE_LIMIT: '51M'
 		}
 	}
 });
