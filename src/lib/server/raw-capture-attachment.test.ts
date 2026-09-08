@@ -34,4 +34,19 @@ describe('readRawCaptureImage', () => {
 
 		await expect(readRawCaptureImage(request, 1)).rejects.toBeInstanceOf(CaptureValidationError);
 	});
+
+	it('rejects an image declared above the per-image limit before reading it', async () => {
+		const request = new Request('https://crumbs.example/upload', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'image/jpeg',
+				'Content-Length': String(10 * 1024 * 1024 + 1)
+			},
+			body: new Uint8Array([0xff, 0xd8, 0xff])
+		});
+
+		await expect(readRawCaptureImage(request, 1)).rejects.toThrow(
+			'Each image must be 10MB or smaller'
+		);
+	});
 });

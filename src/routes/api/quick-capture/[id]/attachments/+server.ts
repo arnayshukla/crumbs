@@ -11,6 +11,7 @@ import {
 import { readRawCaptureImage } from '$lib/server/raw-capture-attachment.js';
 import { checkIpRateLimit } from '$lib/server/ip-rate-limit.js';
 import { validateQuickCaptureToken } from '$lib/server/quick-capture-tokens.js';
+import { deleteNote } from '$lib/server/notes-service.js';
 
 const UPLOAD_WINDOW_MS = 15 * 60 * 1_000;
 const responseHeaders = {
@@ -29,6 +30,26 @@ function response(request: Request, message: string, status: number): Response {
 				headers: { ...responseHeaders, 'Content-Type': 'text/plain; charset=utf-8' }
 			})
 		: Response.json(status < 400 ? { message } : { error: message }, { status, headers: responseHeaders });
+}
+
+function isPayloadTooLarge(error: unknown): boolean {
+	return (
+		typeof error === 'object' &&
+		error !== null &&
+		'status' in error &&
+		error.status === 413
+	);
+}
+
+async function discardEmptyCapture(noteId: string, userId: number): Promise<void> {
+	try {
+		await deleteNote(db, userId, noteId);
+	} catch (error) {
+		console.error('[quick-capture attachment] failed to discard empty capture', {
+			noteId,
+			error
+		});
+	}
 }
 
 export const OPTIONS: RequestHandler = async () => new Response(null, { status: 204, headers: responseHeaders });
@@ -82,7 +103,11 @@ export const POST: RequestHandler = async ({ params, request, getClientAddress }
 		);
 		return response(request, 'Image added', 201);
 	} catch (error) {
+		if (existing.length === 0) await discardEmptyCapture(params.id, userId);
 		if (error instanceof CaptureValidationError) return response(request, error.message, 400);
+		if (isPayloadTooLarge(error)) {
+			return response(request, 'Image exceeds the server request limit', 413);
+		}
 		console.error('[quick-capture attachment] failed', { noteId: params.id, error });
 		return response(request, 'Could not add image', 500);
 	}
