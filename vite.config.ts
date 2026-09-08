@@ -32,10 +32,15 @@ export default defineConfig({
 				description: 'A self-hostable, offline-first note-taking app by Bretzel',
 				start_url: '/',
 				share_target: {
-					action: '/capture',
+					action: '/capture/android',
 					method: 'POST',
-					enctype: 'application/x-www-form-urlencoded',
-					params: { title: 'title', text: 'text', url: 'url' }
+					enctype: 'multipart/form-data',
+					params: {
+						title: 'title',
+						text: 'text',
+						url: 'url',
+						files: [{ name: 'images', accept: ['image/*'] }]
+					}
 				},
 				display: 'standalone',
 				background_color: '#f0e6d3',

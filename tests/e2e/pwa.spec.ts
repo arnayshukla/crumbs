@@ -12,9 +12,15 @@ test.describe('PWA', () => {
 		expect(manifest?.display).toBe('standalone');
 		expect(manifest?.icons?.length).toBeGreaterThan(0);
 		expect(manifest?.share_target).toMatchObject({
-			action: '/capture',
+			action: '/capture/android',
 			method: 'POST',
-			params: { title: 'title', text: 'text', url: 'url' }
+			enctype: 'multipart/form-data',
+			params: {
+				title: 'title',
+				text: 'text',
+				url: 'url',
+				files: [{ name: 'images', accept: ['image/*'] }]
+			}
 		});
 	});
 

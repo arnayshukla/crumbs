@@ -153,6 +153,31 @@ test.describe('Intentional feature set', () => {
 		);
 	});
 
+	test('Android Share Target immediately saves text, a link, and multiple images', async ({ authenticatedPage: page }) => {
+		const title = `Android capture ${Date.now()}`;
+		const capturedSuccessfully = await page.evaluate(async (captureTitle) => {
+			const form = new FormData();
+			form.append('title', captureTitle);
+			form.append('text', 'Shared from Android');
+			form.append('url', 'https://www.amazon.in/example');
+			form.append('images', new File([new Uint8Array([1])], 'first.png', { type: 'image/png' }));
+			form.append('images', new File([new Uint8Array([2])], 'second.png', { type: 'image/png' }));
+			return (await fetch('/capture/android', { method: 'POST', body: form })).ok;
+		}, title);
+		expect(capturedSuccessfully).toBe(true);
+
+		const notes = (await (await page.request.get('/api/notes')).json()) as Array<{
+			title: string;
+			content: string;
+			attachments?: Array<{ featured: boolean }>;
+		}>;
+		const captured = notes.find((note) => note.title === title);
+		expect(captured?.content).toContain('Shared from Android');
+		expect(captured?.content).toContain('#text #link #image #amazon');
+		expect(captured?.attachments).toHaveLength(2);
+		expect(captured?.attachments?.filter((attachment) => attachment.featured)).toHaveLength(1);
+	});
+
 	test('capture-only token saves shared input and cannot read notes', async ({ authenticatedPage: page }, testInfo) => {
 		const tokenName = `iPhone ${testInfo.workerIndex}-${Date.now()}`;
 		await page.goto('/settings/capture');
