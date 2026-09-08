@@ -284,7 +284,7 @@ def build_share_workflow() -> dict[str, Any]:
                         # image as a multipart attachment.
                         ("images", 5, file_attachment(images_id, "Images")),
                         ("client", 0, text_field("apple-shortcut")),
-                        ("clientVersion", 0, text_field("2")),
+                        ("clientVersion", 0, text_field("3")),
                     ]
                 ),
                 "WFURL": token_string("", endpoint_id, "Text"),

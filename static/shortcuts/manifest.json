@@ -1,0 +1,13 @@
+{
+  "generatorSha256": "044d58bb618c1286dd5723c4d8f9aa6510a25b5d36caa314f9989c3e91a5e1bf",
+  "artifacts": {
+    "capture-to-crumbs.shortcut": {
+      "version": "3",
+      "sha256": "57c0d520667d8a3367a657575702748a52bde4b43d6bdb6d5ea296ca27235831"
+    },
+    "voice-to-crumbs.shortcut": {
+      "version": "1",
+      "sha256": "b4fed68b3ab64f962854b69b3c6d13823f6e30b2f7e272e7ae5e7159471345be"
+    }
+  }
+}

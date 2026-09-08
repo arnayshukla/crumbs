@@ -13,8 +13,9 @@
   },
   "scripts": {
     "dev": "vite dev",
-    "build": "npx tsx scripts/generate-openapi.ts && vite build",
+    "build": "npm run shortcuts:verify && npx tsx scripts/generate-openapi.ts && vite build",
     "openapi": "npx tsx scripts/generate-openapi.ts",
+    "shortcuts:verify": "node scripts/verify-shortcut-artifacts.mjs",
     "preview": "vite preview",
     "start": "node scripts/apply-pending-restore.mjs && node build",
     "prepare": "svelte-kit sync || echo ''",
