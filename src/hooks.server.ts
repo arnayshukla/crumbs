@@ -13,7 +13,8 @@ const PUBLIC_EXACT_PATHS = new Set([
 const PUBLIC_PATH_PREFIXES = [
 	'/api/auth/oauth',
 	'/s/',
-	'/api/shared'
+	'/api/shared',
+	'/shortcuts/install/'
 ];
 
 export const handle: Handle = async ({ event, resolve }) => {

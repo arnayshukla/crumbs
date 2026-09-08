@@ -3,8 +3,10 @@ import { APPLE_SHORTCUTS, shortcutSetupValues } from './apple-shortcuts.js';
 
 describe('Apple Shortcut installers', () => {
 	it('ships separate public installers for sharing and voice capture', () => {
-		expect(APPLE_SHORTCUTS.share.installUrl).toBe('/shortcuts/capture-to-crumbs.shortcut');
-		expect(APPLE_SHORTCUTS.voice.installUrl).toBe('/shortcuts/voice-to-crumbs.shortcut');
+		expect(APPLE_SHORTCUTS.share.installUrl).toBe('/shortcuts/install/capture-to-crumbs');
+		expect(APPLE_SHORTCUTS.voice.installUrl).toBe('/shortcuts/install/voice-to-crumbs');
+		expect(APPLE_SHORTCUTS.share.filename).toBe('Capture to Crumbs.shortcut');
+		expect(APPLE_SHORTCUTS.voice.filename).toBe('Voice to Crumbs.shortcut');
 		expect(APPLE_SHORTCUTS.share.tokenName).not.toBe(APPLE_SHORTCUTS.voice.tokenName);
 	});
 
