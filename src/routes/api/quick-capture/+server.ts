@@ -21,8 +21,9 @@ const captureInputSchema = z.object({
 
 const responseHeaders = {
 	'Cache-Control': 'no-store',
+	Vary: 'Accept',
 	'Access-Control-Allow-Origin': '*',
-	'Access-Control-Allow-Headers': 'Authorization, Content-Type, Idempotency-Key',
+	'Access-Control-Allow-Headers': 'Accept, Authorization, Content-Type, Idempotency-Key',
 	'Access-Control-Allow-Methods': 'POST, OPTIONS'
 };
 
@@ -30,6 +31,29 @@ type CaptureFields = z.infer<typeof captureInputSchema>;
 
 interface CaptureRequest extends CaptureFields {
 	images: File[];
+}
+
+function captureResponse(request: Request, payload: Record<string, unknown>, status: number): Response {
+	const wantsText = request.headers
+		.get('accept')
+		?.split(',')
+		.some((value) => value.trim().split(';', 1)[0] === 'text/plain');
+	if (wantsText) {
+		const message =
+			typeof payload.message === 'string'
+				? payload.message
+				: typeof payload.error === 'string'
+					? payload.error
+					: status < 400
+						? 'Crumb captured'
+						: 'Capture failed';
+		const body = typeof payload.warning === 'string' ? `${message} · ${payload.warning}` : message;
+		return new Response(body, {
+			status,
+			headers: { ...responseHeaders, 'Content-Type': 'text/plain; charset=utf-8' }
+		});
+	}
+	return json(payload, { status, headers: responseHeaders });
 }
 
 function formText(formData: FormData, key: string): string | undefined {
@@ -66,24 +90,24 @@ export const OPTIONS: RequestHandler = async () => new Response(null, { status: 
 
 export const POST: RequestHandler = async ({ request, getClientAddress }) => {
 	if (!checkIpRateLimit(`quick-capture:${getClientAddress()}`)) {
-		return json({ error: 'Too many requests' }, { status: 429, headers: responseHeaders });
+		return captureResponse(request, { error: 'Too many requests' }, 429);
 	}
 
 	const authorization = request.headers.get('authorization');
 	const token = authorization?.startsWith('Bearer ') ? authorization.slice(7).trim() : '';
 	const userId = validateQuickCaptureToken(token, db);
 	if (!userId) {
-		return json({ error: 'Unauthorized' }, { status: 401, headers: responseHeaders });
+		return captureResponse(request, { error: 'Unauthorized' }, 401);
 	}
 
 	let capture: CaptureRequest | null;
 	try {
 		capture = await parseCaptureRequest(request);
 	} catch {
-		return json({ error: 'Request body must be valid JSON or multipart form data' }, { status: 400, headers: responseHeaders });
+		return captureResponse(request, { error: 'Request body must be valid JSON or multipart form data' }, 400);
 	}
 	if (!capture) {
-		return json({ error: 'Invalid capture fields' }, { status: 400, headers: responseHeaders });
+		return captureResponse(request, { error: 'Invalid capture fields' }, 400);
 	}
 	try {
 		if (capture.images.length + capture.imageUrls.length > 10) {
@@ -100,14 +124,15 @@ export const POST: RequestHandler = async ({ request, getClientAddress }) => {
 			images: [...capture.images, ...remoteImages],
 			idempotencyKey: request.headers.get('idempotency-key')?.trim().slice(0, 256) || undefined
 		});
-		return json(
-			{ ...result, warning: skippedImages > 0 ? `${skippedImages} selected image${skippedImages === 1 ? '' : 's'} could not be added` : undefined },
-			{ status: result.replayed ? 200 : 201, headers: responseHeaders }
-		);
+		const warning =
+			skippedImages > 0
+				? `${skippedImages} selected image${skippedImages === 1 ? '' : 's'} could not be added`
+				: undefined;
+		return captureResponse(request, { ...result, warning }, result.replayed ? 200 : 201);
 	} catch (error) {
 		if (error instanceof CaptureValidationError) {
-			return json({ error: error.message }, { status: 400, headers: responseHeaders });
+			return captureResponse(request, { error: error.message }, 400);
 		}
-		return json({ error: 'Could not capture crumb' }, { status: 500, headers: responseHeaders });
+		return captureResponse(request, { error: 'Could not capture crumb' }, 500);
 	}
 };

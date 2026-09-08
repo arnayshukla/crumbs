@@ -203,6 +203,12 @@ test.describe('Intentional feature set', () => {
 			data: { input: 'Should not save' }
 		});
 		expect(unauthorized.status()).toBe(401);
+		const shortcutUnauthorized = await page.request.post('/api/quick-capture', {
+			headers: { Accept: 'text/plain', Authorization: 'Bearer invalid-capture-token' },
+			multipart: { input: 'Should not save' }
+		});
+		expect(shortcutUnauthorized.status()).toBe(401);
+		expect(await shortcutUnauthorized.text()).toBe('Unauthorized');
 
 		const emptyCapture = await page.request.post('/api/quick-capture', {
 			headers: { Authorization: `Bearer ${token}` },
@@ -235,7 +241,7 @@ test.describe('Intentional feature set', () => {
 		const imageCapture = await page.request.post('/api/quick-capture', {
 			headers: {
 				Authorization: `Bearer ${token}`,
-				Origin: new URL(page.url()).origin
+				Accept: 'text/plain'
 			},
 			multipart: {
 				title: imageTitle,
@@ -247,7 +253,15 @@ test.describe('Intentional feature set', () => {
 				}
 			}
 		});
-		expect(imageCapture.status(), await imageCapture.text()).toBe(201);
+		expect(imageCapture.status()).toBe(201);
+		expect(await imageCapture.text()).toBe('Crumb captured');
+
+		const csrfProtected = await page.request.post('/api/auth/login', {
+			headers: { Origin: 'https://attacker.example' },
+			form: { email: 'attacker@example.com', password: 'irrelevant' }
+		});
+		expect(csrfProtected.status()).toBe(403);
+		expect(await csrfProtected.text()).toContain('Cross-site POST form submissions are forbidden');
 		const imageNotes = (await (await page.request.get('/api/notes')).json()) as Array<{
 			title: string;
 			content: string;
