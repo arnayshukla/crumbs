@@ -855,6 +855,11 @@
                     "type": "string",
                     "maxLength": 32
                   },
+                  "imageCount": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 10
+                  },
                   "imageUrls": {
                     "type": "array",
                     "maxItems": 10,
@@ -920,6 +925,11 @@
                     "type": "string",
                     "maxLength": 32
                   },
+                  "imageCount": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 10
+                  },
                   "imageUrls": {
                     "type": "array",
                     "maxItems": 10,
@@ -956,6 +966,76 @@
             "schema": {
               "type": "string",
               "maxLength": 256
+            }
+          }
+        ]
+      }
+    },
+    "/api/quick-capture/{id}/attachments": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "post": {
+        "tags": [
+          "Quick-capture"
+        ],
+        "responses": {
+          "201": {
+            "description": "Image added to the newly captured crumb"
+          },
+          "400": {
+            "description": "Invalid image or capture image limits exceeded"
+          },
+          "401": {
+            "description": "Invalid or revoked capture token"
+          },
+          "404": {
+            "description": "Capture upload session not found or expired"
+          },
+          "429": {
+            "description": "Too many requests"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "image/*": {
+              "schema": {
+                "type": "string",
+                "format": "binary",
+                "maxLength": 10485760
+              }
+            },
+            "application/octet-stream": {
+              "schema": {
+                "type": "string",
+                "format": "binary",
+                "maxLength": 10485760
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "quickCaptureToken": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-Crumbs-Filename",
+            "in": "header",
+            "required": false,
+            "description": "Optional filename for the uploaded image",
+            "schema": {
+              "type": "string",
+              "maxLength": 240
             }
           }
         ]

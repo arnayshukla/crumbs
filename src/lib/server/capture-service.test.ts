@@ -45,4 +45,20 @@ describe('capture service', () => {
 		await expect(captureCrumb(db, user.id, { input: '', images: [] }))
 			.rejects.toBeInstanceOf(CaptureValidationError);
 	});
+
+	it('creates an image placeholder without retaining the Shortcut image identifier', async () => {
+		const { db } = createTestDb({ seedUser: true });
+		const user = db.select().from(users).get()!;
+		const result = await captureCrumb(db, user.id, {
+			input: '1e7f18dd-cd0d-46e5-a00d-79372485604f',
+			images: [],
+			imageCount: 2,
+			client: 'apple-shortcut',
+			clientVersion: '4',
+			tags: 'gallery'
+		});
+		const note = db.select().from(notes).where(eq(notes.id, result.crumb.id)).get();
+
+		expect(note).toMatchObject({ title: 'Shared images', content: '#image #gallery' });
+	});
 });

@@ -25,6 +25,7 @@ export interface CaptureInput {
 	mode?: CaptureMode;
 	client?: CaptureClient;
 	clientVersion?: string;
+	imageCount?: number;
 	images: File[];
 	idempotencyKey?: string;
 }
@@ -73,6 +74,12 @@ function fallbackHostname(sourceUrl: string): string {
 	}
 }
 
+function captureText(input: CaptureInput): string {
+	if (input.client !== 'apple-shortcut' || !input.imageCount) return input.input;
+	const uuidList = /^(?:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})(?:\s+(?:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}))*$/i;
+	return uuidList.test(input.input.trim()) ? '' : input.input;
+}
+
 function findIdempotentCapture(database: Db, userId: number, key: string) {
 	return database
 		.select({ id: notes.id, title: notes.title })
@@ -84,7 +91,9 @@ function findIdempotentCapture(database: Db, userId: number, key: string) {
 
 export async function captureCrumb(database: Db, userId: number, input: CaptureInput): Promise<CaptureResult> {
 	validateImages(input.images);
-	if (!input.input && !input.url && input.images.length === 0) {
+	const expectedImageCount = Math.max(input.images.length, input.imageCount ?? 0);
+	const text = captureText(input);
+	if (!text && !input.url && expectedImageCount === 0) {
 		throw new CaptureValidationError('Capture must contain text, a URL, or an image');
 	}
 
@@ -100,14 +109,14 @@ export async function captureCrumb(database: Db, userId: number, input: CaptureI
 		}
 	}
 
-	const sourceUrl = findSharedUrl(input.url?.trim() ?? '', input.input);
+	const sourceUrl = findSharedUrl(input.url?.trim() ?? '', text);
 	const draft = buildCaptureDraft({
-		title: input.title || (input.images.length > 0 ? `Shared image${input.images.length === 1 ? '' : 's'}` : undefined),
-		text: input.input,
+		title: input.title || (expectedImageCount > 0 ? `Shared image${expectedImageCount === 1 ? '' : 's'}` : undefined),
+		text,
 		url: input.url,
 		tags: input.tags,
 		mode: input.mode,
-		imageCount: input.images.length
+		imageCount: expectedImageCount
 	});
 	const createdCrumb = createNote(database, userId, draft);
 	let crumb = {
@@ -144,7 +153,7 @@ export async function captureCrumb(database: Db, userId: number, input: CaptureI
 		const preview = await fetchLinkPreview(sourceUrl);
 		if (preview) {
 			let previewImageSaved = false;
-			if (preview.image && input.images.length === 0) {
+			if (preview.image && expectedImageCount === 0) {
 				try {
 					await saveAttachment(database, crumb.id, preview.image, userId, null, true);
 					previewImageSaved = true;
@@ -158,12 +167,12 @@ export async function captureCrumb(database: Db, userId: number, input: CaptureI
 			const enrichedDraft = buildCaptureDraft({
 				title: titleIsFallback && preview.metadata.title ? preview.metadata.title : crumb.title,
 				text: contentHasBody
-					? input.input
-					: [input.input, preview.metadata.description].filter(Boolean).join('\n\n'),
+					? text
+					: [text, preview.metadata.description].filter(Boolean).join('\n\n'),
 				url: sourceUrl,
 				tags: input.tags,
 				mode: input.mode,
-				imageCount: input.images.length + (previewImageSaved ? 1 : 0)
+				imageCount: expectedImageCount + (previewImageSaved ? 1 : 0)
 			});
 			if (enrichedDraft.title !== crumb.title || enrichedDraft.content !== crumb.content) {
 				const updated = updateNote(database, userId, crumb.id, enrichedDraft);

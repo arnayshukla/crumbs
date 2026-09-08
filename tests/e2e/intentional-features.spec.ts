@@ -290,6 +290,84 @@ test.describe('Intentional feature set', () => {
 		expect(imageNote?.content).toBe('#image #photos #work');
 		expect(imageNote?.attachments).toMatchObject([{ featured: true, filename: 'shortcut.png' }]);
 
+		const shortcutImageIdentifier = '1e7f18dd-cd0d-46e5-a00d-79372485604f';
+		const rawCapture = await page.request.post('/api/quick-capture?response=crumb-id', {
+			headers: { Accept: 'text/plain', Authorization: `Bearer ${token}` },
+			form: {
+				input: shortcutImageIdentifier,
+				tags: 'gallery later',
+				imageCount: '2',
+				client: 'apple-shortcut',
+				clientVersion: '4'
+			}
+		});
+		const rawCaptureId = (await rawCapture.text()).trim();
+		expect(rawCapture.status(), rawCaptureId).toBe(201);
+		expect(rawCaptureId).toMatch(/^[0-9a-f-]{36}$/);
+
+		const firstRawImage = await page.request.post(
+			`/api/quick-capture/${rawCaptureId}/attachments`,
+			{
+				headers: {
+					Accept: 'text/plain',
+					Authorization: `Bearer ${token}`,
+					'Content-Type': 'image/png',
+					'X-Crumbs-Filename': 'first.png'
+				},
+				data: Buffer.from(
+					'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=',
+					'base64'
+				)
+			}
+		);
+		expect(firstRawImage.status()).toBe(201);
+		expect(await firstRawImage.text()).toBe('Image added');
+
+		const secondRawImage = await page.request.post(
+			`/api/quick-capture/${rawCaptureId}/attachments`,
+			{
+				headers: {
+					Accept: 'text/plain',
+					Authorization: `Bearer ${token}`,
+					'Content-Type': 'application/octet-stream'
+				},
+				data: Buffer.from([0xff, 0xd8, 0xff, 0x00])
+			}
+		);
+		expect(secondRawImage.status()).toBe(201);
+
+		const rawImageNotes = (await (await page.request.get('/api/notes')).json()) as Array<{
+			id: string;
+			title: string;
+			content: string;
+			attachments?: Array<{ featured: boolean; filename: string }>;
+		}>;
+		const rawImageNote = rawImageNotes.find((note) => note.id === rawCaptureId);
+		expect(rawImageNote).toMatchObject({
+			title: 'Shared images',
+			content: '#image #gallery #later'
+		});
+		expect(rawImageNote?.content).not.toContain(shortcutImageIdentifier);
+		expect(rawImageNote?.attachments).toHaveLength(2);
+		expect(rawImageNote?.attachments?.filter((attachment) => attachment.featured)).toHaveLength(1);
+
+		const ordinaryNoteResponse = await page.request.post('/api/notes', {
+			data: { title: 'Ordinary note', content: '' }
+		});
+		const ordinaryNote = (await ordinaryNoteResponse.json()) as { id: string };
+		const forbiddenRawUpload = await page.request.post(
+			`/api/quick-capture/${ordinaryNote.id}/attachments`,
+			{
+				headers: {
+					Accept: 'text/plain',
+					Authorization: `Bearer ${token}`,
+					'Content-Type': 'image/jpeg'
+				},
+				data: Buffer.from([0xff, 0xd8, 0xff, 0x00])
+			}
+		);
+		expect(forbiddenRawUpload.status()).toBe(404);
+
 		const multipleImagesTitle = `Shared images ${Date.now()}`;
 		const multipleImagesCapture = await page.evaluate(async ({ token, title }) => {
 			const formData = new FormData();

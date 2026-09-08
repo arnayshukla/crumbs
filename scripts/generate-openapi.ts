@@ -123,6 +123,7 @@ for (const fullPath of files) {
 				mode: { type: 'string', enum: ['auto', 'voice'] },
 				client: { type: 'string', enum: ['ios-share', 'apple-shortcut', 'apple-watch', 'bookmarklet', 'android-share'] },
 				clientVersion: { type: 'string', maxLength: 32 },
+				imageCount: { type: 'integer', minimum: 0, maximum: 10 },
 				imageUrls: {
 					type: 'array',
 					maxItems: 10,
@@ -162,6 +163,31 @@ for (const fullPath of files) {
 				'201': { description: 'Crumb captured' },
 				'400': { description: 'Invalid capture input' },
 				'401': { description: 'Invalid or revoked capture token' },
+				'429': { description: 'Too many requests' }
+			};
+		}
+
+		if (apiPath === '/api/quick-capture/{id}/attachments' && method === 'post') {
+			operation.security = [{ quickCaptureToken: [] }];
+			operation.parameters = [{
+				name: 'X-Crumbs-Filename',
+				in: 'header',
+				required: false,
+				description: 'Optional filename for the uploaded image',
+				schema: { type: 'string', maxLength: 240 }
+			}];
+			operation.requestBody = {
+				required: true,
+				content: {
+					'image/*': { schema: { type: 'string', format: 'binary', maxLength: 10 * 1024 * 1024 } },
+					'application/octet-stream': { schema: { type: 'string', format: 'binary', maxLength: 10 * 1024 * 1024 } }
+				}
+			};
+			operation.responses = {
+				'201': { description: 'Image added to the newly captured crumb' },
+				'400': { description: 'Invalid image or capture image limits exceeded' },
+				'401': { description: 'Invalid or revoked capture token' },
+				'404': { description: 'Capture upload session not found or expired' },
 				'429': { description: 'Too many requests' }
 			};
 		}
