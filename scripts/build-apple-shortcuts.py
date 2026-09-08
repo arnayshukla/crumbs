@@ -166,14 +166,19 @@ def menu_actions(prompt: str) -> tuple[list[dict[str, Any]], str]:
     return actions, result_id
 
 
-def response_actions() -> list[dict[str, Any]]:
-    # iOS can expose an application/json response from Get Contents of URL as
-    # Text instead of a Dictionary. The request action already stops the
-    # workflow for HTTP failures, so avoid a fragile conversion on success.
+def response_actions(request_id: str) -> list[dict[str, Any]]:
+    # Quick Capture negotiates a plain-text response for Apple Shortcuts, so
+    # the notification can display the server's actual success or error text
+    # without relying on iOS to coerce Text into a Dictionary.
     return [
         action(
             "is.workflow.actions.notification",
-            {"WFNotificationActionBody": "Crumb captured", "UUID": new_id()},
+            {
+                "WFNotificationActionBody": token_string(
+                    "", request_id, "Contents of URL"
+                ),
+                "UUID": new_id(),
+            },
         )
     ]
 
@@ -250,6 +255,7 @@ def build_share_workflow() -> dict[str, Any]:
             {
                 "WFHTTPHeaders": dictionary_value(
                     [
+                        ("Accept", 0, text_field("text/plain")),
                         (
                             "Authorization",
                             0,
@@ -273,7 +279,7 @@ def build_share_workflow() -> dict[str, Any]:
                 "UUID": request_id,
             },
         ),
-        *response_actions(),
+        *response_actions(request_id),
     ]
     return base_workflow(actions, share_sheet=True)
 
@@ -320,6 +326,7 @@ def build_voice_workflow() -> dict[str, Any]:
             {
                 "WFHTTPHeaders": dictionary_value(
                     [
+                        ("Accept", 0, text_field("text/plain")),
                         (
                             "Authorization",
                             0,
@@ -346,7 +353,7 @@ def build_voice_workflow() -> dict[str, Any]:
                 "UUID": request_id,
             },
         ),
-        *response_actions(),
+        *response_actions(request_id),
         action(
             "is.workflow.actions.conditional",
             {"GroupingIdentifier": dictation_condition_id, "WFControlFlowMode": 1},

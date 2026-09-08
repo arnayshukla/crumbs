@@ -1,7 +1,8 @@
 import type { Handle } from '@sveltejs/kit';
-import { redirect } from '@sveltejs/kit';
+import { json, redirect, text } from '@sveltejs/kit';
 import { validateSession, isSetupComplete } from '$lib/server/auth.js';
 import { validateApiKey, getUserForApiKey } from '$lib/server/api-keys.js';
+import { isForbiddenCrossOriginForm } from '$lib/server/csrf.js';
 
 const PUBLIC_EXACT_PATHS = new Set([
 	'/login',
@@ -19,6 +20,13 @@ const PUBLIC_PATH_PREFIXES = [
 
 export const handle: Handle = async ({ event, resolve }) => {
 	const { pathname } = event.url;
+
+	if (isForbiddenCrossOriginForm(event.request, event.url)) {
+		const message = `Cross-site ${event.request.method} form submissions are forbidden`;
+		return event.request.headers.get('accept') === 'application/json'
+			? json({ message }, { status: 403 })
+			: text(message, { status: 403 });
+	}
 
 	// Initialize locals
 	event.locals.user = null;
