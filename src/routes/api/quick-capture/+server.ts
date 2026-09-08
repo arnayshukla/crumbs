@@ -2,29 +2,26 @@ import { json } from '@sveltejs/kit';
 import { z } from 'zod';
 import type { RequestHandler } from './$types.js';
 import { db } from '$lib/server/db/index.js';
-import { createNote, deleteNote } from '$lib/server/notes-service.js';
-import { saveAttachment } from '$lib/server/attachments.js';
 import { validateQuickCaptureToken } from '$lib/server/quick-capture-tokens.js';
 import { checkIpRateLimit } from '$lib/server/ip-rate-limit.js';
-import { buildCaptureDraft } from '$lib/utils/capture.js';
+import { CAPTURE_CLIENTS, CAPTURE_MODES } from '$lib/utils/capture.js';
+import { captureCrumb, CaptureValidationError } from '$lib/server/capture-service.js';
 
 const captureInputSchema = z.object({
 	input: z.string().trim().max(50_000).optional().default(''),
 	title: z.string().trim().max(500).optional(),
 	url: z.string().trim().max(4_096).optional(),
-	tags: z.string().trim().max(1_000).optional()
+	tags: z.string().trim().max(1_000).optional(),
+	mode: z.enum(CAPTURE_MODES).optional(),
+	client: z.enum(CAPTURE_CLIENTS).optional(),
+	clientVersion: z.string().trim().max(32).optional()
 }).strict();
 
 const noStoreHeaders = { 'Cache-Control': 'no-store' };
-const MAX_IMAGES = 10;
-const MAX_IMAGE_SIZE = 10 * 1024 * 1024;
-const MAX_TOTAL_IMAGE_SIZE = 50 * 1024 * 1024;
 
-interface CaptureRequest {
-	input: string;
-	title?: string;
-	url?: string;
-	tags?: string;
+type CaptureFields = z.infer<typeof captureInputSchema>;
+
+interface CaptureRequest extends CaptureFields {
 	images: File[];
 }
 
@@ -41,7 +38,10 @@ async function parseCaptureRequest(request: Request): Promise<CaptureRequest | n
 			input: formText(formData, 'input') ?? '',
 			title: formText(formData, 'title'),
 			url: formText(formData, 'url'),
-			tags: formText(formData, 'tags')
+			tags: formText(formData, 'tags'),
+			mode: formText(formData, 'mode'),
+			client: formText(formData, 'client'),
+			clientVersion: formText(formData, 'clientVersion')
 		});
 		if (!parsed.success) return null;
 		return {
@@ -75,39 +75,16 @@ export const POST: RequestHandler = async ({ request, getClientAddress }) => {
 	if (!capture) {
 		return json({ error: 'Invalid capture fields' }, { status: 400, headers: noStoreHeaders });
 	}
-	if (!capture.input && !capture.url && capture.images.length === 0) {
-		return json({ error: 'Capture must contain text, a URL, or an image' }, { status: 400, headers: noStoreHeaders });
-	}
-	if (capture.images.length > MAX_IMAGES) {
-		return json({ error: `A capture can contain at most ${MAX_IMAGES} images` }, { status: 400, headers: noStoreHeaders });
-	}
-	if (capture.images.some((file) => !file.type.startsWith('image/'))) {
-		return json({ error: 'Only image files are allowed' }, { status: 400, headers: noStoreHeaders });
-	}
-	if (capture.images.some((file) => file.size > MAX_IMAGE_SIZE)) {
-		return json({ error: 'Each image must be 10MB or smaller' }, { status: 400, headers: noStoreHeaders });
-	}
-	if (capture.images.reduce((total, file) => total + file.size, 0) > MAX_TOTAL_IMAGE_SIZE) {
-		return json({ error: 'Images must be 50MB or smaller in total' }, { status: 400, headers: noStoreHeaders });
-	}
-
-	const draft = buildCaptureDraft({
-		title: capture.title || (capture.images.length > 0 ? `Shared image${capture.images.length === 1 ? '' : 's'}` : undefined),
-		text: capture.input,
-		url: capture.url,
-		tags: capture.tags
-	});
-	const crumb = createNote(db, userId, draft);
 	try {
-		for (const [index, image] of capture.images.entries()) {
-			await saveAttachment(db, crumb.id, image, userId, null, index === 0);
+		const result = await captureCrumb(db, userId, {
+			...capture,
+			idempotencyKey: request.headers.get('idempotency-key')?.trim().slice(0, 256) || undefined
+		});
+		return json(result, { status: result.replayed ? 200 : 201, headers: noStoreHeaders });
+	} catch (error) {
+		if (error instanceof CaptureValidationError) {
+			return json({ error: error.message }, { status: 400, headers: noStoreHeaders });
 		}
-	} catch {
-		await deleteNote(db, userId, crumb.id);
-		return json({ error: 'Could not save the captured images' }, { status: 500, headers: noStoreHeaders });
+		return json({ error: 'Could not capture crumb' }, { status: 500, headers: noStoreHeaders });
 	}
-	return json(
-		{ message: 'Crumb captured', crumb: { id: crumb.id, title: crumb.title } },
-		{ status: 201, headers: noStoreHeaders }
-	);
 };

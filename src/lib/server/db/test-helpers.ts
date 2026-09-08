@@ -148,6 +148,17 @@ export function createTestDb(options?: { seedUser?: boolean }) {
 		CREATE UNIQUE INDEX quick_capture_tokens_key_hash_unique ON quick_capture_tokens(key_hash);
 		CREATE INDEX quick_capture_tokens_user_id_idx ON quick_capture_tokens(user_id);
 
+		CREATE TABLE capture_requests (
+			id TEXT PRIMARY KEY,
+			user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+			note_id TEXT NOT NULL REFERENCES notes(id) ON DELETE CASCADE,
+			idempotency_key TEXT NOT NULL,
+			created_at INTEGER NOT NULL
+		);
+		CREATE UNIQUE INDEX capture_requests_user_key_unique ON capture_requests(user_id, idempotency_key);
+		CREATE INDEX capture_requests_note_id_idx ON capture_requests(note_id);
+		CREATE INDEX capture_requests_created_at_idx ON capture_requests(created_at);
+
 		CREATE TABLE user_preferences (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			user_id INTEGER NOT NULL REFERENCES users(id),

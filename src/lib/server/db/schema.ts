@@ -148,6 +148,26 @@ export const quickCaptureTokens = sqliteTable(
 	]
 );
 
+export const captureRequests = sqliteTable(
+	'capture_requests',
+	{
+		id: text('id').primaryKey(),
+		userId: integer('user_id')
+			.references(() => users.id, { onDelete: 'cascade' })
+			.notNull(),
+		noteId: text('note_id')
+			.references(() => notes.id, { onDelete: 'cascade' })
+			.notNull(),
+		idempotencyKey: text('idempotency_key').notNull(),
+		createdAt: integer('created_at', { mode: 'timestamp' }).notNull()
+	},
+	(table) => [
+		uniqueIndex('capture_requests_user_key_unique').on(table.userId, table.idempotencyKey),
+		index('capture_requests_note_id_idx').on(table.noteId),
+		index('capture_requests_created_at_idx').on(table.createdAt)
+	]
+);
+
 export const syncLog = sqliteTable(
 	'sync_log',
 	{

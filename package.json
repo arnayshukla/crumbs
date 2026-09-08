@@ -55,6 +55,7 @@
     "argon2": "^0.45.1",
     "better-sqlite3": "^11.10.0",
     "drizzle-orm": "^0.45.2",
+    "entities": "^7.0.1",
     "idb": "^8.0.3",
     "lucide-svelte": "^0.577.0",
     "markdown-it": "^15.0.1",

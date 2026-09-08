@@ -817,13 +817,9 @@
               "schema": {
                 "type": "object",
                 "additionalProperties": false,
-                "required": [
-                  "input"
-                ],
                 "properties": {
                   "input": {
                     "type": "string",
-                    "minLength": 1,
                     "maxLength": 50000
                   },
                   "title": {
@@ -833,6 +829,93 @@
                   "url": {
                     "type": "string",
                     "maxLength": 4096
+                  },
+                  "tags": {
+                    "type": "string",
+                    "maxLength": 1000
+                  },
+                  "mode": {
+                    "type": "string",
+                    "enum": [
+                      "auto",
+                      "voice"
+                    ]
+                  },
+                  "client": {
+                    "type": "string",
+                    "enum": [
+                      "ios-share",
+                      "apple-watch",
+                      "bookmarklet",
+                      "android-share"
+                    ]
+                  },
+                  "clientVersion": {
+                    "type": "string",
+                    "maxLength": 32
+                  }
+                },
+                "anyOf": [
+                  {
+                    "required": [
+                      "input"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "url"
+                    ]
+                  }
+                ]
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "input": {
+                    "type": "string",
+                    "maxLength": 50000
+                  },
+                  "title": {
+                    "type": "string",
+                    "maxLength": 500
+                  },
+                  "url": {
+                    "type": "string",
+                    "maxLength": 4096
+                  },
+                  "tags": {
+                    "type": "string",
+                    "maxLength": 1000
+                  },
+                  "mode": {
+                    "type": "string",
+                    "enum": [
+                      "auto",
+                      "voice"
+                    ]
+                  },
+                  "client": {
+                    "type": "string",
+                    "enum": [
+                      "ios-share",
+                      "apple-watch",
+                      "bookmarklet",
+                      "android-share"
+                    ]
+                  },
+                  "clientVersion": {
+                    "type": "string",
+                    "maxLength": 32
+                  },
+                  "images": {
+                    "type": "array",
+                    "maxItems": 10,
+                    "items": {
+                      "type": "string",
+                      "format": "binary"
+                    }
                   }
                 }
               }
@@ -842,6 +925,18 @@
         "security": [
           {
             "quickCaptureToken": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "description": "Unique value used to make retries return the original crumb instead of creating a duplicate",
+            "schema": {
+              "type": "string",
+              "maxLength": 256
+            }
           }
         ]
       }
