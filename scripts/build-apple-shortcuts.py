@@ -46,6 +46,17 @@ def output_attachment(action_id: str, output_name: str) -> dict[str, Any]:
     }
 
 
+def file_attachment(action_id: str, output_name: str) -> dict[str, Any]:
+    """Wrap an action output as a multipart Form file parameter."""
+    return {
+        "Value": {
+            "Value": output_attachment(action_id, output_name),
+            "WFSerializationType": "WFTokenAttachmentParameterState",
+        },
+        "WFSerializationType": "WFTokenAttachmentParameterState",
+    }
+
+
 def extension_input() -> dict[str, Any]:
     return {
         "Value": {"Type": "ExtensionInput"},
@@ -260,13 +271,18 @@ def build_share_workflow() -> dict[str, Any]:
                 ),
                 "WFHTTPMethod": "POST",
                 "WFHTTPBodyType": "Form",
+                # Apple uses this request variable to carry file bytes into
+                # the multipart encoder; the Form dictionary describes the
+                # field name and file type.
+                "WFRequestVariable": output_attachment(images_id, "Images"),
                 "WFFormValues": dictionary_value(
                     [
                         ("input", 0, token_string("", text_id, "Text")),
                         ("tags", 0, token_string("", menu_result_id, "Menu Result")),
-                        # Extract Images before attaching them so URLs and text are
-                        # never coerced into bogus file values.
-                        ("images", 3, output_attachment(images_id, "Images")),
+                        # Form file fields use item type 5 plus Apple's file
+                        # parameter-state wrapper. This preserves every shared
+                        # image as a multipart attachment.
+                        ("images", 5, file_attachment(images_id, "Images")),
                         ("client", 0, text_field("apple-shortcut")),
                         ("clientVersion", 0, text_field("2")),
                     ]
