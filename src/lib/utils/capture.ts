@@ -14,6 +14,7 @@ export type CaptureMode = (typeof CAPTURE_MODES)[number];
 
 export const CAPTURE_CLIENTS = [
 	'ios-share',
+	'apple-shortcut',
 	'apple-watch',
 	'bookmarklet',
 	'android-share'

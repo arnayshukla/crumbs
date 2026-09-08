@@ -845,6 +845,7 @@
                     "type": "string",
                     "enum": [
                       "ios-share",
+                      "apple-shortcut",
                       "apple-watch",
                       "bookmarklet",
                       "android-share"
@@ -909,6 +910,7 @@
                     "type": "string",
                     "enum": [
                       "ios-share",
+                      "apple-shortcut",
                       "apple-watch",
                       "bookmarklet",
                       "android-share"

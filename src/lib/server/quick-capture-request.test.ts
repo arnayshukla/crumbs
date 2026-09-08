@@ -40,4 +40,18 @@ describe('parseCaptureRequest', () => {
 
 		expect(await parseCaptureRequest(request)).toMatchObject({ input: 'Voice note', mode: 'voice', images: [] });
 	});
+
+	it('accepts the client identifier used by the Apple share Shortcut', async () => {
+		const request = new Request('https://crumbs.example/api/quick-capture', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+			body: new URLSearchParams({ input: 'Saved from iPhone', client: 'apple-shortcut' })
+		});
+
+		expect(await parseCaptureRequest(request)).toMatchObject({
+			input: 'Saved from iPhone',
+			client: 'apple-shortcut',
+			images: []
+		});
+	});
 });

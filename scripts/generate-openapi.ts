@@ -121,7 +121,7 @@ for (const fullPath of files) {
 				url: { type: 'string', maxLength: 4_096 },
 				tags: { type: 'string', maxLength: 1_000 },
 				mode: { type: 'string', enum: ['auto', 'voice'] },
-				client: { type: 'string', enum: ['ios-share', 'apple-watch', 'bookmarklet', 'android-share'] },
+				client: { type: 'string', enum: ['ios-share', 'apple-shortcut', 'apple-watch', 'bookmarklet', 'android-share'] },
 				clientVersion: { type: 'string', maxLength: 32 },
 				imageUrls: {
 					type: 'array',
