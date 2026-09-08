@@ -224,17 +224,36 @@ test.describe('Intentional feature set', () => {
 		expect(captured.status()).toBe(201);
 		expect(await captured.json()).toMatchObject({ message: 'Crumb captured', crumb: { title: captureTitle } });
 
+		const formCaptureTitle = `Shortcut form ${Date.now()}`;
+		const formCaptured = await page.request.post('/api/quick-capture', {
+			headers: { Accept: 'text/plain', Authorization: `Bearer ${token}` },
+			form: {
+				input: `${formCaptureTitle}\nhttps://www.amazon.in/example`,
+				tags: 'shopping later',
+				client: 'apple-shortcut',
+				clientVersion: '2'
+			}
+		});
+		const formBody = await formCaptured.text();
+		expect(formCaptured.status(), formBody).toBe(201);
+		expect(formBody).toBe('Crumb captured');
+
 		const forbiddenRead = await page.request.get('/api/notes', {
 			headers: { Authorization: `Bearer ${token}` }
 		});
 		expect(forbiddenRead.status()).toBe(401);
 
 		const notesResponse = await page.request.get('/api/notes');
-		const capturedNote = ((await notesResponse.json()) as Array<{ title: string; content: string }>).find(
-			(note) => note.title === captureTitle
-		);
+		const capturedNotes = (await notesResponse.json()) as Array<{ title: string; content: string }>;
+		const capturedNote = capturedNotes.find((note) => note.title === captureTitle);
 		expect(capturedNote?.content).toContain(
 			'<https://www.instagram.com/reel/example/> · #link #reel #instagram #work #later'
+		);
+		const formCapturedNote = capturedNotes.find(
+			(note) => note.title === formCaptureTitle
+		);
+		expect(formCapturedNote?.content).toContain(
+			'<https://www.amazon.in/example> · #link #amazon #shopping #later'
 		);
 
 		const imageTitle = `Shared image ${Date.now()}`;
