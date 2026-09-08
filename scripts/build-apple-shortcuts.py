@@ -166,56 +166,15 @@ def menu_actions(prompt: str) -> tuple[list[dict[str, Any]], str]:
     return actions, result_id
 
 
-def response_actions(request_id: str) -> list[dict[str, Any]]:
-    message_id = new_id()
-    condition_id = new_id()
+def response_actions() -> list[dict[str, Any]]:
+    # iOS can expose an application/json response from Get Contents of URL as
+    # Text instead of a Dictionary. The request action already stops the
+    # workflow for HTTP failures, so avoid a fragile conversion on success.
     return [
         action(
-            "is.workflow.actions.getvalueforkey",
-            {
-                "WFInput": output_attachment(request_id, "Contents of URL"),
-                "CustomOutputName": "Dictionary Value",
-                "UUID": message_id,
-                "WFDictionaryKey": "message",
-            },
-        ),
-        action(
-            "is.workflow.actions.conditional",
-            {
-                "WFInput": {
-                    "Type": "Variable",
-                    "Variable": output_attachment(message_id, "Dictionary Value"),
-                },
-                "WFControlFlowMode": 0,
-                "GroupingIdentifier": condition_id,
-                "WFCondition": 100,
-            },
-        ),
-        action(
             "is.workflow.actions.notification",
-            {
-                "WFNotificationActionBody": token_string(
-                    "", message_id, "Dictionary Value"
-                ),
-                "UUID": new_id(),
-            },
-        ),
-        action(
-            "is.workflow.actions.conditional",
-            {"GroupingIdentifier": condition_id, "WFControlFlowMode": 1},
-        ),
-        action(
-            "is.workflow.actions.notification",
-            {"WFNotificationActionBody": "Capture failed", "UUID": new_id()},
-        ),
-        action(
-            "is.workflow.actions.conditional",
-            {
-                "WFControlFlowMode": 2,
-                "GroupingIdentifier": condition_id,
-                "UUID": new_id(),
-            },
-        ),
+            {"WFNotificationActionBody": "Crumb captured", "UUID": new_id()},
+        )
     ]
 
 
@@ -314,7 +273,7 @@ def build_share_workflow() -> dict[str, Any]:
                 "UUID": request_id,
             },
         ),
-        *response_actions(request_id),
+        *response_actions(),
     ]
     return base_workflow(actions, share_sheet=True)
 
@@ -387,7 +346,7 @@ def build_voice_workflow() -> dict[str, Any]:
                 "UUID": request_id,
             },
         ),
-        *response_actions(request_id),
+        *response_actions(),
         action(
             "is.workflow.actions.conditional",
             {"GroupingIdentifier": dictation_condition_id, "WFControlFlowMode": 1},
