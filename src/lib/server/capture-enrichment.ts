@@ -5,6 +5,7 @@ import { fetchPublicResource } from './public-resource.js';
 const MAX_HTML_BYTES = 1024 * 1024;
 const MAX_PREVIEW_BYTES = 10 * 1024 * 1024;
 const ENRICHMENT_TIMEOUT_MS = 3_000;
+const CAPTURE_IMAGE_TIMEOUT_MS = 5_000;
 
 export interface LinkMetadata {
 	title: string;
@@ -85,6 +86,26 @@ function imageExtension(contentType: string): string {
 		'image/webp': 'webp'
 	};
 	return extensions[contentType] ?? 'img';
+}
+
+export async function fetchCaptureImage(imageUrl: string, index: number): Promise<File | null> {
+	try {
+		const image = await fetchPublicResource(imageUrl, {
+			maxBytes: MAX_PREVIEW_BYTES,
+			timeoutMs: CAPTURE_IMAGE_TIMEOUT_MS,
+			accept: 'image/*'
+		});
+		if (image.status < 200 || image.status >= 300 || !image.contentType.startsWith('image/')) {
+			return null;
+		}
+		return new File(
+			[new Uint8Array(image.body)],
+			`captured-image-${index + 1}.${imageExtension(image.contentType)}`,
+			{ type: image.contentType }
+		);
+	} catch {
+		return null;
+	}
 }
 
 export async function fetchLinkPreview(sourceUrl: string): Promise<LinkPreview | null> {

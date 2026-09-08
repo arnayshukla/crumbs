@@ -853,6 +853,15 @@
                   "clientVersion": {
                     "type": "string",
                     "maxLength": 32
+                  },
+                  "imageUrls": {
+                    "type": "array",
+                    "maxItems": 10,
+                    "items": {
+                      "type": "string",
+                      "format": "uri",
+                      "maxLength": 4096
+                    }
                   }
                 },
                 "anyOf": [
@@ -908,6 +917,15 @@
                   "clientVersion": {
                     "type": "string",
                     "maxLength": 32
+                  },
+                  "imageUrls": {
+                    "type": "array",
+                    "maxItems": 10,
+                    "items": {
+                      "type": "string",
+                      "format": "uri",
+                      "maxLength": 4096
+                    }
                   },
                   "images": {
                     "type": "array",
