@@ -53,16 +53,6 @@ def extension_input() -> dict[str, Any]:
     }
 
 
-def extension_input_string() -> dict[str, Any]:
-    return {
-        "Value": {
-            "string": REPLACEMENT_CHARACTER,
-            "attachmentsByRange": {"{0, 1}": {"Type": "ExtensionInput"}},
-        },
-        "WFSerializationType": "WFTextTokenString",
-    }
-
-
 def token_string(
     prefix: str,
     action_id: str,
@@ -234,6 +224,7 @@ def build_share_workflow() -> dict[str, Any]:
     endpoint_id = new_id()
     token_id = new_id()
     text_id = new_id()
+    images_id = new_id()
     request_id = new_id()
     menu, menu_result_id = menu_actions("Capture to Crumbs")
     actions = [
@@ -249,6 +240,10 @@ def build_share_workflow() -> dict[str, Any]:
         action(
             "is.workflow.actions.detect.text",
             {"WFInput": extension_input(), "UUID": text_id},
+        ),
+        action(
+            "is.workflow.actions.detect.images",
+            {"WFInput": extension_input(), "UUID": images_id},
         ),
         action(
             "is.workflow.actions.downloadurl",
@@ -269,10 +264,11 @@ def build_share_workflow() -> dict[str, Any]:
                     [
                         ("input", 0, token_string("", text_id, "Text")),
                         ("tags", 0, token_string("", menu_result_id, "Menu Result")),
-                        # Apple's multipart parameter uses item type 3 for a File value.
-                        ("images", 3, extension_input_string()),
+                        # Extract Images before attaching them so URLs and text are
+                        # never coerced into bogus file values.
+                        ("images", 3, output_attachment(images_id, "Images")),
                         ("client", 0, text_field("apple-shortcut")),
-                        ("clientVersion", 0, text_field("1")),
+                        ("clientVersion", 0, text_field("2")),
                     ]
                 ),
                 "WFURL": token_string("", endpoint_id, "Text"),
