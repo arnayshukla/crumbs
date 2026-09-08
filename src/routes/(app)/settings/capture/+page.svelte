@@ -221,7 +221,7 @@
 				</ol>
 				<div class="mt-4 flex flex-wrap gap-2">
 					<button type="button" disabled={preparingShortcut !== null} class="rounded-sm bg-[var(--primary)] px-3 py-2 text-sm font-medium text-white disabled:opacity-50" onclick={() => prepareAppleShortcut('share')} data-testid="prepare-share-shortcut">1. {preparingShortcut === 'share' ? 'Creating…' : 'Create setup token'}</button>
-					<a class="rounded-sm border border-[var(--border)] px-3 py-2 text-sm" href={APPLE_SHORTCUTS.share.installUrl}>2. Install Shortcut</a>
+					<a class="rounded-sm border border-[var(--border)] px-3 py-2 text-sm" href={APPLE_SHORTCUTS.share.installUrl} download={APPLE_SHORTCUTS.share.filename}>2. Install Shortcut</a>
 				</div>
 				{#if preparedShortcut === 'share'}<p class="mt-2 text-xs text-[var(--success-text,#3a5a40)]">Setup values are ready above.</p>{/if}
 			</article>
@@ -236,11 +236,12 @@
 				</ol>
 				<div class="mt-4 flex flex-wrap gap-2">
 					<button type="button" disabled={preparingShortcut !== null} class="rounded-sm bg-[var(--primary)] px-3 py-2 text-sm font-medium text-white disabled:opacity-50" onclick={() => prepareAppleShortcut('voice')} data-testid="prepare-voice-shortcut">1. {preparingShortcut === 'voice' ? 'Creating…' : 'Create Watch token'}</button>
-					<a class="rounded-sm border border-[var(--border)] px-3 py-2 text-sm" href={APPLE_SHORTCUTS.voice.installUrl}>2. Install Shortcut</a>
+					<a class="rounded-sm border border-[var(--border)] px-3 py-2 text-sm" href={APPLE_SHORTCUTS.voice.installUrl} download={APPLE_SHORTCUTS.voice.filename}>2. Install Shortcut</a>
 				</div>
 				{#if preparedShortcut === 'voice'}<p class="mt-2 text-xs text-[var(--success-text,#3a5a40)]">Watch setup values are ready above.</p>{/if}
 			</article>
 		</div>
+		<p class="mt-3 text-xs text-[var(--text-muted)]">On iPhone or iPad, open the downloaded <code>.shortcut</code> file from Safari’s Downloads, then tap <strong>Add Shortcut</strong> and answer the two setup questions.</p>
 		<p class="mt-3 text-xs text-[var(--text-muted)]">The public installers are signed by Apple and contain no Crumbs account, domain, or token. To rotate a token, revoke the old one below, create a replacement, and reinstall the Shortcut with the new values.</p>
 		<p class="mt-2 text-xs text-[var(--text-muted)]">Apple Watch must have connectivity through its paired iPhone, Wi-Fi, or cellular. Voice uses the configured dictation language and stores text—not an audio recording.</p>
 		<div class="mt-4 space-y-2 rounded-sm border border-[var(--border-subtle)] bg-[var(--bg-base)] p-3">

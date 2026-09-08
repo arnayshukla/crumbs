@@ -136,10 +136,21 @@ test.describe('Intentional feature set', () => {
 		await page.goto('/settings/capture');
 		const shareInstaller = page.getByTestId('share-shortcut-card').getByRole('link', { name: '2. Install Shortcut' });
 		const voiceInstaller = page.getByTestId('voice-shortcut-card').getByRole('link', { name: '2. Install Shortcut' });
-		await expect(shareInstaller).toHaveAttribute('href', '/shortcuts/capture-to-crumbs.shortcut');
-		await expect(voiceInstaller).toHaveAttribute('href', '/shortcuts/voice-to-crumbs.shortcut');
-		expect((await page.request.get('/shortcuts/capture-to-crumbs.shortcut')).ok()).toBe(true);
-		expect((await page.request.get('/shortcuts/voice-to-crumbs.shortcut')).ok()).toBe(true);
+		await expect(shareInstaller).toHaveAttribute('href', '/shortcuts/install/capture-to-crumbs');
+		await expect(voiceInstaller).toHaveAttribute('href', '/shortcuts/install/voice-to-crumbs');
+		await expect(shareInstaller).toHaveAttribute('download', 'Capture to Crumbs.shortcut');
+		await expect(voiceInstaller).toHaveAttribute('download', 'Voice to Crumbs.shortcut');
+
+		for (const [path, filename] of [
+			['/shortcuts/install/capture-to-crumbs', 'Capture to Crumbs.shortcut'],
+			['/shortcuts/install/voice-to-crumbs', 'Voice to Crumbs.shortcut']
+		] as const) {
+			const response = await page.request.get(path);
+			expect(response.ok()).toBe(true);
+			expect(response.headers()['content-type']).toBe('application/octet-stream');
+			expect(response.headers()['content-disposition']).toBe(`attachment; filename="${filename}"`);
+			expect((await response.body()).byteLength).toBeGreaterThan(20_000);
+		}
 		await expect(page.getByTestId('prepare-share-shortcut')).toBeEnabled();
 		await expect(page.getByTestId('prepare-voice-shortcut')).toBeEnabled();
 	});
