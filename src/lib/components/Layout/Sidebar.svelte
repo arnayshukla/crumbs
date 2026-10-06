@@ -33,9 +33,9 @@
 {/if}
 
 <aside
-	class="fixed left-0 top-16 z-20 h-[calc(100vh-4rem)] w-64 transform border-r border-[var(--border)] bg-[var(--bg-surface)] transition-transform duration-200 {open ? 'translate-x-0' : '-translate-x-full'}"
+	class="fixed left-0 top-16 z-20 flex h-[calc(100dvh-4rem)] w-64 transform flex-col border-r border-[var(--border)] bg-[var(--bg-surface)] transition-transform duration-200 {open ? 'translate-x-0' : '-translate-x-full'}"
 >
-	<nav class="p-2">
+	<nav class="min-h-0 flex-1 overflow-y-auto overscroll-contain p-2">
 		<ul class="space-y-1">
 			{#each navItems as item}
 				<li>
@@ -71,7 +71,7 @@
 			</div>
 		{/if}
 	</nav>
-	<div class="absolute bottom-0 left-0 w-full border-t border-[var(--border-subtle)]">
+	<div class="shrink-0 border-t border-[var(--border-subtle)]">
 		<a
 			href="/settings"
 			class="flex w-full items-center gap-3 rounded-sm px-6 py-3 text-left text-sm transition-colors {$page.url.pathname.startsWith('/settings') ? 'bg-[var(--primary)]/15 text-[var(--primary)]' : 'text-[var(--text)] hover:bg-[var(--bg-base)]'}"
